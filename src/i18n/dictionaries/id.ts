@@ -11,6 +11,24 @@ export const id: Dictionary = {
     label: "Bahasa",
     names: { en: "English", id: "Bahasa Indonesia" },
   },
+  app: {
+    home: "Beranda Legoin",
+    history: "Riwayat",
+    steps: {
+      label: "Progres pindai",
+      photo: "Foto",
+      pieces: "Kepingan",
+      ideas: "Ide",
+    },
+  },
+  scan: {
+    title: "Potret kepinganmu",
+    lead: "Letakkan semua kepingan di meja polos, saling berjauhan, lalu ambil satu foto dari atas.",
+  },
+  history: {
+    title: "Riwayat pindai",
+    lead: "Pindaian sebelumnya dan ide rakitannya akan muncul di sini.",
+  },
   common: {
     inProgress: "Sedang dibangun",
     step: "Langkah",
@@ -46,7 +64,8 @@ export const id: Dictionary = {
       after: " yang kamu punya.",
     },
     lead: "Potret semua kepingan LEGO-mu dalam satu foto. Legoin mengenali jenis dan warnanya, lalu memberi tiga ide rakitan lengkap dengan part yang kurang.",
-    cta: "Lihat sistem desain",
+    ctaScan: "Mulai pindai",
+    ctaDesign: "Lihat sistem desain",
     facts: {
       parts: "13 jenis part",
       colors: "10 warna",
