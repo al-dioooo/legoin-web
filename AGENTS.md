@@ -28,7 +28,7 @@ Vitest cannot render `async` Server Components, so test them end to end or test 
 
 Follow [DESIGN.md](DESIGN.md) and check `/en/desain` before building a screen. The style is ballers-addict in LEGO colors: ink outlines, hard shadows, stickers, Dela Gothic One headings (one weight, never bold) and DM Sans text. Use the role utilities (`bg-primary`, `text-ink`, `border-ink`, `shadow-card`, ...); Tailwind's default palette is disabled, and literal colors belong only in `src/app/tokens.css`. Brick colors (`--brick-*`) paint real bricks only, always with the color name. Use one red primary button per screen; destructive actions use the `danger` outline. Status is a dot plus a label. Keep grain off photos and inventories.
 
-**Language.** English is the default (`/en`) and Indonesian ships too (`/id`). Every page lives under `src/app/[lang]`. All copy goes in `src/i18n/dictionaries`, in both `en.ts` and `id.ts`; never hard-code UI text in a component. Pages read copy with `getDictionary()` and the language with `currentLocale()`, and pass `locale` to components that show brick colors or numbers.
+**Language.** English is the default (`/en`) and Indonesian ships too (`/id`). Every page lives under `src/app/[lang]`. All copy goes in `src/i18n/dictionaries`, in both `en.ts` and `id.ts`; never hard-code UI text in a component. Pages read copy with `getDictionary()` and the language with `currentLocale()`, and pass `locale` to components that show brick colors or numbers. Dictionaries hold plain strings only: write counts as `{ one, other }` templates and fill them with `plural()` and `fill()` from `src/i18n/format.ts`, so any part of a dictionary can be passed to a Client Component.
 
 ## Data
 

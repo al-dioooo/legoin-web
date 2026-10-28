@@ -1,23 +1,21 @@
 import Image from "next/image";
-import { type Box, DetectionBox } from "@/components/ui/detection-box";
+import { DetectionBox } from "@/components/ui/detection-box";
 import { cx } from "@/lib/cx";
-
-type Photo = { src: string; width: number; height: number; alt: string };
+import type { LabeledBox } from "@/lib/detection-labels";
+import type { Photo } from "@/lib/domain";
 
 /** A scan photo with its detection boxes. No grain here: people judge brick colors on it. */
 export function DetectedPhoto({
   photo,
+  alt,
   detections,
-  selected,
-  sizes = "100vw",
   priority = false,
   className,
 }: {
   photo: Photo;
-  detections: { box: Box; label: string }[];
-  /** Index of the highlighted detection, if any. */
-  selected?: number;
-  sizes?: string;
+  alt: string;
+  /** From `labeledBoxes`; at most one is selected. */
+  detections: LabeledBox[];
   priority?: boolean;
   className?: string;
 }) {
@@ -32,17 +30,20 @@ export function DetectedPhoto({
         src={photo.src}
         width={photo.width}
         height={photo.height}
-        alt={photo.alt}
-        sizes={sizes}
+        alt={alt}
         priority={priority}
+        // Scan photos are stored already downscaled to 1200 px (people's own
+        // as data URLs), so there's nothing to optimize, and every view of a
+        // photo reuses the same URL.
+        unoptimized
         className="block h-auto w-full"
       />
-      {detections.map((detection, index) => (
+      {detections.map((detection) => (
         <DetectionBox
-          key={`${detection.label}-${detection.box.x}-${detection.box.y}`}
+          key={`${detection.box.x}-${detection.box.y}-${detection.label}`}
           box={detection.box}
           label={detection.label}
-          selected={index === selected}
+          selected={detection.selected}
         />
       ))}
     </div>

@@ -10,12 +10,12 @@ import { InventoryList } from "@/components/ui/inventory-list";
 import { Marquee } from "@/components/ui/marquee";
 import { Sticker } from "@/components/ui/sticker";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
+import { fill, plural } from "@/i18n/format";
 import {
   SAMPLE_DETECTIONS,
   SAMPLE_INVENTORY,
   SAMPLE_MISSING_COUNT,
   SAMPLE_PHOTO,
-  SAMPLE_SELECTED,
   sampleBoxes,
 } from "@/lib/sample-scan";
 
@@ -86,14 +86,13 @@ export default async function Home() {
               {sample.title}
             </h2>
             <span className="font-mono text-xs font-bold whitespace-nowrap">
-              {common.pieces(SAMPLE_DETECTIONS.length)}
+              {plural(common.pieces, SAMPLE_DETECTIONS.length, locale)}
             </span>
           </div>
           <DetectedPhoto
-            photo={{ ...SAMPLE_PHOTO, alt: sample.photoAlt }}
+            photo={SAMPLE_PHOTO}
+            alt={sample.photoAlt}
             detections={sampleBoxes(locale)}
-            selected={SAMPLE_SELECTED}
-            sizes="(min-width: 1024px) 26rem, 100vw"
             priority
             className="mt-4"
           />
@@ -108,12 +107,12 @@ export default async function Home() {
           <Card className="mt-5 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="font-mono text-xs font-bold">
-                {common.ideaOf(1, 3)}
+                {fill(common.ideaOf, { index: 1, total: 3 })}
               </span>
               <span className="flex gap-1.5">
                 <Badge tone="highlight">{sample.idea.difficulty}</Badge>
                 <Badge tone="warning">
-                  {common.missingCount(SAMPLE_MISSING_COUNT)}
+                  {plural(common.missingCount, SAMPLE_MISSING_COUNT, locale)}
                 </Badge>
               </span>
             </div>

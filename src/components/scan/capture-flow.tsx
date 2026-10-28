@@ -4,41 +4,81 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { type DragEvent, useEffect, useRef, useState } from "react";
 import { LogoMark } from "@/components/brand/logo";
+import { ScanFailureView } from "@/components/scan/scan-failure";
+import { ScanProgress } from "@/components/scan/scan-progress";
 import { Button } from "@/components/ui/button";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
-import type { Photo } from "@/lib/domain";
-import { createScan, mockOptionsFromSearch } from "@/lib/mock/api";
+import type { Photo, ScanFailure, ScanStage } from "@/lib/domain";
+import {
+  createScan,
+  MockApiError,
+  mockOptionsFromSearch,
+} from "@/lib/mock/api";
 import { EVENING_PHOTO } from "@/lib/mock/fixtures";
 import { readPhoto, validatePhoto } from "@/lib/photo";
 
-type Copy = Pick<Dictionary["scan"], "capture" | "errors">;
+type Copy = Pick<
+  Dictionary["scan"],
+  "capture" | "errors" | "progress" | "failures"
+>;
 
 type Chosen = { photo: Photo; alt: string };
 
-/** Camera, file or drag-and-drop, then a preview to retake or scan (PRD F1). */
+type Status =
+  | { kind: "idle" }
+  | { kind: "scanning"; stage: ScanStage }
+  | { kind: "failed"; reason: ScanFailure };
+
+/**
+ * Camera, file or drag-and-drop, a preview to retake or scan (PRD F1), then the
+ * pipeline's progress and, if it fails, what to do next.
+ */
 export function CaptureFlow({ copy, locale }: { copy: Copy; locale: Locale }) {
   const router = useRouter();
   const cameraInput = useRef<HTMLInputElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const takeButton = useRef<HTMLButtonElement>(null);
   const scanButton = useRef<HTMLButtonElement>(null);
+  const abort = useRef<AbortController | null>(null);
   const [chosen, setChosen] = useState<Chosen | null>(null);
+  const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
-  const [scanning, setScanning] = useState(false);
-  const hasChosen = chosen !== null;
+
+  const view = !chosen
+    ? "choose"
+    : status.kind === "idle"
+      ? "preview"
+      : status.kind;
+  const scanning = status.kind === "scanning";
 
   // Keep keyboard focus on the next thing to do after the view swaps.
+  // The progress and failure views focus their own headings.
   const firstRender = useRef(true);
   useEffect(() => {
     if (firstRender.current) {
       firstRender.current = false;
       return;
     }
-    (hasChosen ? scanButton : takeButton).current?.focus();
-  }, [hasChosen]);
+    if (view === "choose") takeButton.current?.focus();
+    if (view === "preview") scanButton.current?.focus();
+  }, [view]);
+
+  useEffect(() => {
+    if (!scanning) return;
+    const started = Date.now();
+    const timer = setInterval(
+      () => setElapsed(Math.floor((Date.now() - started) / 1000)),
+      1000,
+    );
+    return () => clearInterval(timer);
+  }, [scanning]);
+
+  // Leaving the page stops a scan in progress.
+  useEffect(() => () => abort.current?.abort(), []);
 
   async function choose(file: File | undefined) {
     if (!file) return;
@@ -64,21 +104,37 @@ export function CaptureFlow({ copy, locale }: { copy: Copy; locale: Locale }) {
   function retake() {
     setChosen(null);
     setError(null);
+    setStatus({ kind: "idle" });
+  }
+
+  function cancel() {
+    abort.current?.abort();
+    setStatus({ kind: "idle" });
   }
 
   async function scan() {
     if (!chosen) return;
-    setScanning(true);
+    const controller = new AbortController();
+    abort.current = controller;
     setError(null);
+    setElapsed(0);
+    setStatus({ kind: "scanning", stage: "detecting" });
     try {
-      const result = await createScan(
-        chosen.photo,
-        mockOptionsFromSearch(window.location.search),
-      );
+      const result = await createScan(chosen.photo, {
+        ...mockOptionsFromSearch(window.location.search),
+        signal: controller.signal,
+        onStage: (stage) => setStatus({ kind: "scanning", stage }),
+      });
       router.push(`/${locale}/scan/${result.id}`);
-    } catch {
-      setScanning(false);
-      setError(copy.errors.generic);
+    } catch (caught) {
+      // Cancelled: the preview is already back.
+      if (controller.signal.aborted) return;
+      if (caught instanceof MockApiError) {
+        setStatus({ kind: "failed", reason: caught.reason });
+      } else {
+        setStatus({ kind: "idle" });
+        setError(copy.errors.generic);
+      }
     }
   }
 
@@ -94,7 +150,22 @@ export function CaptureFlow({ copy, locale }: { copy: Copy; locale: Locale }) {
         {copy.capture.title}
       </h2>
 
-      {chosen ? (
+      {status.kind === "scanning" && chosen ? (
+        <ScanProgress
+          photo={chosen.photo}
+          stage={status.stage}
+          elapsedSeconds={elapsed}
+          copy={copy.progress}
+          onCancel={cancel}
+        />
+      ) : status.kind === "failed" ? (
+        <ScanFailureView
+          reason={status.reason}
+          copy={copy.failures}
+          onRetake={retake}
+          onRetry={scan}
+        />
+      ) : chosen ? (
         <div className="rounded-card border-[2.5px] border-ink bg-card p-4 shadow-card sm:p-5">
           <Image
             src={chosen.photo.src}
@@ -105,15 +176,10 @@ export function CaptureFlow({ copy, locale }: { copy: Copy; locale: Locale }) {
             className="block h-auto max-h-[60vh] w-full rounded-callout border-2 border-ink object-contain"
           />
           <div className="mt-4 flex flex-wrap gap-3">
-            <Button
-              ref={scanButton}
-              onClick={scan}
-              disabled={scanning}
-              aria-busy={scanning || undefined}
-            >
-              {scanning ? copy.capture.scanning : copy.capture.submit}
+            <Button ref={scanButton} onClick={scan}>
+              {copy.capture.submit}
             </Button>
-            <Button variant="secondary" onClick={retake} disabled={scanning}>
+            <Button variant="secondary" onClick={retake}>
               {copy.capture.retake}
             </Button>
           </div>
