@@ -26,7 +26,7 @@ Vitest cannot render `async` Server Components, so test them end to end or test 
 
 ## UI
 
-Follow [DESIGN.md](DESIGN.md) and check `/desain` before building a screen. Use the role utilities (`bg-primary`, `text-ink`, `bg-callout`, ...); Tailwind's default palette is disabled, and literal colors belong only in `src/app/tokens.css`. Brick colors (`--brick-*`) paint real bricks only, always with the color name. Use one red primary button per screen; destructive actions use the `danger` outline. Status is a dot plus a label. UI copy is in Bahasa Indonesia.
+Follow [DESIGN.md](DESIGN.md) and check `/desain` before building a screen. The style is ballers-addict in LEGO colors: ink outlines, hard shadows, stickers, Dela Gothic One headings (one weight, never bold) and DM Sans text. Use the role utilities (`bg-primary`, `text-ink`, `border-ink`, `shadow-card`, ...); Tailwind's default palette is disabled, and literal colors belong only in `src/app/tokens.css`. Brick colors (`--brick-*`) paint real bricks only, always with the color name. Use one red primary button per screen; destructive actions use the `danger` outline. Status is a dot plus a label. Keep grain off photos and inventories. UI copy is in Bahasa Indonesia.
 
 ## Commits
 
