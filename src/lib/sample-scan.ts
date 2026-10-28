@@ -3,7 +3,7 @@
  * replace it with a real one once the pipeline returns results.
  * Words (alt text, the idea's title and steps) live in the dictionaries.
  */
-import type { Box } from "@/components/ui/detection-box";
+
 import type { Locale } from "@/i18n/locales";
 import {
   type BrickColorId,
@@ -12,6 +12,7 @@ import {
   type PartCount,
   shortPartLabel,
 } from "@/lib/bricks";
+import type { Box } from "@/lib/domain";
 
 export const SAMPLE_PHOTO = {
   src: "/contoh/kepingan.jpg",
