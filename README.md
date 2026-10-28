@@ -43,4 +43,4 @@ Not set up yet.
 
 ## Contributing
 
-Read [AGENTS.md](AGENTS.md) before opening a pull request.
+Read [AGENTS.md](AGENTS.md) before opening a pull request. CI runs `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` on every pull request to `main`, and the PR merges only when they pass.
