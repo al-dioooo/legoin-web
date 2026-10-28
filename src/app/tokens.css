@@ -119,6 +119,11 @@
   --overlay: var(--neutral-950);
   --overlay-foreground: var(--neutral-0);
   --overlay-halo: var(--neutral-0);
+
+  /* Logo: a yellow brick in ink line art. Not red, and no red with yellow, so it never
+     reads as LEGO's own logo. src/app/icon.svg repeats these values as literals. */
+  --logo-brick: var(--yellow-300);
+  --logo-ink: var(--neutral-950);
 }
 
 /* Tailwind bridge. The default palette is removed so only these roles exist as utilities. */
