@@ -61,3 +61,20 @@ test("pieces added by hand have no box and are skipped", () => {
     ),
   ).toEqual([]);
 });
+
+test("a corrected low-confidence piece is no longer flagged", () => {
+  const [corrected] = labeledBoxes(
+    [
+      {
+        id: "fixed",
+        part: "plate-2x2",
+        color: "dark-gray",
+        box,
+        confidence: 0.58,
+        edited: true,
+      },
+    ],
+    "en",
+  );
+  expect(corrected.flagged).toBe(false);
+});

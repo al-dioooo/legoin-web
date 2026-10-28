@@ -25,6 +25,14 @@ export type Detection = {
 /** Below this confidence a piece is flagged for checking. */
 export const LOW_CONFIDENCE = 0.6;
 
+/** A low-confidence piece nobody has corrected yet. */
+export function needsCheck({
+  confidence,
+  edited,
+}: Pick<Detection, "confidence" | "edited">) {
+  return confidence !== null && confidence < LOW_CONFIDENCE && !edited;
+}
+
 export const SCAN_STAGES = ["detecting", "classifying", "coloring"] as const;
 export type ScanStage = (typeof SCAN_STAGES)[number];
 

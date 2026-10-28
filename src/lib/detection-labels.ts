@@ -6,7 +6,7 @@ import {
   formatPercent,
   shortPartLabel,
 } from "@/lib/bricks";
-import { type Box, type Detection, LOW_CONFIDENCE } from "@/lib/domain";
+import { type Box, type Detection, needsCheck } from "@/lib/domain";
 
 export type LabeledBox = {
   id: string;
@@ -16,7 +16,7 @@ export type LabeledBox = {
   /** What screen readers hear: "Brick 2×4, red, 94%". */
   name: string;
   selected: boolean;
-  /** Below LOW_CONFIDENCE: drawn dashed and called out for checking. */
+  /** Low confidence and not corrected yet: drawn dashed and called out for checking. */
   flagged: boolean;
 };
 
@@ -26,11 +26,14 @@ export type LabeledBox = {
  * labels stay short.
  */
 export function labeledBoxes(
-  detections: Pick<Detection, "id" | "part" | "color" | "box" | "confidence">[],
+  detections: Pick<
+    Detection,
+    "id" | "part" | "color" | "box" | "confidence" | "edited"
+  >[],
   locale: Locale,
   selectedId?: string,
 ): LabeledBox[] {
-  return detections.flatMap(({ id, part, color, box, confidence }) => {
+  return detections.flatMap(({ id, part, color, box, confidence, edited }) => {
     if (!box) return [];
     const selected = id === selectedId;
     const label =
@@ -44,7 +47,7 @@ export function labeledBoxes(
     ]
       .filter(Boolean)
       .join(", ");
-    const flagged = confidence !== null && confidence < LOW_CONFIDENCE;
+    const flagged = needsCheck({ confidence, edited });
     return [{ id, box, label, name, selected, flagged }];
   });
 }
