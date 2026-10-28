@@ -1,4 +1,4 @@
-/* BrickSense design tokens, direction "Buku instruksi" (see DESIGN.md).
+/* Legoin design tokens, direction "Buku instruksi" (see DESIGN.md).
  * Primitives -> semantic roles -> Tailwind bridge. Literal colors live only in this file.
  * Scales are OKLCH ramps built around the exact LEGO colors (Rebrickable values), so the
  * anchor steps are real brick colors: red-600, yellow-300, green-700, neutral-400 and 950.

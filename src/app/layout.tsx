@@ -14,8 +14,8 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "BrickSense",
-    template: "%s · BrickSense",
+    default: "Legoin",
+    template: "%s · Legoin",
   },
   description:
     "Potret kepingan LEGO-mu, dapatkan inventori otomatis dan ide rakitan dari kepingan yang kamu punya.",
