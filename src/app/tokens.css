@@ -140,6 +140,14 @@
 /* Tailwind bridge. The default palette is removed so only these roles exist as utilities. */
 @theme {
   --color-*: initial;
+
+  --animate-marquee: marquee 40s linear infinite;
+
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
 }
 
 @theme inline {
