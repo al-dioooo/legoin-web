@@ -22,6 +22,48 @@ export const en = {
   scan: {
     title: "Photograph your pieces",
     lead: "Lay all your pieces flat on a plain table, apart from each other, and take one photo from above.",
+    guide: {
+      title: "Photo tips",
+      do: "Do",
+      dont: "Don't",
+      plain: {
+        title: "Plain background",
+        body: "A plain table or a sheet of paper, no patterns.",
+      },
+      above: {
+        title: "Shoot from above",
+        body: "Hold your phone flat over the pieces.",
+      },
+      light: {
+        title: "Good light",
+        body: "Daylight or a bright lamp, without harsh shadows.",
+      },
+      apart: {
+        title: "Stacked or touching",
+        body: "Spread the pieces out so none overlap or touch.",
+      },
+    },
+    capture: {
+      title: "Your photo",
+      drop: "Drop a photo here",
+      or: "or",
+      take: "Take a photo",
+      choose: "Choose a photo",
+      sample: "Try the sample photo",
+      hint: "JPEG or PNG, up to 10 MB.",
+      previewAlt: "Your photo of your pieces",
+      sampleAlt:
+        "Sample photo: eight pieces on a gray table, including a black 2×4 plate, a yellow round, an orange 1×2 brick and a blue 2×3 brick.",
+      retake: "Retake",
+      submit: "Scan pieces",
+      scanning: "Scanning…",
+    },
+    errors: {
+      type: "That file isn't an image. Choose a JPEG or PNG photo.",
+      size: "That photo is over 10 MB. Choose a smaller one.",
+      read: "We couldn't open that photo. Try another one.",
+      generic: "Something went wrong. Try again.",
+    },
   },
   history: {
     title: "Your scans",

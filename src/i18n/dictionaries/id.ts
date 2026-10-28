@@ -24,6 +24,48 @@ export const id: Dictionary = {
   scan: {
     title: "Potret kepinganmu",
     lead: "Letakkan semua kepingan di meja polos, saling berjauhan, lalu ambil satu foto dari atas.",
+    guide: {
+      title: "Tips foto",
+      do: "Lakukan",
+      dont: "Hindari",
+      plain: {
+        title: "Latar polos",
+        body: "Meja polos atau selembar kertas, tanpa motif.",
+      },
+      above: {
+        title: "Foto dari atas",
+        body: "Pegang ponsel mendatar di atas kepingan.",
+      },
+      light: {
+        title: "Cahaya cukup",
+        body: "Cahaya siang atau lampu terang, tanpa bayangan tajam.",
+      },
+      apart: {
+        title: "Bertumpuk atau bersentuhan",
+        body: "Sebar kepingan agar tidak ada yang menumpuk atau bersentuhan.",
+      },
+    },
+    capture: {
+      title: "Fotomu",
+      drop: "Letakkan foto di sini",
+      or: "atau",
+      take: "Ambil foto",
+      choose: "Pilih foto",
+      sample: "Coba foto contoh",
+      hint: "JPEG atau PNG, maksimal 10 MB.",
+      previewAlt: "Foto kepinganmu",
+      sampleAlt:
+        "Foto contoh: delapan kepingan di meja abu-abu, termasuk plate 2×4 hitam, round kuning, brick 1×2 oranye, dan brick 2×3 biru.",
+      retake: "Ulangi",
+      submit: "Pindai kepingan",
+      scanning: "Memindai…",
+    },
+    errors: {
+      type: "Berkas itu bukan gambar. Pilih foto JPEG atau PNG.",
+      size: "Foto itu lebih dari 10 MB. Pilih yang lebih kecil.",
+      read: "Kami tidak bisa membuka foto itu. Coba foto lain.",
+      generic: "Ada yang salah. Coba lagi.",
+    },
   },
   history: {
     title: "Riwayat pindai",
