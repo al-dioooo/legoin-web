@@ -123,6 +123,38 @@ export const en = {
       lowConfidence:
         "We're not sure about this piece. Check its part and color.",
     },
+    edit: {
+      title: "Fix this piece",
+      part: "Part",
+      color: "Color",
+      save: "Save changes",
+      remove: "Remove piece",
+      confirm: "Remove this piece from your inventory?",
+      confirmRemove: "Remove",
+      keep: "Keep it",
+      edited: "Edited",
+    },
+    add: {
+      title: "Add a missed piece",
+      part: "Part",
+      color: "Color",
+      quantity: "How many",
+      submit: "Add to inventory",
+      invalid: "Enter a number from 1 to 20.",
+    },
+    totals: {
+      parts: { one: "{count} part type", other: "{count} part types" },
+      colors: { one: "{count} color", other: "{count} colors" },
+    },
+    undo: "Undo last change",
+    status: {
+      edited: "Piece updated.",
+      removed: "Piece removed.",
+      added: { one: "{count} piece added.", other: "{count} pieces added." },
+      undone: "Change undone.",
+      failed: "We couldn't save that. Try again.",
+    },
+    continue: "Get build ideas",
   },
   history: {
     title: "Your scans",
