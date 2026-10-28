@@ -24,6 +24,10 @@ Next.js 16 App Router under `src/app`, TypeScript, Tailwind CSS 4, with Cache Co
 
 Vitest cannot render `async` Server Components, so test them end to end or test the logic they call.
 
+## UI
+
+Follow [DESIGN.md](DESIGN.md) and check `/desain` before building a screen. Use the role utilities (`bg-primary`, `text-ink`, `bg-callout`, ...); Tailwind's default palette is disabled, and literal colors belong only in `src/app/tokens.css`. Brick colors (`--brick-*`) paint real bricks only, always with the color name. Use one red primary button per screen; destructive actions use the `danger` outline. Status is a dot plus a label. UI copy is in Bahasa Indonesia.
+
 ## Commits
 
 Small and focused: one logical change, roughly 5 to 100 lines, explainable in one sentence and easy to revert. Commit when a function, a fix or a logical step is done; if you pause work, you should be able to commit. Never mix a refactor with a feature, or a fix with formatting. No 1000+ line commits, no WIP commits on shared branches, and no vague messages like "update code" or "fix bugs".

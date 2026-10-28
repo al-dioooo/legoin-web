@@ -1,0 +1,181 @@
+/* BrickSense design tokens, direction "Buku instruksi" (see DESIGN.md).
+ * Primitives -> semantic roles -> Tailwind bridge. Literal colors live only in this file.
+ * Scales are OKLCH ramps built around the exact LEGO colors (Rebrickable values), so the
+ * anchor steps are real brick colors: red-600, yellow-300, green-700, neutral-400 and 950.
+ * Light theme only; components read semantic roles, so a dark theme only remaps those.
+ */
+:root {
+  /* LEGO Red #C91A09 at 600. */
+  --red-50: #fef4f2;
+  --red-100: #fee7e3;
+  --red-200: #fed0c8;
+  --red-300: #feb1a3;
+  --red-400: #ff806d;
+  --red-500: #ed4c39;
+  --red-600: #c91a09;
+  --red-700: #b00f01;
+  --red-800: #8e0800;
+  --red-900: #720601;
+  --red-950: #4f0200;
+
+  /* LEGO Yellow #F2CD37 at 300. Never text: ink on yellow, or the 800/900 steps on a tint. */
+  --yellow-50: #fef7df;
+  --yellow-100: #faedbf;
+  --yellow-200: #f3dc8a;
+  --yellow-300: #f2cd37;
+  --yellow-400: #d1a402;
+  --yellow-500: #b28303;
+  --yellow-600: #986903;
+  --yellow-700: #805302;
+  --yellow-800: #6a3f00;
+  --yellow-900: #582f01;
+  --yellow-950: #3d1c01;
+
+  /* LEGO Green #237841 at 700. */
+  --green-50: #f0faf2;
+  --green-100: #def3e2;
+  --green-200: #c2e8c9;
+  --green-300: #9cd8aa;
+  --green-400: #72bf86;
+  --green-500: #4aa164;
+  --green-600: #29874a;
+  --green-700: #237841;
+  --green-800: #0e592c;
+  --green-900: #0a4722;
+  --green-950: #052f15;
+
+  /* Cool neutral at the hue of LEGO Light Bluish Gray (400); 950 is LEGO Black. */
+  --neutral-0: #ffffff;
+  --neutral-25: #f6fbfe;
+  --neutral-50: #f0f6fb;
+  --neutral-100: #e8eef2;
+  --neutral-200: #d9dfe3;
+  --neutral-300: #c5cbd0;
+  --neutral-400: #a0a5a9;
+  --neutral-500: #81878b;
+  --neutral-600: #696e72;
+  --neutral-700: #54595d;
+  --neutral-800: #3e4347;
+  --neutral-900: #222d34;
+  --neutral-950: #05131d;
+
+  /* Brick colors: data, not UI. Use them only to show a real brick, always with its name.
+     Rebrickable color ids in src/lib/bricks.ts. */
+  --brick-red: #c91a09;
+  --brick-blue: #0055bf;
+  --brick-yellow: #f2cd37;
+  --brick-green: #237841;
+  --brick-black: #05131d;
+  --brick-white: #ffffff;
+  --brick-light-gray: #a0a5a9;
+  --brick-dark-gray: #6c6e68;
+  --brick-orange: #fe8a18;
+  --brick-brown: #582a12;
+  --stud-on-light: rgb(5 19 29 / 0.22);
+  --stud-on-dark: rgb(255 255 255 / 0.32);
+
+  --elevation-card: 0 1px 2px rgb(5 19 29 / 0.06);
+  --elevation-raised: 0 8px 20px -8px rgb(5 19 29 / 0.2);
+}
+
+/* Semantic roles. Red is for actions, yellow for highlights, neither for brick data. */
+:root {
+  --surface-page: var(--neutral-50);
+  --surface-card: var(--neutral-0);
+  --surface-callout: var(--neutral-100);
+  --surface-inverse: var(--neutral-950);
+
+  --text-primary: var(--neutral-950);
+  --text-secondary: var(--neutral-700);
+  --text-inverse: var(--neutral-0);
+
+  --border: var(--neutral-200);
+  --border-strong: var(--neutral-500);
+  --ring: var(--neutral-950);
+
+  --primary: var(--red-600);
+  --primary-hover: var(--red-700);
+  --primary-foreground: var(--neutral-0);
+  --primary-subtle: var(--red-50);
+  --primary-subtle-foreground: var(--red-800);
+
+  --highlight: var(--yellow-300);
+  --highlight-hover: var(--yellow-400);
+  --highlight-foreground: var(--neutral-950);
+  --highlight-subtle: var(--yellow-50);
+  --highlight-subtle-foreground: var(--yellow-900);
+
+  --success: var(--green-700);
+  --success-subtle: var(--green-100);
+  --success-subtle-foreground: var(--green-800);
+  --warning-subtle: var(--yellow-100);
+  --warning-subtle-foreground: var(--yellow-800);
+  /* Danger shares the brand red, so destructive actions are outlined, never filled. */
+  --danger: var(--red-700);
+  --danger-subtle: var(--red-100);
+  --danger-subtle-foreground: var(--red-800);
+
+  /* Detection boxes sit on photos of colored bricks: ink with a white halo, never red. */
+  --overlay: var(--neutral-950);
+  --overlay-foreground: var(--neutral-0);
+  --overlay-halo: var(--neutral-0);
+
+  /* Logo: a yellow brick in ink line art. Not red, and no red with yellow, so it never
+     reads as LEGO's own logo. src/app/icon.svg repeats these values as literals. */
+  --logo-brick: var(--yellow-300);
+  --logo-ink: var(--neutral-950);
+}
+
+/* Tailwind bridge. The default palette is removed so only these roles exist as utilities. */
+@theme {
+  --color-*: initial;
+}
+
+@theme inline {
+  --color-page: var(--surface-page);
+  --color-card: var(--surface-card);
+  --color-callout: var(--surface-callout);
+  --color-inverse: var(--surface-inverse);
+  --color-ink: var(--text-primary);
+  --color-ink-secondary: var(--text-secondary);
+  --color-ink-inverse: var(--text-inverse);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-subtle-foreground: var(--primary-subtle-foreground);
+  --color-highlight: var(--highlight);
+  --color-highlight-hover: var(--highlight-hover);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-highlight-subtle: var(--highlight-subtle);
+  --color-highlight-subtle-foreground: var(--highlight-subtle-foreground);
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-success-subtle-foreground: var(--success-subtle-foreground);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-subtle-foreground: var(--warning-subtle-foreground);
+  --color-danger: var(--danger);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-danger-subtle-foreground: var(--danger-subtle-foreground);
+  --color-overlay: var(--overlay);
+  --color-overlay-foreground: var(--overlay-foreground);
+  --color-overlay-halo: var(--overlay-halo);
+
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", Menlo, monospace;
+
+  --text-display: clamp(2.25rem, 1.6rem + 2.8vw, 3.5rem);
+  --text-display--line-height: 1.1;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 800;
+
+  --radius-card: 1rem;
+  --radius-callout: 0.75rem;
+  --radius-control: 0.75rem;
+
+  --shadow-card: var(--elevation-card);
+  --shadow-raised: var(--elevation-raised);
+}
