@@ -41,6 +41,7 @@ Tokens come in three layers: primitive scales, semantic roles, and a Tailwind br
 
 - English is the default (`/en`); Indonesian ships too (`/id`). Paths without a language redirect to `/en`.
 - All copy lives in `src/i18n/dictionaries`. `en.ts` defines the shape and `id.ts` is typed against it, so a missing key fails the typecheck. Never hard-code copy in a component.
+- Dictionaries are plain data: placeholders like `{count}` are filled with `fill()`, and counts use `{ one, other }` with `plural()`, so they can be passed to Client Components.
 - Brick color names and numbers follow the language: pass `locale` to `BrickSwatch`, `InventoryList`, `PartCallout`, `formatConfidence` and `describePart` (0.94 in English, 0,94 in Indonesian).
 - Part names (Brick 2×4, Plate 1×2) stay in the hobby's English in both languages.
 - Keep copy short and plain in both languages, and use sentence case.
