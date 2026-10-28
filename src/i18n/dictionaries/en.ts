@@ -9,6 +9,24 @@ export const en = {
     label: "Language",
     names: { en: "English", id: "Bahasa Indonesia" },
   },
+  app: {
+    home: "Legoin home",
+    history: "History",
+    steps: {
+      label: "Scan progress",
+      photo: "Photo",
+      pieces: "Pieces",
+      ideas: "Ideas",
+    },
+  },
+  scan: {
+    title: "Photograph your pieces",
+    lead: "Lay all your pieces flat on a plain table, apart from each other, and take one photo from above.",
+  },
+  history: {
+    title: "Your scans",
+    lead: "Earlier scans and their build ideas will show up here.",
+  },
   common: {
     inProgress: "Work in progress",
     step: "Step",
@@ -45,7 +63,8 @@ export const en = {
       after: " you already have.",
     },
     lead: "Photograph all your LEGO pieces in one shot. Legoin recognizes each part and color, then suggests three build ideas, including the parts you're missing.",
-    cta: "See the design system",
+    ctaScan: "Start scanning",
+    ctaDesign: "See the design system",
     facts: {
       parts: "13 part types",
       colors: "10 colors",
