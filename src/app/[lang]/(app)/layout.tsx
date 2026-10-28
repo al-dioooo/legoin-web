@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { StepProgress } from "@/components/app/step-progress";
 import { Logo } from "@/components/brand/logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -20,10 +21,18 @@ export default async function AppLayout({ children }: LayoutProps<"/[lang]">) {
         >
           <Logo />
         </Link>
-        <StepProgress
-          labels={dict.app.steps}
-          className="order-last w-full overflow-x-auto pb-1 md:order-none md:flex md:w-auto md:flex-1 md:justify-center"
-        />
+        {/* Both read the URL. On routes with ids unknown at build time, such as
+            /scan/[id], that has to stream in; placeholders keep the header still. */}
+        <Suspense
+          fallback={
+            <div className="order-last h-[3.25rem] w-full md:order-none md:w-auto md:flex-1" />
+          }
+        >
+          <StepProgress
+            labels={dict.app.steps}
+            className="order-last w-full overflow-x-auto pb-1 md:order-none md:flex md:w-auto md:flex-1 md:justify-center"
+          />
+        </Suspense>
         <div className="ml-auto flex items-center gap-2">
           <Link
             href={`/${locale}/history`}
@@ -31,11 +40,13 @@ export default async function AppLayout({ children }: LayoutProps<"/[lang]">) {
           >
             {dict.app.history}
           </Link>
-          <LanguageSwitcher
-            current={locale}
-            label={dict.language.label}
-            names={dict.language.names}
-          />
+          <Suspense fallback={<div className="h-[3.25rem] w-28" />}>
+            <LanguageSwitcher
+              current={locale}
+              label={dict.language.label}
+              names={dict.language.names}
+            />
+          </Suspense>
         </div>
       </header>
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6">

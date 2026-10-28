@@ -82,7 +82,7 @@ export function ScanProgress({
             width={photo.width}
             height={photo.height}
             alt={copy.photoAlt}
-            unoptimized={photo.src.startsWith("data:")}
+            unoptimized
             className="block h-auto w-full"
           />
           <span

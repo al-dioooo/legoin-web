@@ -9,7 +9,6 @@ export function DetectedPhoto({
   photo,
   alt,
   detections,
-  sizes = "100vw",
   priority = false,
   className,
 }: {
@@ -17,7 +16,6 @@ export function DetectedPhoto({
   alt: string;
   /** From `labeledBoxes`; at most one is selected. */
   detections: LabeledBox[];
-  sizes?: string;
   priority?: boolean;
   className?: string;
 }) {
@@ -33,10 +31,11 @@ export function DetectedPhoto({
         width={photo.width}
         height={photo.height}
         alt={alt}
-        sizes={sizes}
         priority={priority}
-        // Photos people take are stored as data URLs, which can't be optimized.
-        unoptimized={photo.src.startsWith("data:")}
+        // Scan photos are stored already downscaled to 1200 px (people's own
+        // as data URLs), so there's nothing to optimize, and every view of a
+        // photo reuses the same URL.
+        unoptimized
         className="block h-auto w-full"
       />
       {detections.map((detection) => (
