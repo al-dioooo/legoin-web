@@ -14,10 +14,11 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function IdeasPage() {
   const locale = await currentLocale();
-  const { ideas, results } = await getDictionary();
+  const { ideas, results, common } = await getDictionary();
   const copy = {
     ideas,
     results: { loading: results.loading, missing: results.missing },
+    common: { ideaOf: common.ideaOf, missingCount: common.missingCount },
   };
   return (
     <Suspense fallback={<IdeasLoading label={results.loading} />}>

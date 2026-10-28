@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, useEffect, useState } from "react";
+import { IdeaCard } from "@/components/ideas/idea-card";
 import { ThemePicker } from "@/components/ideas/theme-picker";
 import { Button, buttonStyles } from "@/components/ui/button";
 import type { Dictionary } from "@/i18n/dictionaries/en";
+import { plural } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { type Idea, isTheme, type Scan, type Theme } from "@/lib/domain";
 import { getIdeas, getScan, mockOptionsFromSearch } from "@/lib/mock/api";
@@ -13,6 +15,7 @@ import { getIdeas, getScan, mockOptionsFromSearch } from "@/lib/mock/api";
 type Copy = {
   ideas: Dictionary["ideas"];
   results: Pick<Dictionary["results"], "loading" | "missing">;
+  common: Pick<Dictionary["common"], "ideaOf" | "missingCount">;
 };
 
 type ScanState =
@@ -20,8 +23,15 @@ type ScanState =
   | { kind: "missing" }
   | { kind: "ready"; scan: Scan };
 
-/** Ideas for one theme; kept with the theme they were asked for. */
-type IdeasState = { theme: Theme; ideas: Idea[] };
+/** Another ask for the same theme: other ideas or a retry. */
+type Ask = { theme: Theme; exclude: string[]; attempt: number };
+
+/** A finished request, kept with the key it was asked under. */
+type IdeasResult =
+  | { key: string; ideas: Idea[] }
+  | { key: string; failed: true };
+
+const NONE: string[] = [];
 
 export function IdeasLoading({ label }: { label: string }) {
   return (
@@ -54,7 +64,13 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
   const query = searchParams.toString();
   const [scanState, setScanState] = useState<ScanState>({ kind: "loading" });
   const [choice, setChoice] = useState<Theme | null>(null);
-  const [result, setResult] = useState<IdeasState | null>(null);
+  const [ask, setAsk] = useState<Ask | null>(null);
+  const [result, setResult] = useState<IdeasResult | null>(null);
+  // A new theme starts over; asks for an earlier theme no longer apply.
+  const current = ask && ask.theme === theme ? ask : null;
+  const exclude = current?.exclude ?? NONE;
+  const attempt = current?.attempt ?? 0;
+  const key = `${theme}:${attempt}`;
 
   useEffect(() => {
     let active = true;
@@ -70,15 +86,18 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
   useEffect(() => {
     if (!theme) return;
     let active = true;
-    void getIdeas(id, theme, locale, mockOptionsFromSearch(query)).then(
-      (ideas) => {
-        if (active) setResult({ theme, ideas });
-      },
-    );
+    const asked = `${theme}:${attempt}`;
+    getIdeas(id, theme, locale, { ...mockOptionsFromSearch(query), exclude })
+      .then((ideas) => {
+        if (active) setResult({ key: asked, ideas });
+      })
+      .catch(() => {
+        if (active) setResult({ key: asked, failed: true });
+      });
     return () => {
       active = false;
     };
-  }, [id, theme, locale, query]);
+  }, [id, theme, locale, query, exclude, attempt]);
 
   /** The same page with another theme, keeping the demo options. */
   function themeHref(next: Theme) {
@@ -104,6 +123,21 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
         <p className="mt-2 text-ink-secondary">{copy.results.missing.body}</p>
         <Link href={`/${locale}/scan`} className={`${buttonStyles()} mt-5`}>
           {copy.results.missing.action}
+        </Link>
+      </section>
+    );
+  }
+
+  if (scanState.scan.detections.length === 0) {
+    return (
+      <section className="max-w-xl rounded-card border-[2.5px] border-ink bg-card p-6 shadow-card">
+        <h1 className="font-display text-3xl">{copy.ideas.empty.title}</h1>
+        <p className="mt-2 text-ink-secondary">{copy.ideas.empty.body}</p>
+        <Link
+          href={`/${locale}/scan/${id}`}
+          className={`${buttonStyles()} mt-5`}
+        >
+          {copy.ideas.empty.action}
         </Link>
       </section>
     );
@@ -135,7 +169,35 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
     );
   }
 
-  const ideas = result?.theme === theme ? result.ideas : null;
+  const view = result?.key === key ? result : null;
+  const ideas = view && "ideas" in view ? view.ideas : null;
+  const failed = view !== null && "failed" in view;
+  const status = failed
+    ? ""
+    : !ideas
+      ? copy.ideas.finding
+      : ideas.length === 0
+        ? copy.ideas.none
+        : plural(copy.ideas.found, ideas.length, locale);
+
+  // Stays while other ideas load, so keyboard focus isn't lost.
+  const canTryOthers = (ideas?.length ?? 0) > 0 || (!view && attempt > 0);
+
+  // Shown ideas move to the end of `exclude`, so the mock offers unseen ones
+  // first, then the ones shown longest ago.
+  function tryOthers() {
+    if (!theme || !ideas) return;
+    const shown = ideas.map((idea) => idea.id);
+    setAsk({
+      theme,
+      exclude: [...exclude.filter((seen) => !shown.includes(seen)), ...shown],
+      attempt: attempt + 1,
+    });
+  }
+
+  function retry() {
+    if (theme) setAsk({ theme, exclude, attempt: attempt + 1 });
+  }
 
   return (
     <section aria-labelledby="ideas-title">
@@ -149,17 +211,59 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
         onChange={switchTheme}
         className="mt-4"
       />
-      <div className="mt-6">
-        {ideas ? (
-          <ul className="list-disc space-y-1 pl-5">
-            {ideas.map((idea) => (
-              <li key={idea.id}>{idea.title}</li>
-            ))}
-          </ul>
-        ) : (
-          <output className="text-ink-secondary">{copy.ideas.finding}</output>
-        )}
-      </div>
+      <output className="mt-6 block text-sm font-semibold">{status}</output>
+
+      {failed && (
+        <div
+          role="alert"
+          className="mt-4 max-w-xl rounded-card border-[2.5px] border-ink bg-card p-6 shadow-card"
+        >
+          <h2 className="font-display text-2xl">{copy.ideas.failed.title}</h2>
+          <p className="mt-2 text-ink-secondary">{copy.ideas.failed.body}</p>
+          <Button className="mt-5" onClick={retry}>
+            {copy.ideas.failed.retry}
+          </Button>
+        </div>
+      )}
+
+      {!view && (
+        <div aria-hidden="true" className="mt-4 grid gap-5 lg:grid-cols-3">
+          {[0, 1, 2].map((index) => (
+            <div
+              key={index}
+              className="h-64 animate-pulse rounded-card border-2 border-line bg-callout motion-reduce:animate-none"
+            />
+          ))}
+        </div>
+      )}
+
+      {ideas && ideas.length > 0 && (
+        <ol className="mt-4 grid gap-5 lg:grid-cols-3">
+          {ideas.map((idea, index) => (
+            <li key={idea.id}>
+              <IdeaCard
+                idea={idea}
+                index={index + 1}
+                total={ideas.length}
+                href={`/${locale}/scan/${id}/ideas/${idea.id}?${query}`}
+                copy={copy}
+                locale={locale}
+              />
+            </li>
+          ))}
+        </ol>
+      )}
+
+      {canTryOthers && (
+        <Button
+          variant="secondary"
+          aria-disabled={!ideas}
+          onClick={tryOthers}
+          className="mt-6 aria-disabled:opacity-50"
+        >
+          {copy.ideas.again}
+        </Button>
+      )}
     </section>
   );
 }

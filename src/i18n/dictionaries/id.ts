@@ -180,6 +180,27 @@ export const id: Dictionary = {
       submit: "Lihat ide",
     },
     finding: "Mencari ide…",
+    found: { one: "{count} ide siap.", other: "{count} ide siap." },
+    difficulty: { easy: "Mudah", medium: "Sedang", hard: "Sulit" },
+    uses: {
+      one: "Memakai {count} kepinganmu",
+      other: "Memakai {count} kepinganmu",
+    },
+    usesNone: "Belum memakai kepinganmu",
+    complete: "Cukup dengan kepinganmu",
+    seeSteps: "Lihat langkah",
+    again: "Coba ide lain",
+    none: "Belum ada ide untuk tema ini. Coba tema lain.",
+    failed: {
+      title: "Kami tidak bisa mengambil ide",
+      body: "Periksa koneksimu, lalu coba lagi.",
+      retry: "Coba lagi",
+    },
+    empty: {
+      title: "Belum ada kepingan untuk dirakit",
+      body: "Pindaian ini tidak punya kepingan lagi. Tambahkan kepingan yang kamu punya, lalu kembali untuk melihat ide.",
+      action: "Kembali ke kepinganmu",
+    },
   },
   history: {
     title: "Riwayat pindai",

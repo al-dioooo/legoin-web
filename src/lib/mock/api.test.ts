@@ -14,6 +14,7 @@ import {
 import { EVENING_PHOTO, IDEA_TEMPLATES } from "@/lib/mock/fixtures";
 
 const fast = { delayMs: 0 };
+const ids = (ideas: { id: string }[]) => ideas.map((idea) => idea.id);
 
 beforeEach(() => {
   resetMockData();
@@ -81,6 +82,38 @@ test("surprise mixes one idea from every theme", async () => {
   ]);
 });
 
+test("trying other ideas shows unseen ones first, then starts over", async () => {
+  const first = await getIdeas("demo-evening", "animals", "en", fast);
+  const second = await getIdeas("demo-evening", "animals", "en", {
+    ...fast,
+    exclude: ids(first),
+  });
+  expect(ids(second)).toEqual(["snail", "crab", "puppy"]);
+  const third = await getIdeas("demo-evening", "animals", "en", {
+    ...fast,
+    exclude: [...ids(first), ...ids(second)],
+  });
+  expect(ids(third)).toEqual(ids(first));
+});
+
+test("surprise moves on to the next idea of every theme", async () => {
+  const first = await getIdeas("demo-desk", "surprise", "en", fast);
+  const next = await getIdeas("demo-desk", "surprise", "en", {
+    ...fast,
+    exclude: ids(first),
+  });
+  expect(ids(next)).toEqual(["delivery-truck", "turtle", "lighthouse"]);
+});
+
+test("some evening ideas use only the evening pieces", async () => {
+  const first = await getIdeas("demo-evening", "vehicles", "en", fast);
+  const [goKart] = await getIdeas("demo-evening", "vehicles", "en", {
+    ...fast,
+    exclude: ids(first),
+  });
+  expect(goKart).toMatchObject({ id: "go-kart", missing: [] });
+});
+
 test("no idea in any demo counts a missing part as owned", async () => {
   for (const scan of await listScans(fast)) {
     const owned = new Map(
@@ -90,7 +123,13 @@ test("no idea in any demo counts a missing part as owned", async () => {
       ]),
     );
     for (const theme of ["vehicles", "animals", "buildings"] as const) {
-      for (const idea of await getIdeas(scan.id, theme, "en", fast)) {
+      // Two rounds cover all six ideas of a theme.
+      const first = await getIdeas(scan.id, theme, "en", fast);
+      const second = await getIdeas(scan.id, theme, "en", {
+        ...fast,
+        exclude: ids(first),
+      });
+      for (const idea of [...first, ...second]) {
         for (const line of idea.used) {
           expect(line.quantity).toBeLessThanOrEqual(
             owned.get(`${line.part}|${line.color}`) ?? 0,
