@@ -18,10 +18,10 @@ test("every brick color has a token in tokens.css", () => {
   }
 });
 
-test("describePart reads as quantity, part and color", () => {
-  expect(
-    describePart({ part: "brick-2x4", color: "light-gray", quantity: 3 }),
-  ).toBe("3× Brick 2×4 abu-abu terang");
+test("describePart reads as quantity, part and color in each language", () => {
+  const line = { part: "brick-2x4", color: "light-gray", quantity: 3 } as const;
+  expect(describePart(line, "en")).toBe("3× Brick 2×4 light gray");
+  expect(describePart(line, "id")).toBe("3× Brick 2×4 abu-abu terang");
 });
 
 test("short labels keep bricks bare and name other kinds", () => {
@@ -30,6 +30,7 @@ test("short labels keep bricks bare and name other kinds", () => {
   expect(shortPartLabel("slope-2x2")).toBe("slope 2×2");
 });
 
-test("confidence uses an Indonesian decimal comma", () => {
-  expect(formatConfidence(0.9)).toBe("0,90");
+test("confidence follows the language's decimal separator", () => {
+  expect(formatConfidence(0.9, "en")).toBe("0.90");
+  expect(formatConfidence(0.9, "id")).toBe("0,90");
 });

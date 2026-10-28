@@ -1,8 +1,10 @@
 /* A sample scan for the home page and /desain until the CV pipeline exists.
  * The photo was generated with Codex image generation, not taken from a real scan;
  * replace it with a real one once the pipeline returns results.
+ * Words (alt text, the idea's title and steps) live in the dictionaries.
  */
 import type { Box } from "@/components/ui/detection-box";
+import type { Locale } from "@/i18n/locales";
 import {
   type BrickColorId,
   type BrickPartId,
@@ -15,7 +17,6 @@ export const SAMPLE_PHOTO = {
   src: "/contoh/kepingan.jpg",
   width: 1200,
   height: 800,
-  alt: "Enam kepingan di meja putih: brick 2×4 merah, brick 2×2 kuning, brick 1×4 putih, plate 1×2 biru, slope 2×2 hijau, dan brick 2×2 hitam.",
 };
 
 /** Detector output for the sample photo, boxes in fractions of the photo. */
@@ -70,24 +71,22 @@ export const SAMPLE_SELECTED = 0;
  * Boxes with labels for `DetectedPhoto`. Only the selected box shows its
  * confidence, so labels don't collide on a phone-width photo.
  */
-export const SAMPLE_BOXES = SAMPLE_DETECTIONS.map(
-  ({ part, box, confidence }, index) => ({
+export function sampleBoxes(locale: Locale) {
+  return SAMPLE_DETECTIONS.map(({ part, box, confidence }, index) => ({
     box,
     label:
       index === SAMPLE_SELECTED
-        ? `${shortPartLabel(part)} · ${formatConfidence(confidence)}`
+        ? `${shortPartLabel(part)} · ${formatConfidence(confidence, locale)}`
         : shortPartLabel(part),
-  }),
-);
+  }));
+}
 
 export const SAMPLE_INVENTORY: PartCount[] = SAMPLE_DETECTIONS.map(
   ({ part, color }) => ({ part, color, quantity: 1 }),
 );
 
-/** One idea as the AI agent would return it for the sample inventory. */
+/** Parts for the one idea the AI agent would return for the sample inventory. */
 export const SAMPLE_IDEA = {
-  title: "Mobil balap kecil",
-  difficulty: "Mudah",
   used: [
     { part: "brick-2x4", color: "red", quantity: 1 },
     { part: "slope-2x2", color: "green", quantity: 1 },
@@ -97,9 +96,9 @@ export const SAMPLE_IDEA = {
     { part: "plate-2x4", color: "black", quantity: 1 },
     { part: "round-1x1", color: "yellow", quantity: 2 },
   ] satisfies PartCount[],
-  steps: [
-    "Pasang brick 2×4 merah di atas plate 2×4 hitam sebagai badan.",
-    "Taruh slope 2×2 hijau di depan sebagai kap mesin.",
-    "Tambahkan brick 2×2 hitam di belakang dan dua round 1×1 kuning sebagai lampu.",
-  ],
 };
+
+export const SAMPLE_MISSING_COUNT = SAMPLE_IDEA.missing.reduce(
+  (total, item) => total + item.quantity,
+  0,
+);

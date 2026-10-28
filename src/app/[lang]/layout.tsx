@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Dela_Gothic_One, DM_Sans, JetBrains_Mono } from "next/font/google";
-import "./globals.css";
+import { currentLocale, getDictionary } from "@/i18n/dictionaries";
+import { LOCALES } from "@/i18n/locales";
+import "../globals.css";
 
 const delaGothic = Dela_Gothic_One({
   variable: "--font-dela-gothic",
@@ -19,23 +21,35 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Legoin",
-    template: "%s · Legoin",
-  },
-  description:
-    "Potret kepingan LEGO-mu, dapatkan inventori otomatis dan ide rakitan dari kepingan yang kamu punya.",
-};
+export async function generateStaticParams() {
+  return LOCALES.map((lang) => ({ lang }));
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const dict = await getDictionary();
+  return {
+    title: {
+      default: "Legoin",
+      template: "%s · Legoin",
+    },
+    description: dict.meta.description,
+    alternates: {
+      languages: Object.fromEntries(
+        LOCALES.map((locale) => [locale, `/${locale}`]),
+      ),
+    },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#fbf8f1",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
+  const locale = await currentLocale();
   return (
     <html
-      lang="id"
+      lang={locale}
       className={`${delaGothic.variable} ${dmSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-page font-sans text-ink">

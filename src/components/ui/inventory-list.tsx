@@ -1,7 +1,8 @@
+import type { Locale } from "@/i18n/locales";
 import {
-  BRICK_COLORS,
   BRICK_PARTS,
   brickColorVar,
+  colorLabel,
   type PartCount,
 } from "@/lib/bricks";
 import { cx } from "@/lib/cx";
@@ -9,9 +10,11 @@ import { cx } from "@/lib/cx";
 /** Inventory as tiles: color chip, count and part, then the color name. */
 export function InventoryList({
   items,
+  locale,
   className,
 }: {
   items: PartCount[];
+  locale: Locale;
   className?: string;
 }) {
   return (
@@ -30,7 +33,7 @@ export function InventoryList({
             <span className="font-mono font-bold">{quantity}×</span>{" "}
             {BRICK_PARTS[part].label}
             <span className="block text-ink-secondary">
-              {BRICK_COLORS[color].label}
+              {colorLabel(color, locale)}
             </span>
           </span>
         </li>

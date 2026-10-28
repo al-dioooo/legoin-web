@@ -1,20 +1,61 @@
 /* The MVP brick catalogue from the PRD: 10 colors and 13 parts.
  * Hex values live in tokens.css as --brick-<id>; ids match those token names.
  * `rebrickableId` and `designId` let model output and inventories map to Rebrickable and BrickLink.
+ * Color names come in every UI language; part names are the hobby's English terms in both.
  */
+import { LOCALE_TAGS, type Locale } from "@/i18n/locales";
 
 export const BRICK_COLORS = {
-  red: { label: "Merah", rebrickableId: 4, tone: "dark" },
-  blue: { label: "Biru", rebrickableId: 1, tone: "dark" },
-  yellow: { label: "Kuning", rebrickableId: 14, tone: "light" },
-  green: { label: "Hijau", rebrickableId: 2, tone: "dark" },
-  black: { label: "Hitam", rebrickableId: 0, tone: "dark" },
-  white: { label: "Putih", rebrickableId: 15, tone: "light" },
-  "light-gray": { label: "Abu-abu terang", rebrickableId: 71, tone: "light" },
-  "dark-gray": { label: "Abu-abu gelap", rebrickableId: 72, tone: "dark" },
-  orange: { label: "Oranye", rebrickableId: 25, tone: "light" },
-  brown: { label: "Cokelat", rebrickableId: 70, tone: "dark" },
-} as const;
+  red: { label: { en: "Red", id: "Merah" }, rebrickableId: 4, tone: "dark" },
+  blue: { label: { en: "Blue", id: "Biru" }, rebrickableId: 1, tone: "dark" },
+  yellow: {
+    label: { en: "Yellow", id: "Kuning" },
+    rebrickableId: 14,
+    tone: "light",
+  },
+  green: {
+    label: { en: "Green", id: "Hijau" },
+    rebrickableId: 2,
+    tone: "dark",
+  },
+  black: {
+    label: { en: "Black", id: "Hitam" },
+    rebrickableId: 0,
+    tone: "dark",
+  },
+  white: {
+    label: { en: "White", id: "Putih" },
+    rebrickableId: 15,
+    tone: "light",
+  },
+  "light-gray": {
+    label: { en: "Light gray", id: "Abu-abu terang" },
+    rebrickableId: 71,
+    tone: "light",
+  },
+  "dark-gray": {
+    label: { en: "Dark gray", id: "Abu-abu gelap" },
+    rebrickableId: 72,
+    tone: "dark",
+  },
+  orange: {
+    label: { en: "Orange", id: "Oranye" },
+    rebrickableId: 25,
+    tone: "light",
+  },
+  brown: {
+    label: { en: "Brown", id: "Cokelat" },
+    rebrickableId: 70,
+    tone: "dark",
+  },
+} as const satisfies Record<
+  string,
+  {
+    label: Record<Locale, string>;
+    rebrickableId: number;
+    tone: "light" | "dark";
+  }
+>;
 
 export type BrickColorId = keyof typeof BRICK_COLORS;
 
@@ -123,8 +164,16 @@ export function brickColorVar(color: BrickColorId) {
   return `var(--brick-${color})`;
 }
 
-export function describePart({ part, color, quantity }: PartCount) {
-  return `${quantity}× ${BRICK_PARTS[part].label} ${BRICK_COLORS[color].label.toLowerCase()}`;
+export function colorLabel(color: BrickColorId, locale: Locale) {
+  return BRICK_COLORS[color].label[locale];
+}
+
+/** One line as screen readers hear it: "2× Brick 2×4 red". */
+export function describePart(
+  { part, color, quantity }: PartCount,
+  locale: Locale,
+) {
+  return `${quantity}× ${BRICK_PARTS[part].label} ${colorLabel(color, locale).toLowerCase()}`;
 }
 
 /** Compact name for tight spots like detection labels: "2×4", "plate 1×2". */
@@ -134,12 +183,10 @@ export function shortPartLabel(part: BrickPartId) {
   return kind === "brick" ? size : `${kind} ${size}`;
 }
 
-const confidenceFormat = new Intl.NumberFormat("id-ID", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
-/** Detector confidence as people in Indonesia read it: 0,94. */
-export function formatConfidence(confidence: number) {
-  return confidenceFormat.format(confidence);
+/** Detector confidence in the reader's number format: 0.94 in English, 0,94 in Indonesian. */
+export function formatConfidence(confidence: number, locale: Locale) {
+  return new Intl.NumberFormat(LOCALE_TAGS[locale], {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(confidence);
 }

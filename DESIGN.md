@@ -2,7 +2,7 @@
 
 Legoin uses the [ballers-addict](https://github.com/al-dioooo/ballers-addict) style in LEGO colors: warm paper, ink outlines, hard comic shadows, die-cut stickers, film grain and marquee tape. LEGO Red marks actions and LEGO Yellow marks highlights. The user's own bricks are the only other color on screen.
 
-- Live reference: `/desain` (`src/app/desain/page.tsx`)
+- Live reference: `/en/desain` (`src/app/[lang]/desain/page.tsx`)
 - Tokens: `src/app/tokens.css`, the only file with literal colors
 - Decision record: [ADR-0003](https://github.com/al-dioooo/legoin-docs/blob/main/decisions/0003-ballers-style-lego-colors.md)
 - The 8 options compared (4 font pairings × 2 palettes) were rendered as previews; this is option C with LEGO colors.
@@ -35,8 +35,15 @@ Tokens come in three layers: primitive scales, semantic roles, and a Tailwind br
 
 - **Dela Gothic One** for display: page titles, card titles, the wordmark and marquee tape. It has one weight, so never add `font-bold` to it. Use `font-display text-display` for heroes, `font-display text-3xl` for page titles and `font-display text-xl` for card titles.
 - **DM Sans** for everything readable: body text at 16px, `font-semibold` for buttons and labels.
-- **JetBrains Mono** for counts (`2×`), part ids (`3001`), confidence (`0,94`) and small uppercase labels with wide tracking.
-- UI copy is in Bahasa Indonesia: short and plain, with decimal commas.
+- **JetBrains Mono** for counts (`2×`), part ids (`3001`), confidence (`0.94`) and small uppercase labels with wide tracking.
+
+## Language
+
+- English is the default (`/en`); Indonesian ships too (`/id`). Paths without a language redirect to `/en`.
+- All copy lives in `src/i18n/dictionaries`. `en.ts` defines the shape and `id.ts` is typed against it, so a missing key fails the typecheck. Never hard-code copy in a component.
+- Brick color names and numbers follow the language: pass `locale` to `BrickSwatch`, `InventoryList`, `PartCallout`, `formatConfidence` and `describePart` (0.94 in English, 0,94 in Indonesian).
+- Part names (Brick 2×4, Plate 1×2) stay in the hobby's English in both languages.
+- Keep copy short and plain in both languages, and use sentence case.
 
 ## Shape and depth
 
@@ -73,15 +80,16 @@ UI primitives live in `src/components/ui`, the logo in `src/components/brand`.
 | `StepNumber` | Numbered step as a yellow sticker |
 | `DetectionBox`, `DetectedPhoto` | Detected pieces over a scan photo, in 0–1 fractions of the image |
 | `Logo`, `LogoMark` | Wordmark with mark, or the mark alone with a `title` |
+| `LanguageSwitcher` | EN/ID pill in the header that keeps the current page (`src/components`) |
 
 The brick catalogue lives in `src/lib/bricks.ts`. To add a color, add `--brick-<id>` to `tokens.css` and an entry to `BRICK_COLORS`; a test checks that the two match.
 
-The sample scan in `src/lib/sample-scan.ts` and `public/contoh/kepingan.jpg` feeds `/` and `/desain` until the CV pipeline exists. The photo was generated with Codex image generation; replace it with a real scan when one is available.
+The sample scan in `src/lib/sample-scan.ts` and `public/contoh/kepingan.jpg` feeds the home page and `/desain` until the CV pipeline exists. The photo was generated with Codex image generation; replace it with a real scan when one is available.
 
 ## Accessibility
 
 - WCAG 2.2 AA, with an ink focus ring on every control and reduced motion respected.
-- Glyphs, swatches and decorative SVGs are `aria-hidden`, with text beside them or in `sr-only`. A part callout announces each line as "2× Brick 2×4 merah".
+- Glyphs, swatches and decorative SVGs are `aria-hidden`, with text beside them or in `sr-only`. A part callout announces each line as "2× Brick 2×4 red".
 - Layouts work from 360px wide with no horizontal scroll.
 
 ## Extending the system
