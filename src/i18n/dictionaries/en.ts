@@ -108,6 +108,21 @@ export const en = {
       body: "It may have been deleted from this browser.",
       action: "Start a new scan",
     },
+    toCheck: {
+      one: "{count} piece to check",
+      other: "{count} pieces to check",
+    },
+    labels: { hide: "Hide labels", show: "Show labels" },
+    zoom: { in: "Zoom in", out: "Zoom out" },
+    piece: {
+      title: "Selected piece",
+      empty: "Select a piece on the photo or in the inventory to see it here.",
+      confidence: "Confidence",
+      added: "Added by you",
+      check: "Check this",
+      lowConfidence:
+        "We're not sure about this piece. Check its part and color.",
+    },
   },
   history: {
     title: "Your scans",

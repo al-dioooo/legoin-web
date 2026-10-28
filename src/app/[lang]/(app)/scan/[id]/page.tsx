@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { ResultsLoading, ScanSummary } from "@/components/results/scan-summary";
+import { ResultsLoading, ScanResults } from "@/components/results/scan-results";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -17,7 +17,7 @@ export default async function ScanResultsPage() {
   const { results, common } = await getDictionary();
   return (
     <Suspense fallback={<ResultsLoading label={results.loading} />}>
-      <ScanSummary copy={{ results, common }} locale={locale} />
+      <ScanResults copy={{ results, common }} locale={locale} />
     </Suspense>
   );
 }

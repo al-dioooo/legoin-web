@@ -190,3 +190,11 @@ export function formatConfidence(confidence: number, locale: Locale) {
     maximumFractionDigits: 2,
   }).format(confidence);
 }
+
+/** Confidence as a whole percentage for spoken names: "94%". */
+export function formatPercent(confidence: number, locale: Locale) {
+  return new Intl.NumberFormat(LOCALE_TAGS[locale], {
+    style: "percent",
+    maximumFractionDigits: 0,
+  }).format(confidence);
+}

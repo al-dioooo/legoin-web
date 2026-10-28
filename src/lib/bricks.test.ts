@@ -5,6 +5,7 @@ import {
   BRICK_COLORS,
   describePart,
   formatConfidence,
+  formatPercent,
   shortPartLabel,
 } from "@/lib/bricks";
 
@@ -33,4 +34,9 @@ test("short labels keep bricks bare and name other kinds", () => {
 test("confidence follows the language's decimal separator", () => {
   expect(formatConfidence(0.9, "en")).toBe("0.90");
   expect(formatConfidence(0.9, "id")).toBe("0,90");
+});
+
+test("spoken confidence is a whole percentage", () => {
+  expect(formatPercent(0.938, "en")).toBe("94%");
+  expect(formatPercent(0.58, "id")).toBe("58%");
 });
