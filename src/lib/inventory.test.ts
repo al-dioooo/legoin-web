@@ -1,7 +1,12 @@
 // @vitest-environment node
 import { expect, test } from "vitest";
 import type { Detection } from "@/lib/domain";
-import { applyChanges, checkInventory, toInventory } from "@/lib/inventory";
+import {
+  applyChanges,
+  checkInventory,
+  inverseChanges,
+  toInventory,
+} from "@/lib/inventory";
 
 const box = { x: 0, y: 0, width: 0.1, height: 0.1 };
 const detections: Detection[] = [
@@ -77,4 +82,44 @@ test("checkInventory never counts a missing part as owned", () => {
     { part: "brick-2x4", color: "red", quantity: 2 },
     { part: "round-1x1", color: "yellow", quantity: 2 },
   ]);
+});
+
+test("restore puts a piece back as it was", () => {
+  const removed = applyChanges(
+    detections,
+    [{ type: "remove", id: "c" }],
+    () => "x",
+  );
+  const restored = applyChanges(
+    removed,
+    [{ type: "restore", detection: detections[2] }],
+    () => "x",
+  );
+  expect(restored.find((d) => d.id === "c")).toEqual(detections[2]);
+});
+
+test("inverseChanges undoes edits, removals and additions", () => {
+  let ids = 0;
+  const after = applyChanges(
+    detections,
+    [
+      { type: "edit", id: "c", part: "plate-2x2", color: "dark-gray" },
+      { type: "remove", id: "a" },
+      { type: "add", part: "round-1x1", color: "yellow", quantity: 2 },
+    ],
+    () => `added-${++ids}`,
+  );
+  const undone = applyChanges(
+    after,
+    inverseChanges(detections, after),
+    () => "x",
+  );
+  expect(toInventory(undone)).toEqual(toInventory(detections));
+  expect(undone.find((d) => d.id === "c")).toEqual(detections[2]);
+  expect(undone.find((d) => d.id === "a")).toEqual(detections[0]);
+  expect(undone.some((d) => d.id.startsWith("added-"))).toBe(false);
+});
+
+test("nothing to undo when nothing changed", () => {
+  expect(inverseChanges(detections, detections)).toEqual([]);
 });

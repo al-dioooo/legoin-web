@@ -59,6 +59,13 @@ export function applyChanges(
             }
           : detection,
       );
+    } else if (change.type === "restore") {
+      const { detection } = change;
+      result = result.some((existing) => existing.id === detection.id)
+        ? result.map((existing) =>
+            existing.id === detection.id ? detection : existing,
+          )
+        : [...result, detection];
     } else {
       const added = Array.from({ length: change.quantity }, () => ({
         id: newId(),
@@ -72,6 +79,33 @@ export function applyChanges(
     }
   }
   return result;
+}
+
+/**
+ * The changes that turn `after` back into `before`: added pieces are removed,
+ * and removed or edited pieces are restored as they were. Powers undo.
+ */
+export function inverseChanges(
+  before: Detection[],
+  after: Detection[],
+): DetectionChange[] {
+  const beforeIds = new Set(before.map((detection) => detection.id));
+  const afterById = new Map(
+    after.map((detection) => [detection.id, detection]),
+  );
+  const changes: DetectionChange[] = after
+    .filter((detection) => !beforeIds.has(detection.id))
+    .map((detection) => ({ type: "remove", id: detection.id }));
+  for (const detection of before) {
+    const now = afterById.get(detection.id);
+    const changed =
+      !now ||
+      now.part !== detection.part ||
+      now.color !== detection.color ||
+      Boolean(now.edited) !== Boolean(detection.edited);
+    if (changed) changes.push({ type: "restore", detection });
+  }
+  return changes;
 }
 
 /**

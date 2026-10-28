@@ -76,4 +76,6 @@ export type DetectionChange =
       part: BrickPartId;
       color: BrickColorId;
       quantity: number;
-    };
+    }
+  /** Puts a piece back exactly as it was, box and confidence included. Used for undo. */
+  | { type: "restore"; detection: Detection };
