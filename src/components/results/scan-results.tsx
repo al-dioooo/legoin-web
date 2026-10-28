@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { AddPiece } from "@/components/results/add-piece";
+import { EditPiece } from "@/components/results/edit-piece";
 import { PieceDetail } from "@/components/results/piece-detail";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonStyles } from "@/components/ui/button";
@@ -11,11 +13,11 @@ import { InventoryList } from "@/components/ui/inventory-list";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { plural } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
-import type { PartCount } from "@/lib/bricks";
+import type { BrickColorId, BrickPartId, PartCount } from "@/lib/bricks";
 import { labeledBoxes } from "@/lib/detection-labels";
-import { LOW_CONFIDENCE, type Scan } from "@/lib/domain";
-import { inventoryKey, toInventory } from "@/lib/inventory";
-import { getScan } from "@/lib/mock/api";
+import { type DetectionChange, needsCheck, type Scan } from "@/lib/domain";
+import { inventoryKey, inverseChanges, toInventory } from "@/lib/inventory";
+import { getScan, updateDetections } from "@/lib/mock/api";
 
 type Copy = { results: Dictionary["results"]; common: Dictionary["common"] };
 
@@ -33,12 +35,10 @@ export function ResultsLoading({ label }: { label: string }) {
   );
 }
 
-const isFlagged = (confidence: number | null) =>
-  confidence !== null && confidence < LOW_CONFIDENCE;
-
 /**
- * A finished scan (PRD F2–F4): the photo with selectable boxes, the inventory,
- * and the selected piece. Selecting on either side highlights the other.
+ * A finished scan (PRD F2–F5): the photo with selectable boxes, the inventory,
+ * and the selected piece, which can be corrected or removed. Missed pieces can
+ * be added, and the last change undone. Changes are saved as they're made.
  */
 export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   const { id } = useParams<{ id: string }>();
@@ -46,6 +46,9 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showLabels, setShowLabels] = useState(true);
   const [zoomed, setZoomed] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [status, setStatus] = useState("");
+  const [undo, setUndo] = useState<DetectionChange[] | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -53,9 +56,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
       if (!active) return;
       setState(scan ? { kind: "ready", scan } : { kind: "missing" });
       // Start on the first piece to check, so the flag is seen.
-      const firstFlagged = scan?.detections.find((d) =>
-        isFlagged(d.confidence),
-      );
+      const firstFlagged = scan?.detections.find(needsCheck);
       setSelectedId(firstFlagged?.id ?? null);
     });
     return () => {
@@ -81,8 +82,13 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
 
   const { scan } = state;
   const selected = scan.detections.find((d) => d.id === selectedId) ?? null;
-  const flagged = scan.detections.filter((d) => isFlagged(d.confidence));
+  const flagged = scan.detections.filter(needsCheck);
   const flaggedKeys = new Set(flagged.map(inventoryKey));
+  const editedKeys = new Set(
+    scan.detections.filter((d) => d.edited).map(inventoryKey),
+  );
+  const partTypes = new Set(scan.detections.map((d) => d.part)).size;
+  const colors = new Set(scan.detections.map((d) => d.color)).size;
 
   // Selecting a line picks one of its pieces; selecting it again moves to the next.
   function selectLine(line: PartCount) {
@@ -91,6 +97,76 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
     );
     const index = group.findIndex((d) => d.id === selectedId);
     setSelectedId(group[(index + 1) % group.length]?.id ?? null);
+  }
+
+  /** Saves changes, remembers how to undo them, and says what happened. */
+  async function apply(
+    changes: DetectionChange[],
+    message: string,
+    {
+      select,
+      isUndo = false,
+    }: {
+      select?: (before: Scan, after: Scan) => string | null;
+      isUndo?: boolean;
+    } = {},
+  ) {
+    setPending(true);
+    try {
+      const before = scan;
+      const after = await updateDetections(scan.id, changes, { delayMs: 150 });
+      setState({ kind: "ready", scan: after });
+      setUndo(
+        isUndo ? null : inverseChanges(before.detections, after.detections),
+      );
+      if (select) setSelectedId(select(before, after));
+      setStatus(message);
+    } catch {
+      setStatus(copy.results.status.failed);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  function save(part: BrickPartId, color: BrickColorId) {
+    if (!selected) return;
+    void apply(
+      [{ type: "edit", id: selected.id, part, color }],
+      copy.results.status.edited,
+    );
+  }
+
+  function remove() {
+    if (!selected) return;
+    void apply(
+      [{ type: "remove", id: selected.id }],
+      copy.results.status.removed,
+      {
+        select: () => null,
+      },
+    );
+  }
+
+  function add(part: BrickPartId, color: BrickColorId, quantity: number) {
+    void apply(
+      [{ type: "add", part, color, quantity }],
+      plural(copy.results.status.added, quantity, locale),
+      {
+        select: (before, after) => {
+          const known = new Set(before.detections.map((d) => d.id));
+          return after.detections.find((d) => !known.has(d.id))?.id ?? null;
+        },
+      },
+    );
+  }
+
+  function undoLast() {
+    if (!undo) return;
+    void apply(undo, copy.results.status.undone, {
+      isUndo: true,
+      select: (_, after) =>
+        after.detections.some((d) => d.id === selectedId) ? selectedId : null,
+    });
   }
 
   return (
@@ -151,24 +227,73 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
           detection={selected}
           locale={locale}
           copy={copy.results.piece}
-        />
-        <section aria-labelledby="inventory-title">
-          <h2
-            id="inventory-title"
-            className="font-mono text-xs font-bold tracking-[0.25em] uppercase"
-          >
-            {copy.common.inventory}
-          </h2>
+        >
+          {selected && (
+            <EditPiece
+              key={selected.id}
+              detection={selected}
+              locale={locale}
+              copy={copy.results.edit}
+              pending={pending}
+              onSave={save}
+              onRemove={remove}
+            />
+          )}
+        </PieceDetail>
+
+        <section aria-labelledby="inventory-title" className="space-y-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2
+              id="inventory-title"
+              className="font-mono text-xs font-bold tracking-[0.25em] uppercase"
+            >
+              {copy.common.inventory}
+            </h2>
+            <p className="font-mono text-xs text-ink-secondary">
+              {[
+                plural(copy.common.pieces, scan.detections.length, locale),
+                plural(copy.results.totals.parts, partTypes, locale),
+                plural(copy.results.totals.colors, colors, locale),
+              ].join(" · ")}
+            </p>
+          </div>
           <InventoryList
             items={toInventory(scan.detections)}
             locale={locale}
             selectedKey={selected ? inventoryKey(selected) : undefined}
             flaggedKeys={flaggedKeys}
             flaggedLabel={copy.results.piece.check}
+            editedKeys={editedKeys}
+            editedLabel={copy.results.edit.edited}
             onSelect={selectLine}
-            className="mt-3"
+          />
+          <div className="flex min-h-10 flex-wrap items-center gap-3">
+            <output className="text-sm font-semibold">{status}</output>
+            {undo && undo.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={pending}
+                onClick={undoLast}
+              >
+                {copy.results.undo}
+              </Button>
+            )}
+          </div>
+          <AddPiece
+            locale={locale}
+            copy={copy.results.add}
+            pending={pending}
+            onAdd={add}
           />
         </section>
+
+        <Link
+          href={`/${locale}/scan/${scan.id}/ideas`}
+          className={`${buttonStyles()} w-full sm:w-auto`}
+        >
+          {copy.results.continue} <span aria-hidden="true">→</span>
+        </Link>
       </div>
     </div>
   );
