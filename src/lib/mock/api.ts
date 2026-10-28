@@ -95,18 +95,27 @@ export function resetMockData() {
   localStorage.removeItem(STORAGE_KEY);
 }
 
-/** Scans a photo, reporting each pipeline stage, and saves the result. */
+/**
+ * Scans a photo, reporting each pipeline stage, and saves the result.
+ * Aborting through `signal` rejects with an AbortError and saves nothing.
+ */
 export async function createScan(
   photo: Photo,
   {
     delayMs = 900,
     fail,
     onStage,
-  }: MockOptions & { onStage?: (stage: ScanStage) => void } = {},
+    signal,
+  }: MockOptions & {
+    onStage?: (stage: ScanStage) => void;
+    signal?: AbortSignal;
+  } = {},
 ): Promise<Scan> {
   for (const stage of SCAN_STAGES) {
+    signal?.throwIfAborted();
     onStage?.(stage);
     await wait(delayMs);
+    signal?.throwIfAborted();
     // Network trouble shows up early; problems with the photo after detection.
     if (fail === "network" || (fail && stage === "detecting")) {
       throw new MockApiError(fail);

@@ -121,3 +121,16 @@ test("demo query options turn into failures and delays", () => {
   });
   expect(mockOptionsFromSearch("?mock=fail-everything")).toEqual({});
 });
+
+test("a cancelled scan rejects and saves nothing", async () => {
+  const controller = new AbortController();
+  const scanning = createScan(EVENING_PHOTO, {
+    delayMs: 5,
+    signal: controller.signal,
+    onStage: (stage) => {
+      if (stage === "classifying") controller.abort();
+    },
+  });
+  await expect(scanning).rejects.toMatchObject({ name: "AbortError" });
+  expect(await listScans(fast)).toHaveLength(2);
+});
