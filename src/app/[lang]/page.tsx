@@ -53,9 +53,17 @@ export default async function Home() {
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-secondary">
             {home.lead}
           </p>
-          <Link href={`/${locale}/desain`} className={`${buttonStyles()} mt-8`}>
-            {home.cta} <span aria-hidden="true">↗</span>
-          </Link>
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <Link href={`/${locale}/scan`} className={buttonStyles()}>
+              {home.ctaScan} <span aria-hidden="true">→</span>
+            </Link>
+            <Link
+              href={`/${locale}/desain`}
+              className={buttonStyles({ variant: "secondary" })}
+            >
+              {home.ctaDesign}
+            </Link>
+          </div>
           <ul className="mt-8 flex flex-wrap gap-2">
             <li>
               <Badge tone="highlight">{home.facts.parts}</Badge>
