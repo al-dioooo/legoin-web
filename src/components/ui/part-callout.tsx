@@ -1,7 +1,8 @@
 import { BrickGlyph } from "@/components/ui/brick-glyph";
+import type { Locale } from "@/i18n/locales";
 import {
-  BRICK_COLORS,
   BRICK_PARTS,
+  colorLabel,
   describePart,
   type PartCount,
 } from "@/lib/bricks";
@@ -10,6 +11,7 @@ import { cx } from "@/lib/cx";
 type PartCalloutProps = {
   title: string;
   parts: PartCount[];
+  locale: Locale;
   /** Parts the user doesn't have: dashed frame instead of a filled box. */
   missing?: boolean;
   /** Show part and color names under each count, for inventories. */
@@ -21,6 +23,7 @@ type PartCalloutProps = {
 export function PartCallout({
   title,
   parts,
+  locale,
   missing = false,
   detailed = false,
   className,
@@ -44,7 +47,7 @@ export function PartCallout({
             className="flex flex-col items-start gap-1.5"
           >
             <BrickGlyph part={item.part} color={item.color} />
-            <span className="sr-only">{describePart(item)}</span>
+            <span className="sr-only">{describePart(item, locale)}</span>
             <span
               aria-hidden="true"
               className="font-mono text-sm font-bold text-ink"
@@ -58,7 +61,7 @@ export function PartCallout({
               >
                 {BRICK_PARTS[item.part].label}
                 <br />
-                {BRICK_COLORS[item.color].label}
+                {colorLabel(item.color, locale)}
               </span>
             )}
           </li>

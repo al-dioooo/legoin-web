@@ -3,9 +3,12 @@ import { cx } from "@/lib/cx";
 /** A numbered step, as a yellow sticker. */
 export function StepNumber({
   value,
+  label,
   className,
 }: {
   value: number;
+  /** Word screen readers say before the number, e.g. "Step". */
+  label: string;
   className?: string;
 }) {
   return (
@@ -15,7 +18,7 @@ export function StepNumber({
         className,
       )}
     >
-      <span className="sr-only">Langkah </span>
+      <span className="sr-only">{label} </span>
       {value}
     </span>
   );

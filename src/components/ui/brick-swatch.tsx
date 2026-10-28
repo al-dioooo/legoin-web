@@ -1,12 +1,15 @@
-import { BRICK_COLORS, type BrickColorId, brickColorVar } from "@/lib/bricks";
+import type { Locale } from "@/i18n/locales";
+import { type BrickColorId, brickColorVar, colorLabel } from "@/lib/bricks";
 import { cx } from "@/lib/cx";
 
 /** A brick color always comes with its name, never as color alone. */
 export function BrickSwatch({
   color,
+  locale,
   className,
 }: {
   color: BrickColorId;
+  locale: Locale;
   className?: string;
 }) {
   return (
@@ -21,7 +24,7 @@ export function BrickSwatch({
         className="size-4 shrink-0 rounded-full border-2 border-ink"
         style={{ backgroundColor: brickColorVar(color) }}
       />
-      {BRICK_COLORS[color].label}
+      {colorLabel(color, locale)}
     </span>
   );
 }
