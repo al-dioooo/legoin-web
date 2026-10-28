@@ -126,3 +126,20 @@ export function brickColorVar(color: BrickColorId) {
 export function describePart({ part, color, quantity }: PartCount) {
   return `${quantity}× ${BRICK_PARTS[part].label} ${BRICK_COLORS[color].label.toLowerCase()}`;
 }
+
+/** Compact name for tight spots like detection labels: "2×4", "plate 1×2". */
+export function shortPartLabel(part: BrickPartId) {
+  const { kind, studs } = BRICK_PARTS[part];
+  const size = studs.join("×");
+  return kind === "brick" ? size : `${kind} ${size}`;
+}
+
+const confidenceFormat = new Intl.NumberFormat("id-ID", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+/** Detector confidence as people in Indonesia read it: 0,94. */
+export function formatConfidence(confidence: number) {
+  return confidenceFormat.format(confidence);
+}
