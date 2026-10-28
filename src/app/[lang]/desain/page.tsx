@@ -31,7 +31,6 @@ import {
   SAMPLE_INVENTORY,
   SAMPLE_MISSING_COUNT,
   SAMPLE_PHOTO,
-  SAMPLE_SELECTED,
   sampleBoxes,
 } from "@/lib/sample-scan";
 
@@ -360,9 +359,9 @@ export default async function DesignSystemPage() {
         description={design.detection.description}
       >
         <DetectedPhoto
-          photo={{ ...SAMPLE_PHOTO, alt: sample.photoAlt }}
+          photo={SAMPLE_PHOTO}
+          alt={sample.photoAlt}
           detections={sampleBoxes(locale)}
-          selected={SAMPLE_SELECTED}
           sizes="(min-width: 640px) 36rem, 100vw"
           className="max-w-xl"
         />

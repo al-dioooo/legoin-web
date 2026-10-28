@@ -15,7 +15,6 @@ import {
   SAMPLE_INVENTORY,
   SAMPLE_MISSING_COUNT,
   SAMPLE_PHOTO,
-  SAMPLE_SELECTED,
   sampleBoxes,
 } from "@/lib/sample-scan";
 
@@ -90,9 +89,9 @@ export default async function Home() {
             </span>
           </div>
           <DetectedPhoto
-            photo={{ ...SAMPLE_PHOTO, alt: sample.photoAlt }}
+            photo={SAMPLE_PHOTO}
+            alt={sample.photoAlt}
             detections={sampleBoxes(locale)}
-            selected={SAMPLE_SELECTED}
             sizes="(min-width: 1024px) 26rem, 100vw"
             priority
             className="mt-4"

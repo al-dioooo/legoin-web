@@ -5,13 +5,8 @@
  */
 
 import type { Locale } from "@/i18n/locales";
-import {
-  type BrickColorId,
-  type BrickPartId,
-  formatConfidence,
-  type PartCount,
-  shortPartLabel,
-} from "@/lib/bricks";
+import type { BrickColorId, BrickPartId, PartCount } from "@/lib/bricks";
+import { labeledBoxes } from "@/lib/detection-labels";
 import type { Box } from "@/lib/domain";
 
 export const SAMPLE_PHOTO = {
@@ -65,21 +60,16 @@ export const SAMPLE_DETECTIONS: {
   },
 ];
 
-/** The detection shown as selected in the sample. */
-export const SAMPLE_SELECTED = 0;
-
-/**
- * Boxes with labels for `DetectedPhoto`. Only the selected box shows its
- * confidence, so labels don't collide on a phone-width photo.
- */
+/** Boxes with labels for `DetectedPhoto`, with the red brick selected. */
 export function sampleBoxes(locale: Locale) {
-  return SAMPLE_DETECTIONS.map(({ part, box, confidence }, index) => ({
-    box,
-    label:
-      index === SAMPLE_SELECTED
-        ? `${shortPartLabel(part)} · ${formatConfidence(confidence, locale)}`
-        : shortPartLabel(part),
-  }));
+  return labeledBoxes(
+    SAMPLE_DETECTIONS.map((detection, index) => ({
+      ...detection,
+      id: String(index),
+    })),
+    locale,
+    "0",
+  );
 }
 
 export const SAMPLE_INVENTORY: PartCount[] = SAMPLE_DETECTIONS.map(
