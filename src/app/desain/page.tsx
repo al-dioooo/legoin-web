@@ -202,7 +202,7 @@ export default function DesignSystemPage() {
           <p className="text-xl font-bold">Judul bagian 20/700</p>
           <p className="max-w-2xl text-base leading-relaxed">
             Teks isi 16/400. Potret semua kepingan dari atas di latar polos,
-            jangan ditumpuk. BrickSense menghitung jenis dan warnanya, lalu
+            jangan ditumpuk. Legoin menghitung jenis dan warnanya, lalu
             menyarankan tiga ide rakitan.
           </p>
           <p className="text-sm text-ink-secondary">
@@ -224,7 +224,7 @@ export default function DesignSystemPage() {
           {[16, 24, 32, 48].map((size) => (
             <div key={size} className="flex flex-col items-center gap-2">
               <span style={{ width: size, height: size }}>
-                <LogoMark title="BrickSense" className="size-full" />
+                <LogoMark title="Legoin" className="size-full" />
               </span>
               <span className="font-mono text-xs text-ink-secondary">
                 {size}px

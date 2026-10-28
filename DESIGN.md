@@ -1,4 +1,4 @@
-# Design System: BrickSense
+# Design System: Legoin
 
 Direction **"Buku instruksi"**: the app reads like a LEGO building-instruction booklet. White pages on a pale cool-gray table, parts drawn from above in callout boxes with their counts, and numbered steps. The user's own bricks bring the color; the interface stays ink, gray and white with two LEGO accents.
 

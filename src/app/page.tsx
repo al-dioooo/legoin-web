@@ -13,8 +13,8 @@ export default function Home() {
           Rakit dari kepingan yang kamu punya.
         </h1>
         <p className="max-w-xl text-lg text-ink-secondary">
-          Potret kepingan LEGO-mu dalam satu foto. BrickSense mengenali jenis
-          dan warnanya, lalu memberi tiga ide rakitan lengkap dengan part yang
+          Potret kepingan LEGO-mu dalam satu foto. Legoin mengenali jenis dan
+          warnanya, lalu memberi tiga ide rakitan lengkap dengan part yang
           kurang.
         </p>
         <Link
