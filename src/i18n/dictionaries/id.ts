@@ -126,6 +126,41 @@ export const id: Dictionary = {
       lowConfidence:
         "Kami belum yakin dengan kepingan ini. Cek jenis dan warnanya.",
     },
+    edit: {
+      title: "Perbaiki kepingan ini",
+      part: "Jenis part",
+      color: "Warna",
+      save: "Simpan perubahan",
+      remove: "Hapus kepingan",
+      confirm: "Hapus kepingan ini dari inventori?",
+      confirmRemove: "Hapus",
+      keep: "Batal",
+      edited: "Diubah",
+    },
+    add: {
+      title: "Tambah kepingan yang terlewat",
+      part: "Jenis part",
+      color: "Warna",
+      quantity: "Jumlah",
+      submit: "Tambah ke inventori",
+      invalid: "Masukkan angka 1 sampai 20.",
+    },
+    totals: {
+      parts: { one: "{count} jenis part", other: "{count} jenis part" },
+      colors: { one: "{count} warna", other: "{count} warna" },
+    },
+    undo: "Batalkan perubahan terakhir",
+    status: {
+      edited: "Kepingan diperbarui.",
+      removed: "Kepingan dihapus.",
+      added: {
+        one: "{count} kepingan ditambahkan.",
+        other: "{count} kepingan ditambahkan.",
+      },
+      undone: "Perubahan dibatalkan.",
+      failed: "Kami tidak bisa menyimpannya. Coba lagi.",
+    },
+    continue: "Lihat ide rakitan",
   },
   history: {
     title: "Riwayat pindai",

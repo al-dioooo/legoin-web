@@ -18,6 +18,8 @@ export function InventoryList({
   selectedKey,
   flaggedKeys,
   flaggedLabel,
+  editedKeys,
+  editedLabel,
   onSelect,
   className,
 }: {
@@ -29,6 +31,10 @@ export function InventoryList({
   flaggedKeys?: ReadonlySet<string>;
   /** Spoken after a flagged line, e.g. "Check this". */
   flaggedLabel?: string;
+  /** Lines holding a piece the person corrected or added. */
+  editedKeys?: ReadonlySet<string>;
+  /** Shown on an edited line, e.g. "Edited". */
+  editedLabel?: string;
   onSelect?: (line: PartCount) => void;
   className?: string;
 }) {
@@ -58,6 +64,12 @@ export function InventoryList({
               </span>
               {flagged && flaggedLabel && (
                 <span className="sr-only">, {flaggedLabel}</span>
+              )}
+              {editedKeys?.has(key) && editedLabel && (
+                <span className="mt-0.5 block text-xs font-bold">
+                  <span className="sr-only">, </span>
+                  {editedLabel}
+                </span>
               )}
             </span>
           </>

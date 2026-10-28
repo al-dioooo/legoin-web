@@ -5,7 +5,7 @@ import { BrickSwatch } from "@/components/ui/brick-swatch";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
 import { BRICK_PARTS, formatPercent } from "@/lib/bricks";
-import { type Detection, LOW_CONFIDENCE } from "@/lib/domain";
+import { type Detection, needsCheck } from "@/lib/domain";
 
 type Copy = Dictionary["results"]["piece"];
 
@@ -65,13 +65,12 @@ export function PieceDetail({
               </p>
             </div>
           </div>
-          {detection.confidence !== null &&
-            detection.confidence < LOW_CONFIDENCE && (
-              <div className="mt-3 flex flex-col items-start gap-1.5">
-                <Badge tone="warning">{copy.check}</Badge>
-                <p className="text-sm">{copy.lowConfidence}</p>
-              </div>
-            )}
+          {needsCheck(detection) && (
+            <div className="mt-3 flex flex-col items-start gap-1.5">
+              <Badge tone="warning">{copy.check}</Badge>
+              <p className="text-sm">{copy.lowConfidence}</p>
+            </div>
+          )}
           {children}
         </div>
       ) : (

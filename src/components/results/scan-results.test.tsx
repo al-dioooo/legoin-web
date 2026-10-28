@@ -10,9 +10,8 @@ vi.mock("next/navigation", () => ({ useParams: () => ({ id: route.id }) }));
 const copy = { results: en.results, common: en.common };
 
 function inventoryTile(part: string) {
-  const list = screen.getByRole("heading", { name: "Inventory" })
-    .nextElementSibling as HTMLElement;
-  const tile = within(list)
+  const region = screen.getByRole("region", { name: "Inventory" });
+  const tile = within(within(region).getByRole("list"))
     .getAllByRole("button")
     .find((button) => button.textContent?.includes(part));
   if (!tile) throw new Error(`no tile for ${part}`);
