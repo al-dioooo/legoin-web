@@ -1,7 +1,7 @@
 import { cx } from "@/lib/cx";
+import type { Box } from "@/lib/domain";
 
-/** A box in fractions of the photo (0 to 1), so it scales with the image. */
-export type Box = { x: number; y: number; width: number; height: number };
+export type { Box };
 
 const percent = (value: number) => `${value * 100}%`;
 
