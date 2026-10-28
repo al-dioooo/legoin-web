@@ -30,6 +30,14 @@ Follow [DESIGN.md](DESIGN.md) and check `/en/desain` before building a screen. T
 
 **Language.** English is the default (`/en`) and Indonesian ships too (`/id`). Every page lives under `src/app/[lang]`. All copy goes in `src/i18n/dictionaries`, in both `en.ts` and `id.ts`; never hard-code UI text in a component. Pages read copy with `getDictionary()` and the language with `currentLocale()`, and pass `locale` to components that show brick colors or numbers.
 
+## Data
+
+Until the Python backend exists, screens read and write data only through `src/lib/mock/api.ts`, typed by `src/lib/domain.ts`. Those types follow the API contract in [legoin-docs#7](https://github.com/al-dioooo/legoin-docs/issues/7), so swapping in the real API changes no screen.
+
+- **Storage:** the mock keeps scans in `localStorage`, so it's browser only. Call it from Client Components.
+- **Demo conditions:** add `?mock=fail-<reason>` (`no_pieces`, `too_dark`, `too_blurry`, `network`) or `?mockDelay=0` to a URL. Read them with `mockOptionsFromSearch`.
+- **Inventory logic:** grouping, corrections and the used/missing split live in `src/lib/inventory.ts`. Keep that logic there, pure and tested, not in components.
+
 ## Commits
 
 Small and focused: one logical change, roughly 5 to 100 lines, explainable in one sentence and easy to revert. Commit when a function, a fix or a logical step is done; if you pause work, you should be able to commit. Never mix a refactor with a feature, or a fix with formatting. No 1000+ line commits, no WIP commits on shared branches, and no vague messages like "update code" or "fix bugs".
