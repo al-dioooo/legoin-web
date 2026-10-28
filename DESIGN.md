@@ -82,6 +82,7 @@ UI primitives live in `src/components/ui`, the logo in `src/components/brand`.
 | `DetectionBox`, `DetectedPhoto` | Detected pieces over a scan photo, in 0–1 fractions of the image |
 | `Logo`, `LogoMark` | Wordmark with mark, or the mark alone with a `title` |
 | `LanguageSwitcher` | EN/ID pill in the header that keeps the current page (`src/components`) |
+| `ThemePicker` | Theme radio group of native radios: `cards` for the first choice, `compact` pills to switch theme in place (`src/components/ideas`) |
 
 The brick catalogue lives in `src/lib/bricks.ts`. To add a color, add `--brick-<id>` to `tokens.css` and an entry to `BRICK_COLORS`; a test checks that the two match.
 

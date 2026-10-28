@@ -162,6 +162,25 @@ export const id: Dictionary = {
     },
     continue: "Lihat ide rakitan",
   },
+  ideas: {
+    title: "Ide rakitan",
+    picker: {
+      title: "Mau merakit apa?",
+      lead: "Pilih tema. Legoin menyarankan tiga rakitan dari kepinganmu.",
+      legend: "Tema",
+      themes: {
+        vehicles: { label: "Kendaraan", hint: "Mobil, truk, dan perahu" },
+        animals: { label: "Hewan", hint: "Bebek, kura-kura, dan penguin" },
+        buildings: {
+          label: "Bangunan",
+          hint: "Rumah, mercusuar, dan jembatan",
+        },
+        surprise: { label: "Kejutan", hint: "Satu ide dari tiap tema" },
+      },
+      submit: "Lihat ide",
+    },
+    finding: "Mencari ide…",
+  },
   history: {
     title: "Riwayat pindai",
     lead: "Pindaian sebelumnya dan ide rakitannya akan muncul di sini.",

@@ -156,6 +156,25 @@ export const en = {
     },
     continue: "Get build ideas",
   },
+  ideas: {
+    title: "Build ideas",
+    picker: {
+      title: "What do you want to build?",
+      lead: "Pick a theme. Legoin suggests three builds from your pieces.",
+      legend: "Theme",
+      themes: {
+        vehicles: { label: "Vehicles", hint: "Cars, trucks and boats" },
+        animals: { label: "Animals", hint: "Ducks, turtles and penguins" },
+        buildings: {
+          label: "Buildings",
+          hint: "Houses, lighthouses and bridges",
+        },
+        surprise: { label: "Surprise me", hint: "One idea from each theme" },
+      },
+      submit: "Get ideas",
+    },
+    finding: "Finding ideas…",
+  },
   history: {
     title: "Your scans",
     lead: "Earlier scans and their build ideas will show up here.",
