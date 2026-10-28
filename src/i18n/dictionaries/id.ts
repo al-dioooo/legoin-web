@@ -66,6 +66,50 @@ export const id: Dictionary = {
       read: "Kami tidak bisa membuka foto itu. Coba foto lain.",
       generic: "Ada yang salah. Coba lagi.",
     },
+    progress: {
+      title: "Memindai kepinganmu",
+      photoAlt: "Foto yang sedang dipindai",
+      stages: {
+        detecting: "Mencari kepingan",
+        classifying: "Mengenali jenis part",
+        coloring: "Membaca warna",
+      },
+      status: { done: "selesai", current: "berjalan", waiting: "menunggu" },
+      elapsed: "Waktu",
+      slow: "Ini lebih lama dari biasanya. Tunggu sebentar lagi.",
+      cancel: "Batal",
+    },
+    failures: {
+      no_pieces: {
+        title: "Kami tidak menemukan kepingan",
+        body: "Sebar kepinganmu di latar polos, lalu foto ulang.",
+      },
+      too_dark: {
+        title: "Fotomu terlalu gelap",
+        body: "Pindah ke cahaya siang atau nyalakan lampu terang, lalu foto ulang.",
+      },
+      too_blurry: {
+        title: "Fotomu buram",
+        body: "Pegang ponsel diam di atas kepingan dan tunggu fokus sebelum memotret.",
+      },
+      network: {
+        title: "Kami tidak bisa terhubung ke Legoin",
+        body: "Periksa koneksimu lalu coba lagi. Fotomu masih tersimpan di sini.",
+      },
+      retake: "Foto ulang",
+      retry: "Coba lagi",
+      tips: "Lihat tips foto",
+    },
+  },
+  results: {
+    title: "Kepinganmu",
+    loading: "Memuat hasil pindai…",
+    photoAlt: "Fotomu dengan kotak di setiap kepingan yang ditemukan",
+    missing: {
+      title: "Kami tidak menemukan hasil pindai itu",
+      body: "Mungkin sudah dihapus dari peramban ini.",
+      action: "Mulai pindai baru",
+    },
   },
   history: {
     title: "Riwayat pindai",

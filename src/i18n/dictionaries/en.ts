@@ -64,6 +64,50 @@ export const en = {
       read: "We couldn't open that photo. Try another one.",
       generic: "Something went wrong. Try again.",
     },
+    progress: {
+      title: "Scanning your pieces",
+      photoAlt: "The photo being scanned",
+      stages: {
+        detecting: "Finding pieces",
+        classifying: "Recognizing parts",
+        coloring: "Reading colors",
+      },
+      status: { done: "done", current: "in progress", waiting: "waiting" },
+      elapsed: "Time",
+      slow: "This is taking longer than usual. Hang on a little longer.",
+      cancel: "Cancel",
+    },
+    failures: {
+      no_pieces: {
+        title: "We couldn't find any pieces",
+        body: "Spread your pieces out on a plain background and take the photo again.",
+      },
+      too_dark: {
+        title: "Your photo is too dark",
+        body: "Move to daylight or turn on a bright lamp, then retake the photo.",
+      },
+      too_blurry: {
+        title: "Your photo is blurry",
+        body: "Hold your phone still over the pieces and let it focus before you shoot.",
+      },
+      network: {
+        title: "We couldn't reach Legoin",
+        body: "Check your connection and try again. Your photo is still here.",
+      },
+      retake: "Retake photo",
+      retry: "Try again",
+      tips: "See the photo tips",
+    },
+  },
+  results: {
+    title: "Your pieces",
+    loading: "Loading your scan…",
+    photoAlt: "Your photo with a box around each piece found",
+    missing: {
+      title: "We couldn't find that scan",
+      body: "It may have been deleted from this browser.",
+      action: "Start a new scan",
+    },
   },
   history: {
     title: "Your scans",

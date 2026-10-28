@@ -6,9 +6,17 @@ import { en } from "@/i18n/dictionaries/en";
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 
-const createScan = vi.fn();
+const api = vi.hoisted(() => {
+  class MockApiError extends Error {
+    constructor(readonly reason: string) {
+      super(reason);
+    }
+  }
+  return { createScan: vi.fn(), MockApiError };
+});
 vi.mock("@/lib/mock/api", () => ({
-  createScan: (...args: unknown[]) => createScan(...args),
+  createScan: api.createScan,
+  MockApiError: api.MockApiError,
   mockOptionsFromSearch: () => ({}),
 }));
 
@@ -22,7 +30,12 @@ vi.mock("@/lib/photo", async (importOriginal) => ({
   }),
 }));
 
-const copy = { capture: en.scan.capture, errors: en.scan.errors };
+const copy = {
+  capture: en.scan.capture,
+  errors: en.scan.errors,
+  progress: en.scan.progress,
+  failures: en.scan.failures,
+};
 
 function pick(file: File) {
   const input = document.querySelector<HTMLInputElement>(
@@ -32,9 +45,15 @@ function pick(file: File) {
   fireEvent.change(input, { target: { files: [file] } });
 }
 
+function scanSample() {
+  render(<CaptureFlow copy={copy} locale="en" />);
+  fireEvent.click(screen.getByRole("button", { name: "Try the sample photo" }));
+  fireEvent.click(screen.getByRole("button", { name: "Scan pieces" }));
+}
+
 beforeEach(() => {
   push.mockReset();
-  createScan.mockReset();
+  api.createScan.mockReset();
 });
 
 test("a file that isn't an image shows an inline error", async () => {
@@ -55,22 +74,65 @@ test("a chosen photo shows a preview, and retake goes back", async () => {
 });
 
 test("the sample photo scans and opens the results", async () => {
-  createScan.mockResolvedValue({ id: "abc" });
-  render(<CaptureFlow copy={copy} locale="en" />);
-  fireEvent.click(screen.getByRole("button", { name: "Try the sample photo" }));
-  expect(screen.getByAltText(en.scan.capture.sampleAlt)).toBeDefined();
-  fireEvent.click(screen.getByRole("button", { name: "Scan pieces" }));
+  api.createScan.mockResolvedValue({ id: "abc" });
+  scanSample();
   await waitFor(() => expect(push).toHaveBeenCalledWith("/en/scan/abc"));
-  expect(createScan.mock.calls[0][0]).toMatchObject({
+  expect(api.createScan.mock.calls[0][0]).toMatchObject({
     src: "/contoh/kepingan-2.jpg",
   });
 });
 
-test("a failed scan keeps the photo and says so", async () => {
-  createScan.mockRejectedValue(new Error("boom"));
-  render(<CaptureFlow copy={copy} locale="en" />);
-  fireEvent.click(screen.getByRole("button", { name: "Try the sample photo" }));
-  fireEvent.click(screen.getByRole("button", { name: "Scan pieces" }));
+test("progress follows the stages, and cancel returns to the preview", async () => {
+  let signal: AbortSignal | undefined;
+  api.createScan.mockImplementation((_photo, options) => {
+    signal = options.signal;
+    options.onStage("detecting");
+    options.onStage("classifying");
+    return new Promise(() => {});
+  });
+  scanSample();
+  expect(
+    await screen.findByRole("heading", { name: "Scanning your pieces" }),
+  ).toBeDefined();
+  const stages = screen
+    .getAllByRole("listitem")
+    .map((item) => item.textContent);
+  expect(stages).toEqual([
+    "Finding pieces(done)",
+    "Recognizing parts(in progress)",
+    "Reading colors(waiting)",
+  ]);
+  fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+  expect(signal?.aborted).toBe(true);
+  expect(screen.getByRole("button", { name: "Scan pieces" })).toBeDefined();
+});
+
+test("a photo problem asks for a new photo", async () => {
+  api.createScan.mockRejectedValue(new api.MockApiError("too_dark"));
+  scanSample();
+  expect(
+    await screen.findByRole("heading", {
+      name: en.scan.failures.too_dark.title,
+    }),
+  ).toBeDefined();
+  expect(screen.queryByRole("button", { name: "Try again" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Retake photo" }));
+  expect(screen.getByRole("button", { name: "Take a photo" })).toBeDefined();
+});
+
+test("a dropped connection can be retried with the same photo", async () => {
+  api.createScan
+    .mockRejectedValueOnce(new api.MockApiError("network"))
+    .mockResolvedValueOnce({ id: "retried" });
+  scanSample();
+  fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
+  await waitFor(() => expect(push).toHaveBeenCalledWith("/en/scan/retried"));
+  expect(api.createScan).toHaveBeenCalledTimes(2);
+});
+
+test("an unexpected error keeps the photo and says so", async () => {
+  api.createScan.mockRejectedValue(new Error("boom"));
+  scanSample();
   expect((await screen.findByRole("alert")).textContent).toBe(
     en.scan.errors.generic,
   );

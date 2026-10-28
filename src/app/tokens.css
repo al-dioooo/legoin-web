@@ -142,10 +142,21 @@
   --color-*: initial;
 
   --animate-marquee: marquee 40s linear infinite;
+  --animate-scan-sweep: scan-sweep 1.6s ease-in-out infinite alternate;
 
   @keyframes marquee {
     to {
       transform: translateX(-50%);
+    }
+  }
+
+  /* A highlight line passing over the photo while it's scanned. */
+  @keyframes scan-sweep {
+    from {
+      top: 0;
+    }
+    to {
+      top: calc(100% - 4px);
     }
   }
 }

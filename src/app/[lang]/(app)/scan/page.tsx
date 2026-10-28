@@ -19,7 +19,12 @@ export default async function ScanPage() {
         <p className="mt-3 max-w-xl text-lg text-ink-secondary">{scan.lead}</p>
       </header>
       <CaptureFlow
-        copy={{ capture: scan.capture, errors: scan.errors }}
+        copy={{
+          capture: scan.capture,
+          errors: scan.errors,
+          progress: scan.progress,
+          failures: scan.failures,
+        }}
         locale={locale}
       />
       <PhotoGuide guide={scan.guide} />
