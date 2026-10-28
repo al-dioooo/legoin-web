@@ -174,6 +174,27 @@ export const en = {
       submit: "Get ideas",
     },
     finding: "Finding ideas…",
+    found: { one: "{count} idea ready.", other: "{count} ideas ready." },
+    difficulty: { easy: "Easy", medium: "Medium", hard: "Hard" },
+    uses: {
+      one: "Uses {count} of your pieces",
+      other: "Uses {count} of your pieces",
+    },
+    usesNone: "Uses none of your pieces yet",
+    complete: "Uses only your pieces",
+    seeSteps: "See steps",
+    again: "Try other ideas",
+    none: "No ideas for this theme yet. Try another theme.",
+    failed: {
+      title: "We couldn't get ideas",
+      body: "Check your connection and try again.",
+      retry: "Try again",
+    },
+    empty: {
+      title: "No pieces to build with",
+      body: "This scan has no pieces left. Add the pieces you have, then come back for ideas.",
+      action: "Back to your pieces",
+    },
   },
   history: {
     title: "Your scans",
