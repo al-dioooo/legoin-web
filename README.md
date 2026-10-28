@@ -9,6 +9,7 @@ The Legoin web frontend. Product docs, team guidelines and decisions live in [le
 - Tailwind CSS 4
 - [Biome](https://biomejs.dev) for linting and formatting
 - [Vitest](https://vitest.dev) and Testing Library for tests
+- English (default) and Indonesian UI, served under `/en` and `/id`
 - pnpm
 
 ## Setup and run
@@ -21,7 +22,7 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Open <http://localhost:3000>.
+Open <http://localhost:3000>. It redirects to the English site at `/en`; the Indonesian one is at `/id`.
 
 | Command | What it does |
 | --- | --- |
