@@ -1,16 +1,19 @@
 import type { PartCount } from "@/lib/bricks";
 import type { Detection, DetectionChange } from "@/lib/domain";
 
-const key = ({ part, color }: Pick<PartCount, "part" | "color">) =>
-  `${part}|${color}`;
+/** Identifies an inventory line: one part in one color. */
+export const inventoryKey = ({
+  part,
+  color,
+}: Pick<PartCount, "part" | "color">) => `${part}|${color}`;
 
 /** Adds up lines with the same part and color. Biggest groups first. */
 function merge(lines: PartCount[]): PartCount[] {
   const totals = new Map<string, PartCount>();
   for (const line of lines) {
-    const existing = totals.get(key(line));
+    const existing = totals.get(inventoryKey(line));
     totals.set(
-      key(line),
+      inventoryKey(line),
       existing
         ? { ...existing, quantity: existing.quantity + line.quantity }
         : { ...line },
@@ -80,12 +83,15 @@ export function checkInventory(
   inventory: PartCount[],
 ): { used: PartCount[]; missing: PartCount[] } {
   const available = new Map(
-    merge(inventory).map((line) => [key(line), line.quantity]),
+    merge(inventory).map((line) => [inventoryKey(line), line.quantity]),
   );
   const used: PartCount[] = [];
   const missing: PartCount[] = [];
   for (const line of merge(required)) {
-    const owned = Math.min(line.quantity, available.get(key(line)) ?? 0);
+    const owned = Math.min(
+      line.quantity,
+      available.get(inventoryKey(line)) ?? 0,
+    );
     if (owned > 0) used.push({ ...line, quantity: owned });
     if (line.quantity > owned) {
       missing.push({ ...line, quantity: line.quantity - owned });

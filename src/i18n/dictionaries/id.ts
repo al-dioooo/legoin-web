@@ -110,6 +110,22 @@ export const id: Dictionary = {
       body: "Mungkin sudah dihapus dari peramban ini.",
       action: "Mulai pindai baru",
     },
+    toCheck: {
+      one: "{count} kepingan perlu dicek",
+      other: "{count} kepingan perlu dicek",
+    },
+    labels: { hide: "Sembunyikan label", show: "Tampilkan label" },
+    zoom: { in: "Perbesar", out: "Perkecil" },
+    piece: {
+      title: "Kepingan terpilih",
+      empty:
+        "Pilih kepingan di foto atau di inventori untuk melihatnya di sini.",
+      confidence: "Keyakinan",
+      added: "Ditambahkan olehmu",
+      check: "Perlu dicek",
+      lowConfidence:
+        "Kami belum yakin dengan kepingan ini. Cek jenis dan warnanya.",
+    },
   },
   history: {
     title: "Riwayat pindai",
