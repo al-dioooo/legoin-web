@@ -18,7 +18,7 @@ export function BrickSwatch({
     >
       <span
         aria-hidden="true"
-        className="size-4 shrink-0 rounded-[4px] border border-line-strong"
+        className="size-4 shrink-0 rounded-full border-2 border-ink"
         style={{ backgroundColor: brickColorVar(color) }}
       />
       {BRICK_COLORS[color].label}

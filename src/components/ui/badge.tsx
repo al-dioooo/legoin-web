@@ -8,13 +8,14 @@ export type BadgeTone =
   | "danger"
   | "highlight";
 
+// Ink text on every tint; the fill and the label carry the meaning together.
 const tones: Record<BadgeTone, string> = {
-  neutral: "bg-callout text-ink-secondary",
-  success: "bg-success-subtle text-success-subtle-foreground",
-  warning: "bg-warning-subtle text-warning-subtle-foreground",
-  danger: "bg-danger-subtle text-danger-subtle-foreground",
+  neutral: "bg-page",
+  success: "bg-success-subtle",
+  warning: "bg-warning-subtle",
+  danger: "bg-danger-subtle",
   // Solid LEGO yellow, so it never reads as the pale warning tint.
-  highlight: "bg-highlight text-highlight-foreground",
+  highlight: "bg-highlight",
 };
 
 /** Status is never color alone: every badge has a dot and a text label. */
@@ -30,7 +31,7 @@ export function Badge({
   return (
     <span
       className={cx(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-sm font-semibold",
+        "inline-flex items-center gap-1.5 rounded-full border-2 border-ink px-2.5 py-0.5 text-sm font-semibold text-ink",
         tones[tone],
         className,
       )}

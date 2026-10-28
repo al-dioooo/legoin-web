@@ -14,7 +14,7 @@ type BrickGlyphProps = {
   className?: string;
 };
 
-/** A part drawn from above, as in an instruction booklet. Decorative: label it nearby. */
+/** A part drawn from above in ink line art. Decorative: label it nearby. */
 export function BrickGlyph({
   part,
   color,
@@ -32,7 +32,7 @@ export function BrickGlyph({
     BRICK_COLORS[color].tone === "dark"
       ? "var(--stud-on-dark)"
       : "var(--stud-on-light)";
-  const outline = "var(--border-strong)";
+  const outline = "var(--text-primary)";
   // Slopes keep studs only on the back row; tiles have none.
   const studRows = kind === "tile" ? 0 : kind === "slope" ? 1 : rows;
 

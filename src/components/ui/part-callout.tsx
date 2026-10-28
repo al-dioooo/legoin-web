@@ -17,7 +17,7 @@ type PartCalloutProps = {
   className?: string;
 };
 
-/** The booklet's parts box: each part drawn from above with its count. */
+/** A parts box: each part drawn from above with its count. */
 export function PartCallout({
   title,
   parts,
@@ -29,14 +29,14 @@ export function PartCallout({
     <section
       aria-label={title}
       className={cx(
-        "rounded-callout p-4",
-        missing
-          ? "border-2 border-dashed border-line-strong bg-card"
-          : "bg-callout",
+        "rounded-callout border-2 border-ink p-4",
+        missing ? "border-dashed bg-page" : "bg-card",
         className,
       )}
     >
-      <p className="mb-3 text-sm font-bold text-ink">{title}</p>
+      <p className="mb-3 font-mono text-xs font-bold tracking-[0.2em] text-ink uppercase">
+        {title}
+      </p>
       <ul className="flex flex-wrap items-end gap-x-6 gap-y-4">
         {parts.map((item) => (
           <li
