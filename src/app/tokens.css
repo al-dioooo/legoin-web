@@ -106,13 +106,13 @@
   --highlight-subtle-foreground: var(--yellow-900);
 
   --success: var(--green-700);
-  --success-subtle: var(--green-50);
+  --success-subtle: var(--green-100);
   --success-subtle-foreground: var(--green-800);
   --warning-subtle: var(--yellow-100);
   --warning-subtle-foreground: var(--yellow-800);
   /* Danger shares the brand red, so destructive actions are outlined, never filled. */
   --danger: var(--red-700);
-  --danger-subtle: var(--red-50);
+  --danger-subtle: var(--red-100);
   --danger-subtle-foreground: var(--red-800);
 
   /* Detection boxes sit on photos of colored bricks: ink with a white halo, never red. */

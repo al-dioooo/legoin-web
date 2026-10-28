@@ -13,7 +13,8 @@ const tones: Record<BadgeTone, string> = {
   success: "bg-success-subtle text-success-subtle-foreground",
   warning: "bg-warning-subtle text-warning-subtle-foreground",
   danger: "bg-danger-subtle text-danger-subtle-foreground",
-  highlight: "bg-highlight-subtle text-highlight-subtle-foreground",
+  // Solid LEGO yellow, so it never reads as the pale warning tint.
+  highlight: "bg-highlight text-highlight-foreground",
 };
 
 /** Status is never color alone: every badge has a dot and a text label. */
