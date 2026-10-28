@@ -58,7 +58,7 @@ export function Logo({ className }: { className?: string }) {
   return (
     <span className={cx("inline-flex items-center gap-2", className)}>
       <LogoMark className="size-8" />
-      <span className="text-xl font-extrabold tracking-tight text-ink">
+      <span className="font-display text-xl tracking-tight text-ink">
         Legoin
       </span>
     </span>

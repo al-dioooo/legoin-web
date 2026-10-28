@@ -8,17 +8,27 @@ import { BrickGlyph } from "@/components/ui/brick-glyph";
 import { BrickSwatch } from "@/components/ui/brick-swatch";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { type Box, DetectionBox } from "@/components/ui/detection-box";
+import { DetectedPhoto } from "@/components/ui/detected-photo";
+import { Grain } from "@/components/ui/grain";
+import { InventoryList } from "@/components/ui/inventory-list";
+import { Marquee } from "@/components/ui/marquee";
 import { PartCallout } from "@/components/ui/part-callout";
 import { Select } from "@/components/ui/select";
 import { StepNumber } from "@/components/ui/step-number";
+import { Sticker } from "@/components/ui/sticker";
 import {
   BRICK_COLORS,
   BRICK_PARTS,
   type BrickColorId,
   type BrickPartId,
-  type PartCount,
 } from "@/lib/bricks";
+import {
+  SAMPLE_BOXES,
+  SAMPLE_IDEA,
+  SAMPLE_INVENTORY,
+  SAMPLE_PHOTO,
+  SAMPLE_SELECTED,
+} from "@/lib/sample-scan";
 
 export const metadata: Metadata = { title: "Sistem desain" };
 
@@ -32,59 +42,22 @@ const SCALES = [
 
 const ROLES = [
   { token: "primary", note: "Aksi utama. Satu per layar." },
-  { token: "highlight", note: "Sorotan, langkah aktif. Teks selalu tinta." },
-  { token: "surface-page", note: "Latar halaman." },
-  { token: "surface-card", note: "Kartu dan halaman buku." },
-  { token: "surface-callout", note: "Kotak part." },
-  { token: "text-primary", note: "Teks utama, garis, ikon." },
+  { token: "highlight", note: "Stiker, sorotan, langkah. Teks selalu tinta." },
+  { token: "surface-page", note: "Kertas dari ballers-addict." },
+  { token: "surface-card", note: "Panel dan kartu." },
+  { token: "text-primary", note: "Tinta: teks, garis, bayangan keras." },
   { token: "text-secondary", note: "Teks pendukung." },
-  { token: "border-strong", note: "Garis input dan bingkai part kurang." },
+  { token: "warning-subtle", note: "Part kurang." },
+  { token: "success-subtle", note: "Tersedia." },
   { token: "overlay", note: "Kotak deteksi di atas foto." },
 ];
 
-const USED: PartCount[] = [
-  { part: "brick-2x4", color: "red", quantity: 2 },
-  { part: "plate-2x4", color: "black", quantity: 1 },
-  { part: "brick-1x2", color: "white", quantity: 4 },
-  { part: "round-1x1", color: "yellow", quantity: 2 },
-];
+const TAPE = ["Legoin", "Potret", "Hitung", "Rakit"];
 
-const MISSING: PartCount[] = [
-  { part: "slope-2x2", color: "red", quantity: 1 },
-  { part: "tile-1x2", color: "light-gray", quantity: 2 },
-];
-
-const DETECTIONS: {
-  part: BrickPartId;
-  color: BrickColorId;
-  box: Box;
-  confidence: number;
-}[] = [
-  {
-    part: "brick-2x4",
-    color: "red",
-    box: { x: 0.12, y: 0.2, width: 0.3, height: 0.2 },
-    confidence: 0.94,
-  },
-  {
-    part: "brick-2x2",
-    color: "yellow",
-    box: { x: 0.56, y: 0.14, width: 0.16, height: 0.22 },
-    confidence: 0.88,
-  },
-  {
-    part: "plate-1x2",
-    color: "blue",
-    box: { x: 0.3, y: 0.58, width: 0.16, height: 0.11 },
-    confidence: 0.81,
-  },
-  {
-    part: "slope-2x2",
-    color: "green",
-    box: { x: 0.66, y: 0.56, width: 0.16, height: 0.22 },
-    confidence: 0.76,
-  },
-];
+const missingCount = SAMPLE_IDEA.missing.reduce(
+  (total, item) => total + item.quantity,
+  0,
+);
 
 function Section({
   id,
@@ -101,30 +74,36 @@ function Section({
     <section
       id={id}
       aria-labelledby={`${id}-title`}
-      className="border-t border-line py-10"
+      className="border-t-[2.5px] border-ink py-12"
     >
-      <h2 id={`${id}-title`} className="text-2xl font-extrabold tracking-tight">
+      <h2 id={`${id}-title`} className="font-display text-3xl">
         {title}
       </h2>
       {description && (
         <p className="mt-2 max-w-2xl text-ink-secondary">{description}</p>
       )}
-      <div className="mt-6">{children}</div>
+      <div className="mt-8">{children}</div>
     </section>
   );
 }
 
 export default function DesignSystemPage() {
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 pb-16 sm:px-6">
-      <header className="py-10">
-        <Link href="/" className="inline-block rounded-md">
+    <main className="mx-auto w-full max-w-5xl overflow-x-clip px-4 pb-16 sm:px-6">
+      <header className="relative py-10">
+        <Grain />
+        <Link
+          href="/"
+          className="inline-flex rounded-full border-[2.5px] border-ink bg-page px-4 py-2 shadow-sticker transition-transform duration-300 ease-spring hover:-rotate-3"
+        >
           <Logo />
         </Link>
-        <h1 className="mt-8 text-display">Sistem desain</h1>
-        <p className="mt-3 max-w-2xl text-lg text-ink-secondary">
-          Arah “Buku instruksi”: halaman putih, kotak part dengan jumlah, dan
-          langkah bernomor. Merah untuk aksi, kuning untuk sorotan, warna
+        <h1 className="mt-10 font-display text-display">
+          Sistem <Sticker>desain</Sticker>
+        </h1>
+        <p className="mt-4 max-w-2xl text-lg text-ink-secondary">
+          Gaya ballers-addict dengan warna LEGO: kertas, garis tinta, bayangan
+          keras, dan stiker. Merah untuk aksi, kuning untuk sorotan, warna
           kepingan hanya untuk kepingan.
         </p>
       </header>
@@ -132,7 +111,7 @@ export default function DesignSystemPage() {
       <Section
         id="warna"
         title="Warna"
-        description="Skala dibangun di sekitar warna LEGO asli (nilai Rebrickable). Komponen hanya memakai peran, bukan skala."
+        description="Skala dibangun di sekitar warna LEGO asli (nilai Rebrickable), di atas kertas hangat dari ballers-addict. Komponen hanya memakai peran, bukan skala."
       >
         <div className="space-y-8">
           {SCALES.map((scale) => (
@@ -192,21 +171,26 @@ export default function DesignSystemPage() {
       <Section
         id="huruf"
         title="Huruf"
-        description="Plus Jakarta Sans untuk semua teks. JetBrains Mono untuk jumlah, nomor part, dan skor."
+        description="Dela Gothic One untuk judul (satu ketebalan, jangan ditebalkan). DM Sans untuk teks. JetBrains Mono untuk jumlah, nomor part, dan skor."
       >
         <div className="space-y-5">
-          <p className="text-display">Rakit dari yang kamu punya.</p>
-          <p className="text-3xl font-extrabold tracking-tight">
-            Judul halaman 30/800
+          <p className="font-display text-display">
+            Rakit dari yang kamu punya.
           </p>
-          <p className="text-xl font-bold">Judul bagian 20/700</p>
+          <p className="font-display text-3xl">
+            Judul halaman · Dela Gothic One
+          </p>
+          <p className="font-display text-xl">Judul kartu · Dela Gothic One</p>
           <p className="max-w-2xl text-base leading-relaxed">
-            Teks isi 16/400. Potret semua kepingan dari atas di latar polos,
+            Teks isi DM Sans 16. Potret semua kepingan dari atas di latar polos,
             jangan ditumpuk. Legoin menghitung jenis dan warnanya, lalu
             menyarankan tiga ide rakitan.
           </p>
           <p className="text-sm text-ink-secondary">
-            Teks kecil 14/400 untuk keterangan.
+            Teks kecil DM Sans 14 untuk keterangan.
+          </p>
+          <p className="font-mono text-xs font-bold tracking-[0.3em] uppercase">
+            Label mono · Inventori
           </p>
           <p className="font-mono text-sm font-bold">
             3001 · Brick 2×4 · 3× · 0,94
@@ -217,10 +201,12 @@ export default function DesignSystemPage() {
       <Section
         id="logo"
         title="Logo"
-        description="Brick 2×2 kuning di dalam bingkai pemindai. Bukan kotak merah, dan merah tidak dipakai bersama kuning di logo."
+        description="Brick 2×2 kuning di dalam bingkai pemindai, dengan wordmark Dela Gothic One. Logo tidak memakai merah, jadi tidak pernah merah dengan kuning."
       >
         <div className="flex flex-wrap items-end gap-8">
-          <Logo />
+          <span className="inline-flex rounded-full border-[2.5px] border-ink bg-page px-4 py-2 shadow-sticker">
+            <Logo />
+          </span>
           {[16, 24, 32, 48].map((size) => (
             <div key={size} className="flex flex-col items-center gap-2">
               <span style={{ width: size, height: size }}>
@@ -237,17 +223,17 @@ export default function DesignSystemPage() {
       <Section
         id="tombol"
         title="Tombol"
-        description="Satu tombol merah per layar. Aksi berbahaya memakai garis merah dan konfirmasi, bukan isi merah."
+        description="Tombol berisi punya bayangan tinta keras dan tertekan saat diklik; semua miring sedikit saat disorot. Satu tombol merah per layar. Aksi berbahaya memakai garis merah dan konfirmasi."
       >
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
+        <div className="space-y-5">
+          <div className="flex flex-wrap items-center gap-4">
             <Button>Pindai kepingan</Button>
             <Button variant="secondary">Unggah foto</Button>
             <Button variant="highlight">Pilih tema</Button>
             <Button variant="ghost">Lewati</Button>
             <Button variant="danger">Hapus scan</Button>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-4">
             <Button size="sm">Pindai kepingan</Button>
             <Button size="sm" variant="secondary">
               Unggah foto
@@ -265,7 +251,7 @@ export default function DesignSystemPage() {
       <Section
         id="status"
         title="Status"
-        description="Status selalu titik dan label, tidak pernah warna saja."
+        description="Status selalu titik dan label bertinta, tidak pernah warna saja."
       >
         <div className="flex flex-wrap gap-3">
           <Badge tone="success">Tersedia</Badge>
@@ -277,15 +263,41 @@ export default function DesignSystemPage() {
       </Section>
 
       <Section
+        id="stiker"
+        title="Stiker, grain, dan pita"
+        description="Stiker menyorot satu kata. Grain hanya di area pemasaran, tidak pernah di atas foto atau inventori. Pita berjalan pelan dan berhenti saat gerak dikurangi."
+      >
+        <div className="space-y-10">
+          <p className="font-display text-4xl leading-tight">
+            <Sticker>Kuning</Sticker> <Sticker tone="primary">Merah</Sticker>{" "}
+            <Sticker tone="paper">Kertas</Sticker>
+          </p>
+          <div className="relative grid h-40 place-items-center overflow-hidden rounded-card border-[2.5px] border-ink bg-highlight">
+            <Grain />
+            <p className="font-display text-2xl">Grain di atas warna</p>
+          </div>
+          <div className="-mx-4 overflow-x-clip py-6 sm:-mx-6">
+            <Marquee words={TAPE} tone="ink" className="-rotate-2" />
+            <Marquee
+              words={TAPE}
+              tone="highlight"
+              reverse
+              className="-mt-4 rotate-1"
+            />
+          </div>
+        </div>
+      </Section>
+
+      <Section
         id="kepingan"
         title="Kepingan"
-        description="13 part MVP digambar dari atas, seperti di buku instruksi."
+        description="13 part MVP digambar dari atas dengan garis tinta."
       >
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
           {(Object.keys(BRICK_PARTS) as BrickPartId[]).map((part) => (
             <div
               key={part}
-              className="flex flex-col items-start gap-2 rounded-callout bg-callout p-3"
+              className="flex flex-col items-start gap-2 rounded-callout border-2 border-ink bg-card p-3"
             >
               <div className="flex h-16 items-center">
                 <BrickGlyph part={part} color="light-gray" unit={14} />
@@ -301,51 +313,34 @@ export default function DesignSystemPage() {
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
-          <PartCallout title="Part dipakai" parts={USED} />
-          <PartCallout title="Part kurang" parts={MISSING} missing />
+          <PartCallout title="Part dipakai" parts={SAMPLE_IDEA.used} />
+          <PartCallout
+            title="Part kurang"
+            parts={SAMPLE_IDEA.missing}
+            missing
+          />
           <PartCallout
             title="Inventori (detail)"
-            parts={USED}
+            parts={SAMPLE_INVENTORY}
             detailed
             className="md:col-span-2"
           />
         </div>
+        <InventoryList items={SAMPLE_INVENTORY} className="mt-6 max-w-md" />
       </Section>
 
       <Section
         id="deteksi"
         title="Deteksi"
-        description="Kotak deteksi bertinta dengan halo putih, terbaca di atas kepingan warna apa pun. Kotak terpilih lebih tebal."
+        description="Kotak bertinta dengan halo putih, terbaca di atas kepingan warna apa pun. Kotak terpilih lebih tebal dan menampilkan skor. Foto contoh dibuat dengan Codex image generation."
       >
-        <div className="relative aspect-[4/3] w-full max-w-xl overflow-hidden rounded-card bg-callout">
-          {DETECTIONS.map((detection) => (
-            <div
-              key={detection.part}
-              className="absolute flex items-center justify-center"
-              style={{
-                left: `${detection.box.x * 100}%`,
-                top: `${detection.box.y * 100}%`,
-                width: `${detection.box.width * 100}%`,
-                height: `${detection.box.height * 100}%`,
-              }}
-            >
-              <BrickGlyph
-                part={detection.part}
-                color={detection.color}
-                unit={28}
-                className="h-[80%] w-[80%]"
-              />
-            </div>
-          ))}
-          {DETECTIONS.map((detection, index) => (
-            <DetectionBox
-              key={detection.part}
-              box={detection.box}
-              selected={index === 0}
-              label={`${BRICK_PARTS[detection.part].label} · ${detection.confidence.toFixed(2).replace(".", ",")}`}
-            />
-          ))}
-        </div>
+        <DetectedPhoto
+          photo={SAMPLE_PHOTO}
+          detections={SAMPLE_BOXES}
+          selected={SAMPLE_SELECTED}
+          sizes="(min-width: 640px) 36rem, 100vw"
+          className="max-w-xl"
+        />
       </Section>
 
       <Section
@@ -377,35 +372,36 @@ export default function DesignSystemPage() {
       <Section
         id="contoh"
         title="Contoh: kartu rekomendasi"
-        description="Satu ide rakitan dari AI agent: part dipakai, part kurang, dan langkah singkat."
+        description="Satu ide rakitan dari AI agent untuk inventori contoh: part dipakai, part kurang, dan langkah singkat."
       >
         <Card className="max-w-2xl space-y-5 p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="font-mono text-sm font-bold text-ink-secondary">
-                Ide 1 dari 3
-              </p>
-              <h3 className="text-2xl font-extrabold tracking-tight">
-                Mobil balap kecil
+              <p className="font-mono text-xs font-bold">IDE 1/3</p>
+              <h3 className="mt-1 font-display text-3xl">
+                {SAMPLE_IDEA.title}
               </h3>
             </div>
-            <Badge tone="highlight">Mudah</Badge>
+            <span className="flex gap-2">
+              <Badge tone="highlight">{SAMPLE_IDEA.difficulty}</Badge>
+              <Badge tone="warning">Kurang {missingCount} part</Badge>
+            </span>
           </div>
-          <PartCallout title="Part dipakai" parts={USED} />
-          <PartCallout title="Part kurang" parts={MISSING} missing />
+          <PartCallout title="Part dipakai" parts={SAMPLE_IDEA.used} />
+          <PartCallout
+            title="Part kurang"
+            parts={SAMPLE_IDEA.missing}
+            missing
+          />
           <ol className="space-y-3">
-            {[
-              "Letakkan plate 2×4 hitam sebagai sasis.",
-              "Pasang dua brick 2×4 merah di atasnya sebagai badan.",
-              "Tambahkan round 1×1 kuning di depan sebagai lampu.",
-            ].map((step, index) => (
+            {SAMPLE_IDEA.steps.map((step, index) => (
               <li key={step} className="flex items-center gap-3">
                 <StepNumber value={index + 1} />
                 <span>{step}</span>
               </li>
             ))}
           </ol>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-4">
             <Button>Simpan ide</Button>
             <Button variant="secondary">Ide lain</Button>
           </div>

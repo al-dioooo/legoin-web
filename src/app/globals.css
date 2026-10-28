@@ -15,7 +15,12 @@
   /* One focus ring for every control: ink reads on red, yellow and photos alike. */
   :focus-visible {
     outline: 2px solid var(--ring);
-    outline-offset: 2px;
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background-color: var(--highlight);
+    color: var(--highlight-foreground);
   }
 
   /* biome-ignore-start lint/complexity/noImportantStyles: reduced motion must win over component animations */
@@ -30,4 +35,55 @@
     }
   }
   /* biome-ignore-end lint/complexity/noImportantStyles: reduced motion must win over component animations */
+}
+
+@layer components {
+  /* A die-cut sticker: ink outline and a hard comic shadow, sized in em. */
+  .sticker {
+    display: inline-block;
+    padding: 0.02em 0.16em 0.1em;
+    border: max(2px, 0.04em) solid var(--text-primary);
+    border-radius: 0.14em;
+    box-shadow: 0.06em 0.07em 0 var(--text-primary);
+  }
+
+  /* Film grain: overlay blending leaves paper and ink alone and speckles the colors. */
+  .grain {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+    opacity: 0.55;
+  }
+
+  .grain::before {
+    content: "";
+    position: absolute;
+    inset: -50%;
+    background-image: var(--grain);
+    background-size: 220px;
+    animation: grain-boil 0.8s steps(5) infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .grain::before {
+      animation: none;
+    }
+  }
+}
+
+@keyframes grain-boil {
+  20% {
+    transform: translate(-6%, 3%);
+  }
+  40% {
+    transform: translate(4%, -5%);
+  }
+  60% {
+    transform: translate(-3%, -2%);
+  }
+  80% {
+    transform: translate(5%, 4%);
+  }
 }

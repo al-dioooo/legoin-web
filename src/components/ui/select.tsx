@@ -11,7 +11,7 @@ export function Select({ label, className, children, ...props }: SelectProps) {
       <span className="relative">
         <select
           className={cx(
-            "min-h-12 w-full appearance-none rounded-control border-[1.5px] border-line-strong bg-card pr-10 pl-4 text-base font-medium text-ink",
+            "min-h-12 w-full appearance-none rounded-control border-[2.5px] border-ink bg-card pr-10 pl-4 text-base font-medium text-ink",
             className,
           )}
           {...props}

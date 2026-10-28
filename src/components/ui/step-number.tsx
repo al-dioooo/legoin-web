@@ -1,6 +1,6 @@
 import { cx } from "@/lib/cx";
 
-/** The booklet's numbered step. */
+/** A numbered step, as a yellow sticker. */
 export function StepNumber({
   value,
   className,
@@ -11,7 +11,7 @@ export function StepNumber({
   return (
     <span
       className={cx(
-        "inline-flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-ink font-mono text-lg font-bold text-ink",
+        "inline-flex size-10 shrink-0 items-center justify-center rounded-full border-[2.5px] border-ink bg-highlight font-display text-lg text-highlight-foreground shadow-sticker",
         className,
       )}
     >
