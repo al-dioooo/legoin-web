@@ -15,7 +15,12 @@
   /* One focus ring for every control: ink reads on red, yellow and photos alike. */
   :focus-visible {
     outline: 2px solid var(--ring);
-    outline-offset: 2px;
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background-color: var(--highlight);
+    color: var(--highlight-foreground);
   }
 
   /* biome-ignore-start lint/complexity/noImportantStyles: reduced motion must win over component animations */
