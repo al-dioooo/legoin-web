@@ -2,6 +2,7 @@
 import { expect, test } from "vitest";
 import { en } from "@/i18n/dictionaries/en";
 import { id } from "@/i18n/dictionaries/id";
+import { plural } from "@/i18n/format";
 
 /** Every leaf path with its kind, e.g. "home.tape: array of 4". */
 function shape(value: unknown, path = ""): string[] {
@@ -32,7 +33,12 @@ test("no copy is left empty", () => {
 });
 
 test("counts read naturally in each language", () => {
-  expect(en.common.missingCount(1)).toBe("1 part missing");
-  expect(en.common.missingCount(3)).toBe("3 parts missing");
-  expect(id.common.missingCount(3)).toBe("Kurang 3 part");
+  expect(plural(en.common.missingCount, 1, "en")).toBe("1 part missing");
+  expect(plural(en.common.missingCount, 3, "en")).toBe("3 parts missing");
+  expect(plural(id.common.missingCount, 3, "id")).toBe("Kurang 3 part");
+});
+
+test("dictionaries are plain data, so they can go to Client Components", () => {
+  expect(JSON.parse(JSON.stringify(en))).toEqual(en);
+  expect(JSON.parse(JSON.stringify(id))).toEqual(id);
 });

@@ -120,10 +120,12 @@ export const en = {
     partsMissing: "Parts missing",
     inventory: "Inventory",
     inventoryDetailed: "Inventory (detailed)",
-    missingCount: (count: number) =>
-      `${count} ${count === 1 ? "part" : "parts"} missing`,
-    pieces: (count: number) => `${count} ${count === 1 ? "piece" : "pieces"}`,
-    ideaOf: (index: number, total: number) => `IDEA ${index}/${total}`,
+    missingCount: {
+      one: "{count} part missing",
+      other: "{count} parts missing",
+    },
+    pieces: { one: "{count} piece", other: "{count} pieces" },
+    ideaOf: "IDEA {index}/{total}",
   },
   sample: {
     title: "Sample scan",
@@ -166,7 +168,7 @@ export const en = {
       title: "Colors",
       description:
         "Scales are built around real LEGO colors (Rebrickable values), on warm paper from ballers-addict. Components use roles, never scales.",
-      scaleNote: (name: string, step: number) => `${name} at ${step}`,
+      scaleNote: "{name} at {step}",
       roles: "Roles",
       roleNotes: {
         primary: "Main action. One per screen.",

@@ -18,6 +18,7 @@ import { Select } from "@/components/ui/select";
 import { StepNumber } from "@/components/ui/step-number";
 import { Sticker } from "@/components/ui/sticker";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
+import { fill, plural } from "@/i18n/format";
 import {
   BRICK_COLORS,
   BRICK_PARTS,
@@ -131,7 +132,11 @@ export default async function DesignSystemPage() {
               <p className="mb-3 text-sm font-bold">
                 {scale.name}{" "}
                 <span className="font-normal text-ink-secondary">
-                  · {design.colors.scaleNote(scale.note, scale.anchor)}
+                  ·{" "}
+                  {fill(design.colors.scaleNote, {
+                    name: scale.note,
+                    step: scale.anchor,
+                  })}
                 </span>
               </p>
               <div className="grid grid-cols-4 gap-3 sm:grid-cols-6 lg:grid-cols-11">
@@ -263,7 +268,7 @@ export default async function DesignSystemPage() {
         <div className="flex flex-wrap gap-3">
           <Badge tone="success">{design.status.available}</Badge>
           <Badge tone="warning">
-            {common.missingCount(SAMPLE_MISSING_COUNT)}
+            {plural(common.missingCount, SAMPLE_MISSING_COUNT, locale)}
           </Badge>
           <Badge tone="danger">{design.status.failed}</Badge>
           <Badge tone="highlight">{sample.idea.difficulty}</Badge>
@@ -362,7 +367,6 @@ export default async function DesignSystemPage() {
           photo={SAMPLE_PHOTO}
           alt={sample.photoAlt}
           detections={sampleBoxes(locale)}
-          sizes="(min-width: 640px) 36rem, 100vw"
           className="max-w-xl"
         />
       </Section>
@@ -402,7 +406,7 @@ export default async function DesignSystemPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="font-mono text-xs font-bold">
-                {common.ideaOf(1, 3)}
+                {fill(common.ideaOf, { index: 1, total: 3 })}
               </p>
               <h3 className="mt-1 font-display text-3xl">
                 {sample.idea.title}
@@ -411,7 +415,7 @@ export default async function DesignSystemPage() {
             <span className="flex gap-2">
               <Badge tone="highlight">{sample.idea.difficulty}</Badge>
               <Badge tone="warning">
-                {common.missingCount(SAMPLE_MISSING_COUNT)}
+                {plural(common.missingCount, SAMPLE_MISSING_COUNT, locale)}
               </Badge>
             </span>
           </div>

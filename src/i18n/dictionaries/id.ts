@@ -122,9 +122,10 @@ export const id: Dictionary = {
     partsMissing: "Part kurang",
     inventory: "Inventori",
     inventoryDetailed: "Inventori (detail)",
-    missingCount: (count: number) => `Kurang ${count} part`,
-    pieces: (count: number) => `${count} kepingan`,
-    ideaOf: (index: number, total: number) => `IDE ${index}/${total}`,
+    // Indonesian has no plural forms; Intl.PluralRules always picks "other".
+    missingCount: { one: "Kurang {count} part", other: "Kurang {count} part" },
+    pieces: { one: "{count} kepingan", other: "{count} kepingan" },
+    ideaOf: "IDE {index}/{total}",
   },
   sample: {
     title: "Contoh hasil pindai",
@@ -172,7 +173,7 @@ export const id: Dictionary = {
       title: "Warna",
       description:
         "Skala dibangun di sekitar warna LEGO asli (nilai Rebrickable), di atas kertas hangat dari ballers-addict. Komponen hanya memakai peran, bukan skala.",
-      scaleNote: (name: string, step: number) => `${name} di ${step}`,
+      scaleNote: "{name} di {step}",
       roles: "Peran",
       roleNotes: {
         primary: "Aksi utama. Satu per layar.",
