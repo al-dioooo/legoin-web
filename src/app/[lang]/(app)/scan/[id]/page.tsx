@@ -2,10 +2,17 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ResultsLoading, ScanResults } from "@/components/results/scan-results";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
+import { languageAlternates } from "@/i18n/locales";
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps<"/[lang]/scan/[id]">): Promise<Metadata> {
   const dict = await getDictionary();
-  return { title: dict.results.title };
+  const { id } = await params;
+  return {
+    title: dict.results.title,
+    alternates: languageAlternates(`/scan/${encodeURIComponent(id)}`),
+  };
 }
 
 /**

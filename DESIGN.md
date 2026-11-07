@@ -126,9 +126,11 @@ UI primitives live in `src/components/ui`, the logo in `src/components/brand`.
 | `InventoryList` | Inventory tiles: color chip, count, part and color name |
 | `PartCallout` | Parts box with counts; `missing` gives a dashed frame, `detailed` adds names |
 | `StepNumber` | Numbered step as a yellow sticker |
+| `EmptyState`, `EmptyStateIcon` | Nothing to show, not found, or an error: the scanner frame on a sticker tile (`highlight` or `danger`), a title, a short body and the way forward. `as="h1"` when it is the whole page, as on the not-found and error pages. |
 | `DetectionBox`, `DetectedPhoto` | Detected pieces over a scan photo, in 0–1 fractions of the image |
 | `Logo`, `LogoMark` | Wordmark with mark, or the mark alone with a `title` |
 | `LanguageSwitcher` | EN/ID pill in the header that keeps the current page (`src/components`) |
+| `SiteFooter` | Footer on every page: team, the CC BY 4.0 dataset credit, the AI-photo and LEGO trademark notes (`src/components`, credits in `src/lib/credits.ts`) |
 
 The brick catalogue lives in `src/lib/bricks.ts`. To add a color, add `--brick-<id>` to `tokens.css` and an entry to `BRICK_COLORS`; a test checks that the two match.
 

@@ -21,6 +21,23 @@ export const id: Dictionary = {
       ideas: "Ide",
     },
   },
+  footer: {
+    team: {
+      title: "Tim",
+      body: "Dibuat oleh {team} untuk mata kuliah {course}, Sekolah Vokasi IPB University.",
+    },
+    dataset: {
+      title: "Dataset",
+      body: "Detektor kepingan Legoin belajar dari dataset ini:",
+      license: "Berlisensi",
+    },
+    notes: {
+      title: "Perlu diketahui",
+      photos: "Foto contoh dibuat dengan AI, bukan hasil pindai sungguhan.",
+      trademark:
+        "LEGO® adalah merek dagang LEGO Group. Legoin adalah proyek mahasiswa dan tidak berafiliasi dengan maupun didukung oleh LEGO Group.",
+    },
+  },
   scan: {
     title: "Potret kepinganmu",
     lead: "Letakkan semua kepingan di meja polos, saling berjauhan, lalu ambil satu foto dari atas.",
@@ -233,8 +250,31 @@ export const id: Dictionary = {
     title: "Riwayat pindai",
     lead: "Pindaian sebelumnya dan ide rakitannya akan muncul di sini.",
   },
+  states: {
+    notFound: {
+      title: "Kami tidak menemukan halaman itu",
+      body: "Tautannya mungkin rusak, atau halamannya sudah pindah. Hasil pindaimu tetap tersimpan di peramban ini.",
+      home: "Kembali ke beranda",
+      scan: "Mulai pindai",
+    },
+    error: {
+      title: "Ada yang salah",
+      body: "Halaman ini berhenti bekerja. Coba lagi, atau kembali ke beranda. Hasil pindaimu tetap tersimpan di peramban ini.",
+      retry: "Coba lagi",
+      home: "Kembali ke beranda",
+    },
+    design: {
+      title: "Kondisi kosong dan galat",
+      description:
+        "Saat tidak ada yang ditampilkan atau ada yang rusak: bingkai pemindai di ubin stiker, judul singkat, satu atau dua kalimat, dan langkah berikutnya. Halaman tidak ditemukan dan halaman galat memakai kartu yang sama.",
+      empty: {
+        title: "Belum ada hasil pindai",
+        body: "Potret kepinganmu dan hasil pindaimu akan muncul di sini.",
+        action: "Mulai pindai",
+      },
+    },
+  },
   common: {
-    inProgress: "Sedang dibangun",
     step: "Langkah",
     partsUsed: "Part dipakai",
     partsMissing: "Part kurang",
@@ -260,6 +300,7 @@ export const id: Dictionary = {
       ],
     },
     seeSteps: "Lihat langkah",
+    hideSteps: "Tutup langkah",
   },
   home: {
     eyebrow: "Pindai · Hitung · Rakit",
@@ -270,11 +311,19 @@ export const id: Dictionary = {
     },
     lead: "Potret semua kepingan LEGO-mu dalam satu foto. Legoin mengenali jenis dan warnanya, lalu memberi tiga ide rakitan lengkap dengan part yang kurang.",
     ctaScan: "Mulai pindai",
-    ctaDesign: "Lihat sistem desain",
+    ctaHistory: "Riwayat pindai",
     facts: {
       parts: "13 jenis part",
       colors: "10 warna",
       ideas: "3 ide per foto",
+    },
+    how: {
+      title: "Cara kerjanya",
+      photo: "Sebar kepinganmu di meja polos, lalu ambil satu foto dari atas.",
+      pieces:
+        "Legoin menemukan tiap kepingan beserta jenis part dan warnanya. Perbaiki kalau ada yang keliru.",
+      ideas:
+        "Pilih tema dan dapatkan tiga ide rakitan, lengkap dengan part yang kamu punya dan yang kurang.",
     },
     tape: [
       "Legoin",

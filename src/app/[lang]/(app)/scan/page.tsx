@@ -3,10 +3,11 @@ import { CaptureFlow } from "@/components/scan/capture-flow";
 import { PhotoGuide } from "@/components/scan/photo-guide";
 import { Sticker } from "@/components/ui/sticker";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
+import { languageAlternates } from "@/i18n/locales";
 
 export async function generateMetadata(): Promise<Metadata> {
   const dict = await getDictionary();
-  return { title: dict.scan.title };
+  return { title: dict.scan.title, alternates: languageAlternates("/scan") };
 }
 
 /**
