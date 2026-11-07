@@ -19,6 +19,23 @@ export const en = {
       ideas: "Ideas",
     },
   },
+  footer: {
+    team: {
+      title: "Team",
+      body: "Made by {team} for the {course} course, School of Vocational Studies, IPB University.",
+    },
+    dataset: {
+      title: "Dataset",
+      body: "Legoin's piece detector learns from this dataset:",
+      license: "Licensed under",
+    },
+    notes: {
+      title: "Good to know",
+      photos: "The sample photos are AI-generated, not real scans.",
+      trademark:
+        "LEGO® is a trademark of the LEGO Group. Legoin is a student project and isn't affiliated with or endorsed by the LEGO Group.",
+    },
+  },
   scan: {
     title: "Photograph your pieces",
     lead: "Lay all your pieces flat on a plain table, apart from each other, and take one photo from above.",

@@ -21,6 +21,23 @@ export const id: Dictionary = {
       ideas: "Ide",
     },
   },
+  footer: {
+    team: {
+      title: "Tim",
+      body: "Dibuat oleh {team} untuk mata kuliah {course}, Sekolah Vokasi IPB University.",
+    },
+    dataset: {
+      title: "Dataset",
+      body: "Detektor kepingan Legoin belajar dari dataset ini:",
+      license: "Berlisensi",
+    },
+    notes: {
+      title: "Perlu diketahui",
+      photos: "Foto contoh dibuat dengan AI, bukan hasil pindai sungguhan.",
+      trademark:
+        "LEGO® adalah merek dagang LEGO Group. Legoin adalah proyek mahasiswa dan tidak berafiliasi dengan maupun didukung oleh LEGO Group.",
+    },
+  },
   scan: {
     title: "Potret kepinganmu",
     lead: "Letakkan semua kepingan di meja polos, saling berjauhan, lalu ambil satu foto dari atas.",
