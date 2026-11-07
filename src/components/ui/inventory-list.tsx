@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+import { Odometer } from "@/components/motion/odometer";
 import type { Locale } from "@/i18n/locales";
 import {
   BRICK_PARTS,
@@ -7,10 +9,13 @@ import {
 } from "@/lib/bricks";
 import { cx } from "@/lib/cx";
 import { inventoryKey } from "@/lib/inventory";
+import { staggerIndex } from "@/lib/motion";
 
 /**
  * Inventory as tiles: color chip, count and part, then the color name. With
  * `onSelect` each tile is a button; lines holding a flagged piece are dashed.
+ * Tiles click in one after another, the selected one slides out like a part
+ * callout, and counts roll like an odometer when they change.
  */
 export function InventoryList({
   items,
@@ -21,6 +26,8 @@ export function InventoryList({
   editedKeys,
   editedLabel,
   onSelect,
+  assembling = true,
+  leavingKey,
   className,
 }: {
   items: PartCount[];
@@ -36,17 +43,21 @@ export function InventoryList({
   /** Shown on an edited line, e.g. "Edited". */
   editedLabel?: string;
   onSelect?: (line: PartCount) => void;
+  /** Tiles click in one after another; turn off once they're in. */
+  assembling?: boolean;
+  /** `inventoryKey` of a line about to disappear, which pops off. */
+  leavingKey?: string;
   className?: string;
 }) {
   return (
     <ul className={cx("grid grid-cols-2 gap-2", className)}>
-      {items.map((line) => {
+      {items.map((line, index) => {
         const key = inventoryKey(line);
         const selected = key === selectedKey;
         const flagged = flaggedKeys?.has(key) ?? false;
         const tileClass = cx(
-          "flex h-full w-full items-center gap-2.5 rounded-callout border-ink px-3 py-2 text-left",
-          selected ? "border-[3px] bg-highlight-subtle" : "border-2 bg-card",
+          "part-tile flex h-full w-full items-center gap-2.5 rounded-callout border-ink px-3 py-2 text-left",
+          selected ? "border-[3px] bg-highlight" : "border-2 bg-card",
           flagged && "border-dashed",
         );
         const content = (
@@ -57,9 +68,19 @@ export function InventoryList({
               style={{ backgroundColor: brickColorVar(line.color) }}
             />
             <span className="text-sm leading-tight">
-              <span className="font-mono font-bold">{line.quantity}×</span>{" "}
+              <span className="font-mono font-bold">
+                <span className="sr-only">{line.quantity}×</span>
+                <span aria-hidden="true">
+                  <Odometer value={line.quantity} />×
+                </span>
+              </span>{" "}
               {BRICK_PARTS[line.part].label}
-              <span className="block text-ink-secondary">
+              <span
+                className={cx(
+                  "block",
+                  selected ? "text-ink" : "text-ink-secondary",
+                )}
+              >
                 {colorLabel(line.color, locale)}
               </span>
               {flagged && flaggedLabel && (
@@ -75,7 +96,13 @@ export function InventoryList({
           </>
         );
         return (
-          <li key={key}>
+          <li
+            key={key}
+            className={key === leavingKey ? "pop-off" : "click-in"}
+            style={
+              { "--i": assembling ? staggerIndex(index) : 0 } as CSSProperties
+            }
+          >
             {onSelect ? (
               <button
                 type="button"
@@ -83,7 +110,8 @@ export function InventoryList({
                 onClick={() => onSelect(line)}
                 className={cx(
                   tileClass,
-                  "cursor-pointer hover:bg-highlight-subtle",
+                  "cursor-pointer",
+                  !selected && "hover:bg-highlight-subtle",
                 )}
               >
                 {content}

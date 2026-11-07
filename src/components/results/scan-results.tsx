@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Count, OdometerText } from "@/components/motion/odometer";
+import { SharedPhoto } from "@/components/motion/view-transitions";
 import { AddPiece } from "@/components/results/add-piece";
 import { EditPiece } from "@/components/results/edit-piece";
 import { PieceDetail } from "@/components/results/piece-detail";
@@ -10,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { DetectedPhoto } from "@/components/ui/detected-photo";
 import { InventoryList } from "@/components/ui/inventory-list";
+import { Sticker } from "@/components/ui/sticker";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { plural } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
@@ -18,6 +21,8 @@ import { labeledBoxes } from "@/lib/detection-labels";
 import { type DetectionChange, needsCheck, type Scan } from "@/lib/domain";
 import { inventoryKey, inverseChanges, toInventory } from "@/lib/inventory";
 import { getScan, updateDetections } from "@/lib/mock/api";
+import { MAX_STAGGER, readDuration, snapHaptic } from "@/lib/motion";
+import { forgetHandedOffScan, handedOffScan } from "@/lib/scan-handoff";
 
 type Copy = { results: Dictionary["results"]; common: Dictionary["common"] };
 
@@ -35,15 +40,36 @@ export function ResultsLoading({ label }: { label: string }) {
   );
 }
 
+const wait = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, Math.max(ms, 0)));
+
+/** First flagged piece, so the flag is seen. */
+const firstToCheck = (scan: Scan | null) =>
+  scan?.detections.find(needsCheck)?.id ?? null;
+
 /**
  * A finished scan (PRD F2–F5): the photo with selectable boxes, the inventory,
  * and the selected piece, which can be corrected or removed. Missed pieces can
  * be added, and the last change undone. Changes are saved as they're made.
+ *
+ * Laid out as a booklet page: the photo plate on the left, the selected piece
+ * as a part callout overlapping it, the inventory below. Boxes and tiles click
+ * in one by one as the counts roll up; a removed piece pops off and undo clicks
+ * it back.
  */
 export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   const { id } = useParams<{ id: string }>();
-  const [state, setState] = useState<State>({ kind: "loading" });
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Straight from the scanner, the scan is already here, so the photo can
+  // morph in from the progress screen instead of waiting on a load.
+  const [state, setState] = useState<State>(() => {
+    const scan = handedOffScan(id);
+    return scan ? { kind: "ready", scan } : { kind: "loading" };
+  });
+  const [selectedId, setSelectedId] = useState<string | null>(() =>
+    firstToCheck(handedOffScan(id)),
+  );
+  const [assembling, setAssembling] = useState(true);
+  const [leavingId, setLeavingId] = useState<string | null>(null);
   const [showLabels, setShowLabels] = useState(true);
   const [zoomed, setZoomed] = useState(false);
   const [pending, setPending] = useState(false);
@@ -52,17 +78,30 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
 
   useEffect(() => {
     let active = true;
-    void getScan(id, { delayMs: 150 }).then((scan) => {
+    const handedOff = handedOffScan(id);
+    void getScan(id, { delayMs: handedOff ? 0 : 150 }).then((scan) => {
       if (!active) return;
+      forgetHandedOffScan(id);
       setState(scan ? { kind: "ready", scan } : { kind: "missing" });
-      // Start on the first piece to check, so the flag is seen.
-      const firstFlagged = scan?.detections.find(needsCheck);
-      setSelectedId(firstFlagged?.id ?? null);
+      if (!handedOff) setSelectedId(firstToCheck(scan));
     });
     return () => {
       active = false;
     };
   }, [id]);
+
+  // Once the first run of boxes and tiles has clicked in, later ones (an undo,
+  // an added piece) arrive at once instead of waiting their turn.
+  const ready = state.kind === "ready";
+  useEffect(() => {
+    if (!ready) return;
+    const run =
+      MAX_STAGGER * readDuration("--stagger-step") +
+      readDuration("--duration-click");
+    // Unreadable tokens (no stylesheet) fall back to about a second.
+    const timer = setTimeout(() => setAssembling(false), run || 1000);
+    return () => clearTimeout(timer);
+  }, [ready]);
 
   if (state.kind === "loading") {
     return <ResultsLoading label={copy.results.loading} />;
@@ -90,13 +129,18 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   const partTypes = new Set(scan.detections.map((d) => d.part)).size;
   const colors = new Set(scan.detections.map((d) => d.color)).size;
 
+  function select(pieceId: string | null) {
+    if (pieceId && pieceId !== selectedId) snapHaptic();
+    setSelectedId(pieceId);
+  }
+
   // Selecting a line picks one of its pieces; selecting it again moves to the next.
   function selectLine(line: PartCount) {
     const group = scan.detections.filter(
       (d) => d.part === line.part && d.color === line.color,
     );
     const index = group.findIndex((d) => d.id === selectedId);
-    setSelectedId(group[(index + 1) % group.length]?.id ?? null);
+    select(group[(index + 1) % group.length]?.id ?? null);
   }
 
   /** Saves changes, remembers how to undo them, and says what happened. */
@@ -106,15 +150,21 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
     {
       select,
       isUndo = false,
+      exitMs = 0,
     }: {
       select?: (before: Scan, after: Scan) => string | null;
       isUndo?: boolean;
+      /** Keep the old view up at least this long, for an exit animation. */
+      exitMs?: number;
     } = {},
   ) {
     setPending(true);
     try {
       const before = scan;
-      const after = await updateDetections(scan.id, changes, { delayMs: 150 });
+      const [after] = await Promise.all([
+        updateDetections(scan.id, changes, { delayMs: 150 }),
+        wait(exitMs),
+      ]);
       setState({ kind: "ready", scan: after });
       setUndo(
         isUndo ? null : inverseChanges(before.detections, after.detections),
@@ -138,13 +188,16 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
 
   function remove() {
     if (!selected) return;
+    // The piece pops off while the change saves; if saving fails it stays.
+    setLeavingId(selected.id);
     void apply(
       [{ type: "remove", id: selected.id }],
       copy.results.status.removed,
       {
         select: () => null,
+        exitMs: readDuration("--duration-exit"),
       },
-    );
+    ).finally(() => setLeavingId(null));
   }
 
   function add(part: BrickPartId, color: BrickColorId, quantity: number) {
@@ -162,6 +215,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
 
   function undoLast() {
     if (!undo) return;
+    snapHaptic();
     void apply(undo, copy.results.status.undone, {
       isUndo: true,
       select: (_, after) =>
@@ -169,16 +223,40 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
     });
   }
 
+  const leaving = scan.detections.find((d) => d.id === leavingId);
+  const leavingKey =
+    leaving &&
+    scan.detections.filter((d) => inventoryKey(d) === inventoryKey(leaving))
+      .length === 1
+      ? inventoryKey(leaving)
+      : undefined;
+  const totals = [
+    [copy.common.pieces, scan.detections.length],
+    [copy.results.totals.parts, partTypes],
+    [copy.results.totals.colors, colors],
+  ] as const;
+
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
-      <section aria-labelledby="results-title">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 id="results-title" className="mr-auto font-display text-4xl">
-            {copy.results.title}
+    <div className="grid gap-y-[calc(var(--stud)*2)] lg:grid-cols-12 lg:gap-x-stud">
+      {/* On desktop the photo stays in view while the inventory scrolls by. */}
+      <section
+        aria-labelledby="results-title"
+        className="lg:sticky lg:top-stud lg:col-span-8 lg:self-start"
+      >
+        <div className="click-in flex flex-wrap items-center gap-x-stud gap-y-3 pr-[4.5rem] sm:pr-0">
+          <h1
+            id="results-title"
+            className="font-display text-3xl leading-tight sm:text-5xl"
+          >
+            <Sticker className="-rotate-2">{copy.results.title}</Sticker>
           </h1>
-          <p className="font-mono text-sm font-bold">
-            {plural(copy.common.pieces, scan.detections.length, locale)}
-          </p>
+          <Count
+            as="p"
+            message={copy.common.pieces}
+            count={scan.detections.length}
+            locale={locale}
+            className="font-mono text-xl font-bold"
+          />
           {flagged.length > 0 && (
             <Badge tone="warning">
               {plural(copy.results.toCheck, flagged.length, locale)}
@@ -186,7 +264,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
           )}
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-stud flex flex-wrap gap-2">
           <Button
             variant="ghost"
             size="sm"
@@ -204,26 +282,35 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
           </Button>
         </div>
 
-        {/* Zoomed photos scroll sideways on phones; boxes scale with the photo. */}
-        <div className="mt-3 overflow-auto rounded-callout">
-          <div style={{ width: zoomed ? "200%" : "100%" }}>
-            <DetectedPhoto
-              photo={scan.photo}
-              alt={copy.results.photoAlt}
-              detections={labeledBoxes(
-                scan.detections,
-                locale,
-                selectedId ?? undefined,
-              )}
-              labels={showLabels ? "auto" : "none"}
-              onSelect={setSelectedId}
-            />
+        {/* The photo plate. Zoomed photos scroll sideways on phones; boxes
+            scale with the photo. On desktop the part callout overlaps the
+            plate's right edge, never the photo. */}
+        <div className="mt-3 rounded-card border-[2.5px] border-ink bg-card p-2 shadow-card sm:p-3 lg:pr-[calc(var(--stud)+0.75rem)]">
+          <div className="overflow-auto rounded-callout">
+            <div style={{ width: zoomed ? "200%" : "100%" }}>
+              <SharedPhoto>
+                <DetectedPhoto
+                  photo={scan.photo}
+                  alt={copy.results.photoAlt}
+                  detections={labeledBoxes(
+                    scan.detections,
+                    locale,
+                    selectedId ?? undefined,
+                  )}
+                  labels={showLabels ? "auto" : "none"}
+                  onSelect={select}
+                  assembling={assembling}
+                  leavingId={leavingId ?? undefined}
+                />
+              </SharedPhoto>
+            </div>
           </div>
         </div>
       </section>
 
-      <div className="space-y-6">
+      <div className="space-y-[calc(var(--stud)*1.5)] lg:relative lg:z-10 lg:col-span-4 lg:col-start-9 lg:pt-[calc(var(--stud)*5)]">
         <PieceDetail
+          className="lg:-ml-[calc(var(--stud)*2)]"
           detection={selected}
           locale={locale}
           copy={copy.results.piece}
@@ -242,19 +329,31 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
         </PieceDetail>
 
         <section aria-labelledby="inventory-title" className="space-y-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2
-              id="inventory-title"
-              className="font-mono text-xs font-bold tracking-[0.25em] uppercase"
-            >
-              {copy.common.inventory}
+          <div className="flex flex-wrap items-center justify-between gap-x-stud gap-y-2">
+            <h2 id="inventory-title" className="font-display text-xl">
+              <Sticker tone="paper" className="rotate-2">
+                {copy.common.inventory}
+              </Sticker>
             </h2>
-            <p className="font-mono text-xs text-ink-secondary">
-              {[
-                plural(copy.common.pieces, scan.detections.length, locale),
-                plural(copy.results.totals.parts, partTypes, locale),
-                plural(copy.results.totals.colors, colors, locale),
-              ].join(" · ")}
+            <p className="sr-only">
+              {totals
+                .map(([message, count]) => plural(message, count, locale))
+                .join(" · ")}
+            </p>
+            <p
+              aria-hidden="true"
+              className="font-mono text-xs text-ink-secondary"
+            >
+              {totals.map(([message, count], index) => (
+                <span key={message.other}>
+                  {index > 0 && " · "}
+                  <OdometerText
+                    message={message}
+                    count={count}
+                    locale={locale}
+                  />
+                </span>
+              ))}
             </p>
           </div>
           <InventoryList
@@ -266,6 +365,8 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
             editedKeys={editedKeys}
             editedLabel={copy.results.edit.edited}
             onSelect={selectLine}
+            assembling={assembling}
+            leavingKey={leavingKey}
           />
           <div className="flex min-h-10 flex-wrap items-center gap-3">
             <output className="text-sm font-semibold">{status}</output>

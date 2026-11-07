@@ -3,6 +3,7 @@ import { DetectionBox, type LabelMode } from "@/components/ui/detection-box";
 import { cx } from "@/lib/cx";
 import type { LabeledBox } from "@/lib/detection-labels";
 import type { Photo } from "@/lib/domain";
+import { staggerIndex } from "@/lib/motion";
 
 /**
  * Which labels to draw: every one; "auto", only the selected piece's on phones
@@ -16,13 +17,18 @@ function labelMode(labels: PhotoLabels, selected: boolean): LabelMode {
   return "always";
 }
 
-/** A scan photo with its detection boxes. No grain here: people judge brick colors on it. */
+/**
+ * A scan photo with its detection boxes, which click in one after another. No
+ * grain here: people judge brick colors on it.
+ */
 export function DetectedPhoto({
   photo,
   alt,
   detections,
   labels = "all",
   onSelect,
+  assembling = true,
+  leavingId,
   priority = false,
   className,
 }: {
@@ -33,6 +39,10 @@ export function DetectedPhoto({
   labels?: PhotoLabels;
   /** Makes each box a button that selects its piece. */
   onSelect?: (id: string) => void;
+  /** Boxes click in one after another; turn off once they're in, so later ones arrive at once. */
+  assembling?: boolean;
+  /** The piece being removed, which pops off. */
+  leavingId?: string;
   priority?: boolean;
   className?: string;
 }) {
@@ -55,7 +65,7 @@ export function DetectedPhoto({
         unoptimized
         className="block h-auto w-full"
       />
-      {detections.map((detection) => (
+      {detections.map((detection, index) => (
         <DetectionBox
           key={detection.id}
           box={detection.box}
@@ -64,6 +74,8 @@ export function DetectedPhoto({
           selected={detection.selected}
           flagged={detection.flagged}
           labelMode={labelMode(labels, detection.selected)}
+          order={assembling ? staggerIndex(index) : undefined}
+          leaving={detection.id === leavingId}
           onSelect={onSelect ? () => onSelect(detection.id) : undefined}
         />
       ))}

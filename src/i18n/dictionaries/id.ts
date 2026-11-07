@@ -179,6 +179,73 @@ export const id: Dictionary = {
     },
     continue: "Lihat ide rakitan",
   },
+  motion: {
+    title: { before: "Gerak & ", sticker: "interaksi" },
+    intro:
+      "Legoin bekerja seperti buku petunjuk merakit di atas baseplate: layar tersusun langkah demi langkah, dan setiap kepingan terpasang pas. Satu gerak, dipakai di mana-mana.",
+    back: "Sistem desain",
+    reduce: "Pratinjau gerak dikurangi",
+    replay: "Putar ulang",
+    tokens: {
+      title: "Token",
+      description:
+        "Waktu, kurva, dan jarak ada di tokens.css. Saat gerak dikurangi, semua jarak menjadi nol, jadi nilai di bawah ikut berubah saat kamu mempratinjaunya.",
+      name: "Token",
+      value: "Nilai",
+    },
+    clickIn: {
+      title: "Klik-pasang",
+      description:
+        "Kepingan jatuh ke stud, sedikit gepeng saat mendarat, lalu diam. Layar tersusun dengannya, satu kepingan selangkah setelah yang sebelumnya, paling banyak delapan langkah.",
+    },
+    press: {
+      title: "Tekan-pas",
+      description:
+        "Tombol berisi tenggelam tepat ke bayangan kerasnya saat ditekan, lalu memantul kembali. Satu tombol utama per layar bersifat magnetis: condong ke arah penunjuk tetikus di dekatnya.",
+      magnetic: "Aku magnetis",
+      plain: "Aku tidak",
+    },
+    pick: {
+      title: "Memilih kepingan",
+      description:
+        "Kepingan yang dipilih terangkat dari foto dan meninggalkan jejak stud bertitik, dan ubinnya bergeser keluar seperti keterangan part. Kepingan yang dihapus terlepas; urungkan memasangnya kembali. Di ponsel, pasangannya terasa sebagai getaran kecil.",
+      remove: "Lepaskan",
+      undo: "Pasang lagi",
+    },
+    counts: {
+      title: "Hitungan",
+      description:
+        "Hitungan berputar seperti odometer: naik dari nol saat muncul, ke nilai baru saat berubah. Pembaca layar mendapat kalimat biasa.",
+      fewer: "Kurangi satu",
+      more: "Tambah satu",
+    },
+    scanner: {
+      title: "Pemindai",
+      description:
+        "Saat foto dipindai, sebuah sinar menyapunya dan stud yang dilewati menyala, lalu memudar di belakangnya. Hanya transform yang bergerak, jadi tetap mulus di ponsel.",
+    },
+    apart: {
+      title: "Berantakan",
+      description:
+        "Saat pemindaian gagal, rakitan kecil bergoyang lalu berjatuhan. Saat gerak dikurangi, kepingan langsung ditampilkan terpisah.",
+    },
+    baseplate: {
+      title: "Baseplate",
+      description:
+        "Layar berada di atas kisi stud, dan satu stud adalah modul tata letak: 16px di ponsel, 24px mulai 640px. Dengan tetikus, stud di dekat penunjuk menyala. Layar sentuh dan gerak dikurangi tidak mendapat cahaya ini.",
+    },
+    steps: {
+      title: "Antarlangkah",
+      description:
+        "Dari Foto ke Kepingan, foto berubah bentuk dari pemindai ke hasil, dan penanda langkah ikut bergeser. Tambahkan ?mockDelay=3000 ke alamat untuk memperlambat pemindaian, atau ?mock=fail-too_dark untuk melihat kegagalan.",
+      action: "Coba pindai",
+    },
+    reduced: {
+      title: "Gerak dikurangi",
+      description:
+        "Saat gerak dikurangi, tidak ada yang berpindah, miring, atau bergiliran. Kepingan tetap muncul perlahan, pilihan tetap terlihat, hitungan langsung berganti, dan sinar pemindai serta cahaya penunjuk mati.",
+    },
+  },
   history: {
     title: "Riwayat pindai",
     lead: "Pindaian sebelumnya dan ide rakitannya akan muncul di sini.",

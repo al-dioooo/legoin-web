@@ -173,6 +173,73 @@ export const en = {
     },
     continue: "Get build ideas",
   },
+  motion: {
+    title: { before: "Motion & ", sticker: "interaction" },
+    intro:
+      "Legoin works like a building-instructions booklet laid on a baseplate: screens assemble step by step, and every piece clicks into place. One motion, reused everywhere.",
+    back: "Design system",
+    reduce: "Preview reduced motion",
+    replay: "Replay",
+    tokens: {
+      title: "Tokens",
+      description:
+        "Timings, curves and distances live in tokens.css. With reduced motion every distance drops to zero, so the values below change when you preview it.",
+      name: "Token",
+      value: "Value",
+    },
+    clickIn: {
+      title: "Click-in",
+      description:
+        "A piece drops onto the studs, squashes a little on impact and settles. Screens assemble with it, one piece a stagger step after the last, eight steps at most.",
+    },
+    press: {
+      title: "Press-fit",
+      description:
+        "A filled button sinks exactly into its hard shadow while pressed and springs back. One primary button per screen is magnetic: it leans toward a nearby mouse pointer.",
+      magnetic: "I'm magnetic",
+      plain: "I'm not",
+    },
+    pick: {
+      title: "Picking pieces",
+      description:
+        "A selected piece lifts off the photo and leaves a dotted stud footprint, and its tile slides out like a part callout. A removed piece pops off; undo clicks it back. On phones the snap is a tiny vibration.",
+      remove: "Pop it off",
+      undo: "Click it back",
+    },
+    counts: {
+      title: "Counts",
+      description:
+        "Counts roll like an odometer: up from zero when they appear, to the new value when they change. Screen readers get the plain sentence.",
+      fewer: "One fewer",
+      more: "One more",
+    },
+    scanner: {
+      title: "Scanner",
+      description:
+        "While a photo is scanned, a beam sweeps it and the studs it passes light up, then fade behind it. Only transforms move, so it stays smooth on phones.",
+    },
+    apart: {
+      title: "Falling apart",
+      description:
+        "When a scan fails, a small build wobbles and tumbles apart. With reduced motion the pieces are simply shown apart.",
+    },
+    baseplate: {
+      title: "Baseplate",
+      description:
+        "Screens sit on a stud grid, and one stud is the layout module: 16px on phones, 24px from 640px. With a mouse, the studs near the pointer light up. Touch screens and reduced motion don't get the glow.",
+    },
+    steps: {
+      title: "Between steps",
+      description:
+        "From Photo to Pieces, the photo morphs from the scanner into the results and the current-step marker slides along. Add ?mockDelay=3000 to the address to slow a scan down, or ?mock=fail-too_dark to see a failure.",
+      action: "Try a scan",
+    },
+    reduced: {
+      title: "Reduced motion",
+      description:
+        "With reduced motion nothing travels, tilts or staggers. Pieces still fade in, the selection still shows, counts change at once, and the scanner beam and pointer glow are off.",
+    },
+  },
   history: {
     title: "Your scans",
     lead: "Earlier scans and their build ideas will show up here.",

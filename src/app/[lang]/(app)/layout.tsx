@@ -1,19 +1,25 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { StepNumeral } from "@/components/app/step-numeral";
 import { StepProgress } from "@/components/app/step-progress";
 import { Logo } from "@/components/brand/logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { StudGlow } from "@/components/motion/stud-glow";
 import { buttonStyles } from "@/components/ui/button";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
 
-/** Shell for the scan flow and history: logo, step progress, history and language. */
+/**
+ * Shell for the scan flow and history: a baseplate the screens are built on,
+ * with the logo, step progress, history and language on top.
+ */
 export default async function AppLayout({ children }: LayoutProps<"/[lang]">) {
   const locale = await currentLocale();
   const dict = await getDictionary();
 
   return (
-    <div className="flex flex-1 flex-col">
-      <header className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-3 px-4 pt-6 sm:px-6">
+    <div className="baseplate flex flex-1 flex-col overflow-x-clip">
+      <StudGlow />
+      <header className="mx-auto flex w-full max-w-(--plate-width) flex-wrap items-center gap-3 px-stud pt-stud">
         <Link
           href={`/${locale}`}
           aria-label={dict.app.home}
@@ -49,7 +55,10 @@ export default async function AppLayout({ children }: LayoutProps<"/[lang]">) {
           </Suspense>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6">
+      <main className="relative mx-auto w-full max-w-(--plate-width) flex-1 px-stud pt-[calc(var(--stud)*2)] pb-[calc(var(--stud)*3)]">
+        <Suspense>
+          <StepNumeral />
+        </Suspense>
         {children}
       </main>
     </div>
