@@ -19,6 +19,23 @@ export const en = {
       ideas: "Ideas",
     },
   },
+  footer: {
+    team: {
+      title: "Team",
+      body: "Made by {team} for the {course} course, School of Vocational Studies, IPB University.",
+    },
+    dataset: {
+      title: "Dataset",
+      body: "Legoin's piece detector learns from this dataset:",
+      license: "Licensed under",
+    },
+    notes: {
+      title: "Good to know",
+      photos: "The sample photos are AI-generated, not real scans.",
+      trademark:
+        "LEGO® is a trademark of the LEGO Group. Legoin is a student project and isn't affiliated with or endorsed by the LEGO Group.",
+    },
+  },
   scan: {
     title: "Photograph your pieces",
     lead: "Lay all your pieces flat on a plain table, apart from each other, and take one photo from above.",
@@ -185,7 +202,6 @@ export const en = {
     },
   },
   common: {
-    inProgress: "Work in progress",
     step: "Step",
     partsUsed: "Parts used",
     partsMissing: "Parts missing",
@@ -213,6 +229,7 @@ export const en = {
       ],
     },
     seeSteps: "See the steps",
+    hideSteps: "Hide the steps",
   },
   home: {
     eyebrow: "Scan · Count · Build",
@@ -223,11 +240,20 @@ export const en = {
     },
     lead: "Photograph all your LEGO pieces in one shot. Legoin recognizes each part and color, then suggests three build ideas, including the parts you're missing.",
     ctaScan: "Start scanning",
-    ctaDesign: "See the design system",
+    ctaHistory: "Your scans",
     facts: {
       parts: "13 part types",
       colors: "10 colors",
       ideas: "3 ideas per photo",
+    },
+    how: {
+      title: "How it works",
+      photo:
+        "Spread your pieces on a plain table and take one photo from above.",
+      pieces:
+        "Legoin finds each piece and names its part and color. Fix anything it got wrong.",
+      ideas:
+        "Pick a theme and get three build ideas, with the parts you have and the ones you're missing.",
     },
     tape: ["Legoin", "Snap your pieces", "Auto count", "Three build ideas"],
   },

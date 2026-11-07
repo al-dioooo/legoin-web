@@ -1,23 +1,29 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
+import { HowItWorks } from "@/components/home/how-it-works";
+import { SampleIdea } from "@/components/home/sample-idea";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { Badge } from "@/components/ui/badge";
 import { buttonStyles } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { DetectedPhoto } from "@/components/ui/detected-photo";
 import { Grain } from "@/components/ui/grain";
 import { InventoryList } from "@/components/ui/inventory-list";
 import { Marquee } from "@/components/ui/marquee";
 import { Sticker } from "@/components/ui/sticker";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
-import { fill, plural } from "@/i18n/format";
+import { plural } from "@/i18n/format";
+import { languageAlternates } from "@/i18n/locales";
 import {
   SAMPLE_DETECTIONS,
   SAMPLE_INVENTORY,
-  SAMPLE_MISSING_COUNT,
   SAMPLE_PHOTO,
   sampleBoxes,
 } from "@/lib/sample-scan";
+
+export const metadata: Metadata = {
+  alternates: languageAlternates("/"),
+};
 
 export default async function Home() {
   const locale = await currentLocale();
@@ -33,7 +39,6 @@ export default async function Home() {
             <span className="inline-flex rounded-full border-[2.5px] border-ink bg-page px-4 py-2 shadow-sticker">
               <Logo />
             </span>
-            <Badge>{common.inProgress}</Badge>
             <LanguageSwitcher
               current={locale}
               label={dict.language.label}
@@ -58,10 +63,10 @@ export default async function Home() {
               {home.ctaScan} <span aria-hidden="true">→</span>
             </Link>
             <Link
-              href={`/${locale}/desain`}
+              href={`/${locale}/history`}
               className={buttonStyles({ variant: "secondary" })}
             >
-              {home.ctaDesign}
+              {home.ctaHistory}
             </Link>
           </div>
           <ul className="mt-8 flex flex-wrap gap-2">
@@ -104,31 +109,18 @@ export default async function Home() {
             locale={locale}
             className="mt-2"
           />
-          <Card className="mt-5 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="font-mono text-xs font-bold">
-                {fill(common.ideaOf, { index: 1, total: 3 })}
-              </span>
-              <span className="flex gap-1.5">
-                <Badge tone="highlight">{sample.idea.difficulty}</Badge>
-                <Badge tone="warning">
-                  {plural(common.missingCount, SAMPLE_MISSING_COUNT, locale)}
-                </Badge>
-              </span>
-            </div>
-            <h3 className="mt-2 font-display text-2xl">{sample.idea.title}</h3>
-            <p className="mt-1 text-sm text-ink-secondary">
-              {sample.idea.summary}
-            </p>
-            <Link
-              href={`/${locale}/desain#example`}
-              className={`${buttonStyles({ size: "sm" })} mt-4`}
-            >
-              {sample.seeSteps} <span aria-hidden="true">→</span>
-            </Link>
-          </Card>
+          <SampleIdea
+            copy={{ sample, common }}
+            locale={locale}
+            className="mt-5"
+          />
         </aside>
       </div>
+
+      <HowItWorks
+        copy={{ how: home.how, steps: dict.app.steps, step: common.step }}
+        className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6"
+      />
 
       <section aria-label="Legoin" className="py-10">
         <Marquee words={home.tape} tone="ink" className="-mx-4 -rotate-3" />

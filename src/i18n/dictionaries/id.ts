@@ -21,6 +21,23 @@ export const id: Dictionary = {
       ideas: "Ide",
     },
   },
+  footer: {
+    team: {
+      title: "Tim",
+      body: "Dibuat oleh {team} untuk mata kuliah {course}, Sekolah Vokasi IPB University.",
+    },
+    dataset: {
+      title: "Dataset",
+      body: "Detektor kepingan Legoin belajar dari dataset ini:",
+      license: "Berlisensi",
+    },
+    notes: {
+      title: "Perlu diketahui",
+      photos: "Foto contoh dibuat dengan AI, bukan hasil pindai sungguhan.",
+      trademark:
+        "LEGO® adalah merek dagang LEGO Group. Legoin adalah proyek mahasiswa dan tidak berafiliasi dengan maupun didukung oleh LEGO Group.",
+    },
+  },
   scan: {
     title: "Potret kepinganmu",
     lead: "Letakkan semua kepingan di meja polos, saling berjauhan, lalu ambil satu foto dari atas.",
@@ -191,7 +208,6 @@ export const id: Dictionary = {
     },
   },
   common: {
-    inProgress: "Sedang dibangun",
     step: "Langkah",
     partsUsed: "Part dipakai",
     partsMissing: "Part kurang",
@@ -217,6 +233,7 @@ export const id: Dictionary = {
       ],
     },
     seeSteps: "Lihat langkah",
+    hideSteps: "Tutup langkah",
   },
   home: {
     eyebrow: "Pindai · Hitung · Rakit",
@@ -227,11 +244,19 @@ export const id: Dictionary = {
     },
     lead: "Potret semua kepingan LEGO-mu dalam satu foto. Legoin mengenali jenis dan warnanya, lalu memberi tiga ide rakitan lengkap dengan part yang kurang.",
     ctaScan: "Mulai pindai",
-    ctaDesign: "Lihat sistem desain",
+    ctaHistory: "Riwayat pindai",
     facts: {
       parts: "13 jenis part",
       colors: "10 warna",
       ideas: "3 ide per foto",
+    },
+    how: {
+      title: "Cara kerjanya",
+      photo: "Sebar kepinganmu di meja polos, lalu ambil satu foto dari atas.",
+      pieces:
+        "Legoin menemukan tiap kepingan beserta jenis part dan warnanya. Perbaiki kalau ada yang keliru.",
+      ideas:
+        "Pilih tema dan dapatkan tiga ide rakitan, lengkap dengan part yang kamu punya dan yang kurang.",
     },
     tape: [
       "Legoin",
