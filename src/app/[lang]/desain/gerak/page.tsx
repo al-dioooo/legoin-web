@@ -17,11 +17,15 @@ import {
 import { buttonStyles } from "@/components/ui/button";
 import { Sticker } from "@/components/ui/sticker";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
+import { languageAlternates } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { motion } = await getDictionary();
-  return { title: `${motion.title.before}${motion.title.sticker}` };
+  return {
+    title: `${motion.title.before}${motion.title.sticker}`,
+    alternates: languageAlternates("/desain/gerak"),
+  };
 }
 
 /**
