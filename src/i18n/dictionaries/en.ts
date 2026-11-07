@@ -177,6 +177,30 @@ export const en = {
     title: "Your scans",
     lead: "Earlier scans and their build ideas will show up here.",
   },
+  states: {
+    notFound: {
+      title: "We couldn't find that page",
+      body: "The link may be broken, or the page has moved. Your scans are still saved in this browser.",
+      home: "Back to home",
+      scan: "Start a scan",
+    },
+    error: {
+      title: "Something went wrong",
+      body: "This page stopped working. Try again, or go back to the home page. Your scans are still saved in this browser.",
+      retry: "Try again",
+      home: "Back to home",
+    },
+    design: {
+      title: "Empty and error states",
+      description:
+        "When there's nothing to show or something breaks: the scanner frame on a sticker tile, a short title, a sentence or two and the way forward. The not-found and error pages use the same card.",
+      empty: {
+        title: "No scans yet",
+        body: "Photograph your pieces and your scans will show up here.",
+        action: "Start a scan",
+      },
+    },
+  },
   common: {
     step: "Step",
     partsUsed: "Parts used",
