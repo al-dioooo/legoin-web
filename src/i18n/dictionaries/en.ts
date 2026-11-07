@@ -160,6 +160,14 @@ export const en = {
     title: "Your scans",
     lead: "Earlier scans and their build ideas will show up here.",
   },
+  states: {
+    notFound: {
+      title: "We couldn't find that page",
+      body: "The link may be broken, or the page has moved. Your scans are still saved in this browser.",
+      home: "Back to home",
+      scan: "Start a scan",
+    },
+  },
   common: {
     inProgress: "Work in progress",
     step: "Step",

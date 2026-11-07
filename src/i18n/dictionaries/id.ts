@@ -166,6 +166,14 @@ export const id: Dictionary = {
     title: "Riwayat pindai",
     lead: "Pindaian sebelumnya dan ide rakitannya akan muncul di sini.",
   },
+  states: {
+    notFound: {
+      title: "Kami tidak menemukan halaman itu",
+      body: "Tautannya mungkin rusak, atau halamannya sudah pindah. Hasil pindaimu tetap tersimpan di peramban ini.",
+      home: "Kembali ke beranda",
+      scan: "Mulai pindai",
+    },
+  },
   common: {
     inProgress: "Sedang dibangun",
     step: "Langkah",
