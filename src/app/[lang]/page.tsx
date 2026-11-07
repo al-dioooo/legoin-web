@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
+import { HowItWorks } from "@/components/home/how-it-works";
 import { SampleIdea } from "@/components/home/sample-idea";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { Badge } from "@/components/ui/badge";
@@ -115,6 +116,11 @@ export default async function Home() {
           />
         </aside>
       </div>
+
+      <HowItWorks
+        copy={{ how: home.how, steps: dict.app.steps, step: common.step }}
+        className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6"
+      />
 
       <section aria-label="Legoin" className="py-10">
         <Marquee words={home.tape} tone="ink" className="-mx-4 -rotate-3" />

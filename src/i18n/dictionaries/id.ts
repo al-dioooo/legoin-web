@@ -209,6 +209,14 @@ export const id: Dictionary = {
       colors: "10 warna",
       ideas: "3 ide per foto",
     },
+    how: {
+      title: "Cara kerjanya",
+      photo: "Sebar kepinganmu di meja polos, lalu ambil satu foto dari atas.",
+      pieces:
+        "Legoin menemukan tiap kepingan beserta jenis part dan warnanya. Perbaiki kalau ada yang keliru.",
+      ideas:
+        "Pilih tema dan dapatkan tiga ide rakitan, lengkap dengan part yang kamu punya dan yang kurang.",
+    },
     tape: [
       "Legoin",
       "Potret kepinganmu",

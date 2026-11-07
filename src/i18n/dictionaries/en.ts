@@ -205,6 +205,15 @@ export const en = {
       colors: "10 colors",
       ideas: "3 ideas per photo",
     },
+    how: {
+      title: "How it works",
+      photo:
+        "Spread your pieces on a plain table and take one photo from above.",
+      pieces:
+        "Legoin finds each piece and names its part and color. Fix anything it got wrong.",
+      ideas:
+        "Pick a theme and get three build ideas, with the parts you have and the ones you're missing.",
+    },
     tape: ["Legoin", "Snap your pieces", "Auto count", "Three build ideas"],
   },
   design: {
