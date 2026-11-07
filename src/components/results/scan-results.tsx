@@ -329,12 +329,11 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
         </PieceDetail>
 
         <section aria-labelledby="inventory-title" className="space-y-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2
-              id="inventory-title"
-              className="font-mono text-xs font-bold tracking-[0.25em] uppercase"
-            >
-              {copy.common.inventory}
+          <div className="flex flex-wrap items-center justify-between gap-x-stud gap-y-2">
+            <h2 id="inventory-title" className="font-display text-xl">
+              <Sticker tone="paper" className="rotate-2">
+                {copy.common.inventory}
+              </Sticker>
             </h2>
             <p className="sr-only">
               {totals
