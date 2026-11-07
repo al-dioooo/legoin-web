@@ -98,7 +98,8 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
     const run =
       MAX_STAGGER * readDuration("--stagger-step") +
       readDuration("--duration-click");
-    const timer = setTimeout(() => setAssembling(false), run);
+    // Unreadable tokens (no stylesheet) fall back to about a second.
+    const timer = setTimeout(() => setAssembling(false), run || 1000);
     return () => clearTimeout(timer);
   }, [ready]);
 
