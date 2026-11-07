@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Dela_Gothic_One, DM_Sans, JetBrains_Mono } from "next/font/google";
+import { SiteFooter } from "@/components/site-footer";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
 import { LOCALES } from "@/i18n/locales";
 import "../globals.css";
@@ -43,6 +44,7 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
   const locale = await currentLocale();
+  const dict = await getDictionary();
   return (
     <html
       lang={locale}
@@ -50,6 +52,10 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
     >
       <body className="flex min-h-full flex-col bg-page font-sans text-ink">
         {children}
+        <SiteFooter
+          copy={{ ...dict.footer, designSystem: dict.meta.designSystem }}
+          locale={locale}
+        />
       </body>
     </html>
   );
