@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef } from "react";
+import { SharedPhoto } from "@/components/motion/view-transitions";
 import { Button } from "@/components/ui/button";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { cx } from "@/lib/cx";
@@ -17,10 +18,13 @@ function StageMark({ state }: { state: StageState }) {
   return (
     <span
       aria-hidden="true"
+      // Keyed by state, so each change clicks in.
+      key={state}
       className={cx(
         "grid size-7 shrink-0 place-items-center rounded-full border-2 border-ink",
+        state !== "waiting" && "click-in",
         state === "done" && "bg-success-subtle",
-        state === "current" && "bg-highlight",
+        state === "current" && "bg-highlight shadow-sticker",
         state === "waiting" && "bg-card",
       )}
     >
@@ -48,7 +52,10 @@ function StageMark({ state }: { state: StageState }) {
 const clock = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 
-/** The pipeline's three stages while a photo is scanned. */
+/**
+ * The pipeline's three stages while a photo is scanned: a scanner beam sweeps
+ * the photo and lights the studs in its wake, and each stage clicks in.
+ */
 export function ScanProgress({
   photo,
   stage,
@@ -73,10 +80,10 @@ export function ScanProgress({
   return (
     <section
       aria-labelledby="progress-title"
-      className="rounded-card border-[2.5px] border-ink bg-card p-4 shadow-card sm:p-6"
+      className="rounded-card border-[2.5px] border-ink bg-card p-4 shadow-card sm:p-5"
     >
-      <div className="grid gap-6 md:grid-cols-2 md:items-center">
-        <div className="relative overflow-hidden rounded-callout border-2 border-ink">
+      <SharedPhoto>
+        <div className="scan-bed relative overflow-hidden rounded-callout border-[2.5px] border-ink">
           <Image
             src={photo.src}
             width={photo.width}
@@ -85,12 +92,14 @@ export function ScanProgress({
             unoptimized
             className="block h-auto w-full"
           />
-          <span
-            aria-hidden="true"
-            className="absolute inset-x-0 h-1 animate-scan-sweep bg-highlight shadow-[0_0_0_1.5px_var(--text-primary)] motion-reduce:hidden"
-          />
+          <div aria-hidden="true" className="scan-sweep motion-reduce:hidden">
+            <div className="scan-wake" />
+            <div className="scan-beam" />
+          </div>
         </div>
+      </SharedPhoto>
 
+      <div className="mt-stud grid gap-x-stud gap-y-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <div>
           <h2
             ref={heading}
@@ -100,7 +109,7 @@ export function ScanProgress({
           >
             {copy.title}
           </h2>
-          <ol className="mt-5 space-y-3">
+          <ol className="mt-4 space-y-3">
             {SCAN_STAGES.map((name, index) => {
               const state: StageState =
                 index < current
@@ -124,22 +133,23 @@ export function ScanProgress({
               );
             })}
           </ol>
+        </div>
 
-          <p className="mt-5 font-mono text-sm">
+        <div className="sm:text-right">
+          <p className="font-mono text-sm">
             <span className="text-ink-secondary">{copy.elapsed}</span>{" "}
             <span className="font-bold tabular-nums">
               {clock(elapsedSeconds)}
             </span>
           </p>
-          <div aria-live="polite" className="mt-2 min-h-5 text-sm">
-            <span className="sr-only">{copy.stages[stage]}</span>
-            {slow && <span>{copy.slow}</span>}
-          </div>
-
-          <Button variant="secondary" onClick={onCancel} className="mt-4">
+          <Button variant="secondary" onClick={onCancel} className="mt-3">
             {copy.cancel}
           </Button>
         </div>
+      </div>
+      <div aria-live="polite" className="mt-3 min-h-5 text-sm">
+        <span className="sr-only">{copy.stages[stage]}</span>
+        {slow && <span>{copy.slow}</span>}
       </div>
     </section>
   );

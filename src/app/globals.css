@@ -288,6 +288,82 @@
   }
 }
 
+/* The scanner. A beam sweeps the photo top to bottom and the studs it passes
+   light up, then fade behind it. The sweep and the stud layer move by
+   transforms in opposite directions, so the studs stay put on the photo while
+   the lit band travels: nothing repaints per frame. */
+@layer components {
+  .scan-bed {
+    container-type: inline-size;
+  }
+
+  .scan-sweep {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    animation: scan-sweep var(--duration-sweep) linear infinite;
+  }
+
+  .scan-wake {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 62%,
+      var(--text-primary) 100%
+    );
+  }
+
+  .scan-wake::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(
+      circle,
+      var(--stud-lit-soft) 0 0.85cqw,
+      var(--stud-ring-lit) 0.85cqw 1.1cqw,
+      transparent 1.2cqw
+    );
+    background-size: 3.5cqw 3.5cqw;
+    animation: scan-sweep-hold var(--duration-sweep) linear infinite;
+  }
+
+  .scan-beam {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 4px;
+    background: var(--highlight);
+    box-shadow: 0 0 0 1.5px var(--text-primary);
+  }
+}
+
+@keyframes scan-sweep {
+  0% {
+    transform: translateY(-100%);
+  }
+  82% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+}
+
+/* Cancels the sweep's travel, so the studs stay fixed to the photo. */
+@keyframes scan-sweep-hold {
+  0% {
+    transform: translateY(100%);
+  }
+  82%,
+  100% {
+    transform: translateY(0);
+  }
+}
+
 /* View transitions between steps (React <ViewTransition>, see
    src/components/motion/view-transitions.tsx). The page itself swaps with a
    quick fade; the scan photo and the current-step marker travel to their new
