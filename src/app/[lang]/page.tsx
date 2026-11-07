@@ -39,7 +39,6 @@ export default async function Home() {
             <span className="inline-flex rounded-full border-[2.5px] border-ink bg-page px-4 py-2 shadow-sticker">
               <Logo />
             </span>
-            <Badge>{common.inProgress}</Badge>
             <LanguageSwitcher
               current={locale}
               label={dict.language.label}
@@ -64,10 +63,10 @@ export default async function Home() {
               {home.ctaScan} <span aria-hidden="true">→</span>
             </Link>
             <Link
-              href={`/${locale}/desain`}
+              href={`/${locale}/history`}
               className={buttonStyles({ variant: "secondary" })}
             >
-              {home.ctaDesign}
+              {home.ctaHistory}
             </Link>
           </div>
           <ul className="mt-8 flex flex-wrap gap-2">

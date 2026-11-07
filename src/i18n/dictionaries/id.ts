@@ -167,7 +167,6 @@ export const id: Dictionary = {
     lead: "Pindaian sebelumnya dan ide rakitannya akan muncul di sini.",
   },
   common: {
-    inProgress: "Sedang dibangun",
     step: "Langkah",
     partsUsed: "Part dipakai",
     partsMissing: "Part kurang",
@@ -203,7 +202,7 @@ export const id: Dictionary = {
     },
     lead: "Potret semua kepingan LEGO-mu dalam satu foto. Legoin mengenali jenis dan warnanya, lalu memberi tiga ide rakitan lengkap dengan part yang kurang.",
     ctaScan: "Mulai pindai",
-    ctaDesign: "Lihat sistem desain",
+    ctaHistory: "Riwayat pindai",
     facts: {
       parts: "13 jenis part",
       colors: "10 warna",

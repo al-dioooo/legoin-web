@@ -161,7 +161,6 @@ export const en = {
     lead: "Earlier scans and their build ideas will show up here.",
   },
   common: {
-    inProgress: "Work in progress",
     step: "Step",
     partsUsed: "Parts used",
     partsMissing: "Parts missing",
@@ -199,7 +198,7 @@ export const en = {
     },
     lead: "Photograph all your LEGO pieces in one shot. Legoin recognizes each part and color, then suggests three build ideas, including the parts you're missing.",
     ctaScan: "Start scanning",
-    ctaDesign: "See the design system",
+    ctaHistory: "Your scans",
     facts: {
       parts: "13 part types",
       colors: "10 colors",
