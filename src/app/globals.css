@@ -109,6 +109,42 @@
   .assemble > :nth-child(n + 8) {
     --i: 7;
   }
+
+  /* Odometer: each digit is a 0–9 wheel behind a window one digit tall. The real
+     digit stays, hidden, to hold the width and the text baseline. */
+  .odometer {
+    --odometer-line: 1.15em;
+    display: inline-flex;
+    font-variant-numeric: tabular-nums;
+    line-height: var(--odometer-line);
+  }
+
+  .odometer-digit {
+    position: relative;
+    display: inline-block;
+    clip-path: inset(0);
+  }
+
+  .odometer-digit > span {
+    visibility: hidden;
+  }
+
+  .odometer-digit::before {
+    content: "0A 1A 2A 3A 4A 5A 6A 7A 8A 9";
+    position: absolute;
+    inset: 0 0 auto;
+    text-align: center;
+    white-space: pre;
+    transform: translateY(calc(var(--d) * var(--odometer-line) * -1));
+    transition: transform var(--duration-tick) var(--ease-settle);
+    animation: odometer-roll var(--duration-tick) var(--ease-out-expo) backwards;
+  }
+}
+
+@keyframes odometer-roll {
+  from {
+    transform: translateY(0);
+  }
 }
 
 @keyframes click-in {
