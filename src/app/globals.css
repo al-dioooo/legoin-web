@@ -415,3 +415,28 @@
     opacity: 0;
   }
 }
+
+/* Failure: a small build holds together for a beat, wobbles, then its pieces
+   tumble apart and land scattered. Each piece sets its landing spot with --tx,
+   --ty and --rot. Under reduced motion the pieces are simply shown apart. */
+@layer components {
+  .tumble-piece {
+    position: absolute;
+    animation: tumble var(--duration-tumble) both;
+    animation-delay: calc(240ms + var(--i, 0) * 45ms);
+  }
+}
+
+@keyframes tumble {
+  0%,
+  20% {
+    transform: none;
+  }
+  34% {
+    transform: translateY(-3px) rotate(calc(var(--rot) * 0.12));
+    animation-timing-function: var(--ease-settle);
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) rotate(var(--rot));
+  }
+}
