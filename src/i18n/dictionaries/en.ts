@@ -173,6 +173,16 @@ export const en = {
       retry: "Try again",
       home: "Back to home",
     },
+    design: {
+      title: "Empty and error states",
+      description:
+        "When there's nothing to show or something breaks: the scanner frame on a sticker tile, a short title, a sentence or two and the way forward. The not-found and error pages use the same card.",
+      empty: {
+        title: "No scans yet",
+        body: "Photograph your pieces and your scans will show up here.",
+        action: "Start a scan",
+      },
+    },
   },
   common: {
     inProgress: "Work in progress",

@@ -179,6 +179,16 @@ export const id: Dictionary = {
       retry: "Coba lagi",
       home: "Kembali ke beranda",
     },
+    design: {
+      title: "Kondisi kosong dan galat",
+      description:
+        "Saat tidak ada yang ditampilkan atau ada yang rusak: bingkai pemindai di ubin stiker, judul singkat, satu atau dua kalimat, dan langkah berikutnya. Halaman tidak ditemukan dan halaman galat memakai kartu yang sama.",
+      empty: {
+        title: "Belum ada hasil pindai",
+        body: "Potret kepinganmu dan hasil pindaimu akan muncul di sini.",
+        action: "Mulai pindai",
+      },
+    },
   },
   common: {
     inProgress: "Sedang dibangun",
