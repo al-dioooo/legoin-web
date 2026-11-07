@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import {
   BRICK_COLORS,
   BRICK_PARTS,
@@ -12,6 +13,7 @@ type BrickGlyphProps = {
   /** Size of one stud cell in px. */
   unit?: number;
   className?: string;
+  style?: CSSProperties;
 };
 
 /** A part drawn from above in ink line art. Decorative: label it nearby. */
@@ -20,6 +22,7 @@ export function BrickGlyph({
   color,
   unit = 14,
   className,
+  style,
 }: BrickGlyphProps) {
   const {
     kind,
@@ -60,6 +63,7 @@ export function BrickGlyph({
       height={height + 2}
       viewBox={`-1 -1 ${width + 2} ${height + 2}`}
       className={className}
+      style={style}
     >
       {kind === "round" ? (
         <circle

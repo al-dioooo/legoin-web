@@ -15,8 +15,27 @@ export function fill(
   );
 }
 
+function pluralTemplate(message: Plural, count: number, locale: Locale) {
+  const form = new Intl.PluralRules(LOCALE_TAGS[locale]).select(count);
+  return form === "one" ? message.one : message.other;
+}
+
 /** "1 piece" / "8 pieces", by the language's plural rules; `{count}` is filled in. */
 export function plural(message: Plural, count: number, locale: Locale) {
-  const form = new Intl.PluralRules(LOCALE_TAGS[locale]).select(count);
-  return fill(form === "one" ? message.one : message.other, { count });
+  return fill(pluralTemplate(message, count, locale), { count });
+}
+
+/**
+ * The words before and after the count, so the number can be drawn on its own,
+ * e.g. on an odometer: ["", " pieces"]. Null when the form has no `{count}`.
+ */
+export function pluralParts(
+  message: Plural,
+  count: number,
+  locale: Locale,
+): [before: string, after: string] | null {
+  const template = pluralTemplate(message, count, locale);
+  const at = template.indexOf("{count}");
+  if (at === -1) return null;
+  return [template.slice(0, at), template.slice(at + "{count}".length)];
 }

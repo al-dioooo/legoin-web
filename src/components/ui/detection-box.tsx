@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { cx } from "@/lib/cx";
 import type { Box } from "@/lib/domain";
 
@@ -12,6 +13,8 @@ const percent = (value: number) => `${value * 100}%`;
  * One detected piece over a photo. Place it inside a `relative` container that holds the image.
  * Ink stroke with a white halo reads on every brick color, including red. With `onSelect`
  * it becomes a button named by `name`; flagged pieces are dashed with a yellow label.
+ * It clicks in when it appears (after `order` earlier boxes), lifts off the photo
+ * when selected, and pops off while `leaving`.
  */
 export function DetectionBox({
   box,
@@ -20,6 +23,8 @@ export function DetectionBox({
   selected = false,
   flagged = false,
   labelMode = "always",
+  order,
+  leaving = false,
   onSelect,
 }: {
   box: Box;
@@ -28,10 +33,15 @@ export function DetectionBox({
   selected?: boolean;
   flagged?: boolean;
   labelMode?: LabelMode;
+  /** Stagger step when boxes click in together; leave out to click in at once. */
+  order?: number;
+  /** Being removed: pops off the photo. */
+  leaving?: boolean;
   onSelect?: () => void;
 }) {
   const className = cx(
-    "absolute rounded-sm border-overlay outline-overlay-halo",
+    "detection-box absolute rounded-sm border-overlay outline-overlay-halo",
+    leaving ? "pop-off" : "click-in",
     selected ? "border-[3px] outline-2" : "border-2 outline-1",
     flagged && "border-dashed",
   );
@@ -40,7 +50,9 @@ export function DetectionBox({
     top: percent(box.y),
     width: percent(box.width),
     height: percent(box.height),
-  };
+    "--i": order ?? 0,
+  } as CSSProperties;
+  const lifted = selected ? "" : undefined;
   const tag = label && labelMode !== "never" && (
     <span
       aria-hidden={onSelect ? true : undefined}
@@ -62,6 +74,7 @@ export function DetectionBox({
         type="button"
         aria-label={name}
         aria-pressed={selected}
+        data-selected={lifted}
         onClick={onSelect}
         className={cx(className, "cursor-pointer")}
         style={style}
@@ -71,7 +84,7 @@ export function DetectionBox({
     );
   }
   return (
-    <div className={className} style={style}>
+    <div className={className} style={style} data-selected={lifted}>
       {tag}
     </div>
   );

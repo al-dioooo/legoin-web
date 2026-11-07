@@ -53,13 +53,60 @@ Tokens come in three layers: primitive scales, semantic roles, and a Tailwind br
 - **Radius:** cards `rounded-card` (22px), boxes and inputs `rounded-callout` / `rounded-control` (14px), buttons and badges fully round.
 - **Tap targets** are at least 48px (`Button` size `md`).
 
-## Motion
+## Motion & interaction
 
-- **Easing:** `ease-spring` and `ease-out-expo` from ballers-addict.
-- **Buttons** tilt slightly on hover; filled buttons press into their shadow on click.
-- **Marquee tape** slides at 40s per loop.
-- **Grain** boils in steps.
-- **Reduced motion:** under `prefers-reduced-motion` the marquee and grain stop, and transitions become instant.
+Legoin works like a building-instructions booklet laid on a baseplate: screens assemble step by step, and every piece clicks into place. One motion carries it, defined once as tokens and reused for entrances, presses and selection. Live reference: `/en/desain/gerak` (`src/app/[lang]/desain/gerak/page.tsx`), with a switch that previews reduced motion. Decision record: [ADR-0006](https://github.com/al-dioooo/legoin-docs/blob/main/decisions/0006-motion-and-interaction-language.md).
+
+### Baseplate layout
+
+- **The stud is the module.** `--stud` is 16px on phones and 24px from 640px; `p-stud`, `gap-stud`, `mt-stud` and `-ml-stud` use it. The app column is 49 studs wide (`max-w-(--plate-width)`), and `.baseplate` starts its grid at the column's left edge, so plates sit between studs.
+- **Booklet pages, not stacked cards.** Each step is asymmetric: the title and main plate on the left, supporting plates down the right, overlapping by a stud or two. Overlaps cover a plate's padding, never a photo.
+- **Sticker headings** sit a couple of degrees off-axis (`<Sticker className="-rotate-2">`), alternating direction down a page.
+- **Step numerals:** the current step's number, outlined and filled with studs, hangs off the right edge (`StepNumeral`). It's decorative; the step progress names the step.
+
+### The click-in
+
+A piece drops onto the studs, squashes a little on impact and settles.
+
+| Token | Value | Use |
+| --- | --- | --- |
+| `--duration-click` | 420ms | Click-in entrance |
+| `--duration-press` / `--duration-release` | 80ms / 280ms | Button press and spring back |
+| `--duration-lift` | 260ms | Selection lift |
+| `--duration-exit` | 200ms | Pop-off; exits are faster than entrances |
+| `--duration-morph` | 440ms | Shared photo and step marker between steps |
+| `--duration-tick` | 900ms | Odometer roll |
+| `--stagger-step` | 55ms | Between siblings, 8 steps at most |
+| `--click-drop`, `--click-squash-x/-y` | 0.75rem, 1.04 / 0.92 | Drop distance and impact squash |
+| `--lift-x`, `--lift-y`, `--lift-tilt` | 0.25rem, 0.375rem, -1.5deg | Selected pieces |
+| `--ease-drop`, `--ease-settle`, `--ease-press` | curves | Fall, settle with a small overshoot, press |
+
+- **Entrances:** `.click-in` on one element (set `--i` to stagger it), or `.assemble` on a parent so its children click in one after another.
+- **Presses:** every `Button` uses `.press`. Filled buttons sink exactly into their 4px hard shadow; outlined ones nudge 1px. The ADR-0003 hover tilt stays, for mice and full motion only.
+- **Selection:** a selected detection box lifts and tilts, leaving a dotted stud footprint; its inventory tile turns yellow and slides out like a part callout; the selected-piece panel clicks in fresh.
+- **Removal and undo:** a removed piece pops off (`.pop-off`) while the change saves; undo clicks it back.
+- **Counts** roll like an odometer (`Count`, `Odometer`), up from 0 when they appear and to the new value when they change.
+
+### The scan
+
+- **Scanner:** a beam sweeps the photo and lights the studs in its wake (`ScannerSweep`). Two layers move by transforms in opposite directions, so nothing repaints per frame.
+- **Results:** boxes and inventory tiles click in one by one while the piece count rolls up.
+- **Failure:** a small build wobbles and tumbles apart (`PiecesApart`).
+- **Between steps:** the photo is one shared element (`SharedPhoto`, React `<ViewTransition>`), morphing from the preview to the scanner to the results, and the yellow step marker slides to the next step. The page itself only fades.
+- Replay any of it with `?mockDelay=3000` (slower stages) or `?mock=fail-too_dark` (and the other failure reasons) on `/scan`.
+
+### Pointer and touch
+
+- **Stud glow:** with a mouse, studs near the pointer light up (`StudGlow`): a lens ten studs across follows the pointer by transform, once per frame, under the plates. Off on touch screens and under reduced motion.
+- **Magnetic button:** one primary action per screen at most leans toward a nearby pointer (`useMagnetic`); today that's **Scan pieces**.
+- **Haptics:** on phones, selecting a piece and undoing a removal give an 8ms vibration where the browser supports it.
+
+### Rules
+
+- Animate `transform` and `opacity`, plus `clip-path` and `filter` where cheap. Never animate layout, and never block input: view transitions let clicks through.
+- Loops stop when they aren't needed: the scanner runs only during a scan, and demo loops only while on screen.
+- **Reduced motion** keeps every fade and state change and drops the travel: the tokens set distances, tilts and stagger to zero, so click-ins become short fades; selection still shows its footprint; counts change at once; the scanner beam, pointer glow, magnet and haptics are off; view transitions swap instantly. Preview it on a subtree with `data-motion="reduce"` and `MotionPreview`.
+- Motion primitives live in `src/components/motion`, the helpers in `src/lib/motion.ts`, the tokens in `tokens.css` and the keyframes in `globals.css`.
 
 ## Components
 
@@ -79,9 +126,11 @@ UI primitives live in `src/components/ui`, the logo in `src/components/brand`.
 | `InventoryList` | Inventory tiles: color chip, count, part and color name |
 | `PartCallout` | Parts box with counts; `missing` gives a dashed frame, `detailed` adds names |
 | `StepNumber` | Numbered step as a yellow sticker |
+| `EmptyState`, `EmptyStateIcon` | Nothing to show, not found, or an error: the scanner frame on a sticker tile (`highlight` or `danger`), a title, a short body and the way forward. `as="h1"` when it is the whole page, as on the not-found and error pages. |
 | `DetectionBox`, `DetectedPhoto` | Detected pieces over a scan photo, in 0–1 fractions of the image |
 | `Logo`, `LogoMark` | Wordmark with mark, or the mark alone with a `title` |
 | `LanguageSwitcher` | EN/ID pill in the header that keeps the current page (`src/components`) |
+| `SiteFooter` | Footer on every page: team, the CC BY 4.0 dataset credit, the AI-photo and LEGO trademark notes (`src/components`, credits in `src/lib/credits.ts`) |
 | `ThemePicker` | Theme radio group of native radios: `cards` for the first choice, `compact` pills to switch theme in place (`src/components/ideas`) |
 
 The brick catalogue lives in `src/lib/bricks.ts`. To add a color, add `--brick-<id>` to `tokens.css` and an entry to `BRICK_COLORS`; a test checks that the two match.

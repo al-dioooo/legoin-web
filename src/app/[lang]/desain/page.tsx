@@ -10,6 +10,7 @@ import { BrickSwatch } from "@/components/ui/brick-swatch";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DetectedPhoto } from "@/components/ui/detected-photo";
+import { EmptyState, EmptyStateIcon } from "@/components/ui/empty-state";
 import { Grain } from "@/components/ui/grain";
 import { InventoryList } from "@/components/ui/inventory-list";
 import { Marquee } from "@/components/ui/marquee";
@@ -19,6 +20,7 @@ import { StepNumber } from "@/components/ui/step-number";
 import { Sticker } from "@/components/ui/sticker";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
 import { fill, plural } from "@/i18n/format";
+import { languageAlternates } from "@/i18n/locales";
 import {
   BRICK_COLORS,
   BRICK_PARTS,
@@ -37,7 +39,10 @@ import {
 
 export async function generateMetadata(): Promise<Metadata> {
   const dict = await getDictionary();
-  return { title: dict.meta.designSystem };
+  return {
+    title: dict.meta.designSystem,
+    alternates: languageAlternates("/desain"),
+  };
 }
 
 const STEPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
@@ -92,7 +97,7 @@ function Section({
 export default async function DesignSystemPage() {
   const locale = await currentLocale();
   const dict = await getDictionary();
-  const { design, common, sample } = dict;
+  const { design, common, sample, states } = dict;
 
   return (
     <main className="mx-auto w-full max-w-5xl overflow-x-clip px-4 pb-16 sm:px-6">
@@ -273,6 +278,39 @@ export default async function DesignSystemPage() {
           <Badge tone="danger">{design.status.failed}</Badge>
           <Badge tone="highlight">{sample.idea.difficulty}</Badge>
           <Badge>{design.status.draft}</Badge>
+        </div>
+      </Section>
+
+      <Section
+        id="states"
+        title={states.design.title}
+        description={states.design.description}
+      >
+        <div className="grid items-start gap-8 md:grid-cols-2">
+          <EmptyState
+            as="h3"
+            icon={<EmptyStateIcon />}
+            title={states.design.empty.title}
+            body={states.design.empty.body}
+            actions={
+              <Link href={`/${locale}/scan`} className={buttonStyles()}>
+                {states.design.empty.action}
+              </Link>
+            }
+          />
+          <EmptyState
+            as="h3"
+            tone="danger"
+            icon={<EmptyStateIcon variant="error" />}
+            title={states.error.title}
+            body={states.error.body}
+            actions={
+              <>
+                <Button>{states.error.retry}</Button>
+                <Button variant="secondary">{states.error.home}</Button>
+              </>
+            }
+          />
         </div>
       </Section>
 

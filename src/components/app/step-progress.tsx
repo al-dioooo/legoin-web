@@ -2,10 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ViewTransition } from "react";
+import { STEP_BACK } from "@/components/motion/view-transitions";
 import { cx } from "@/lib/cx";
 import { FLOW_STEPS, type FlowStep, flowPosition } from "@/lib/flow";
 
-/** Photo → Pieces → Ideas. Steps already done link back; later ones are plain text. */
+/**
+ * Photo → Pieces → Ideas. Steps already done link back; later ones are plain
+ * text. The yellow marker on the current step is one piece: moving to another
+ * step, it slides over and clicks into place there.
+ */
 export function StepProgress({
   labels,
   className,
@@ -23,8 +29,13 @@ export function StepProgress({
       <ol className="inline-flex items-center gap-1 rounded-full border-[2.5px] border-ink bg-page p-1 shadow-sticker">
         {FLOW_STEPS.map((step, index) => {
           const href = hrefs[step];
+          // Named for view transitions, so the labels stay above the marker
+          // while it slides between steps.
           const content = (
-            <>
+            <span
+              className="inline-flex items-center gap-2"
+              style={{ viewTransitionName: `step-label-${step}` }}
+            >
               <span
                 aria-hidden="true"
                 className="grid size-6 place-items-center rounded-full border-2 border-ink bg-card font-display text-xs"
@@ -32,15 +43,16 @@ export function StepProgress({
                 {index + 1}
               </span>
               {labels[step]}
-            </>
+            </span>
           );
           const base =
-            "inline-flex min-h-10 items-center gap-2 rounded-full px-3 text-sm font-semibold";
+            "relative isolate inline-flex min-h-10 items-center gap-2 rounded-full px-3 text-sm font-semibold";
           return (
             <li key={step}>
               {index < currentIndex && href ? (
                 <Link
                   href={href}
+                  transitionTypes={[STEP_BACK]}
                   className={cx(base, "hover:bg-highlight-subtle")}
                 >
                   {content}
@@ -50,11 +62,21 @@ export function StepProgress({
                   aria-current={index === currentIndex ? "step" : undefined}
                   className={cx(
                     base,
-                    index === currentIndex
-                      ? "bg-highlight"
-                      : "text-ink-secondary",
+                    index !== currentIndex && "text-ink-secondary",
                   )}
                 >
+                  {index === currentIndex && (
+                    <ViewTransition
+                      name="step-marker"
+                      share="step-morph"
+                      default="none"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="absolute inset-0 -z-10 rounded-full bg-highlight"
+                      />
+                    </ViewTransition>
+                  )}
                   {content}
                 </span>
               )}
