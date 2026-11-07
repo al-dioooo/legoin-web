@@ -10,6 +10,7 @@ import {
   MotionShowcase,
   PickDemo,
   PressDemo,
+  ReducedMotionSwitch,
   ScannerDemo,
   TokenTable,
 } from "@/components/motion/demos";
@@ -81,7 +82,7 @@ export default async function MotionPage() {
   const { motion, common, sample } = dict;
 
   return (
-    <MotionShowcase reduceLabel={motion.reduce}>
+    <MotionShowcase>
       <header className="mx-auto flex w-full max-w-(--plate-width) flex-wrap items-center gap-3 px-stud pt-stud">
         <Link
           href={`/${locale}`}
@@ -112,6 +113,9 @@ export default async function MotionPage() {
           <p className="mt-stud max-w-2xl text-lg text-ink-secondary">
             {motion.intro}
           </p>
+          <div className="mt-stud">
+            <ReducedMotionSwitch label={motion.reduce} />
+          </div>
         </div>
 
         <Section
@@ -219,7 +223,9 @@ export default async function MotionPage() {
           title={motion.reduced.title}
           description={motion.reduced.description}
           tilt="right"
-        />
+        >
+          <ReducedMotionSwitch label={motion.reduce} />
+        </Section>
       </main>
     </MotionShowcase>
   );

@@ -5,7 +5,14 @@
  */
 
 import Image from "next/image";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  type ReactNode,
+  use,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useMagnetic } from "@/components/motion/magnetic";
 import { Count } from "@/components/motion/odometer";
 import { PiecesApart } from "@/components/motion/pieces-apart";
@@ -28,56 +35,75 @@ import { inventoryKey, toInventory } from "@/lib/inventory";
 import { readDuration, snapHaptic } from "@/lib/motion";
 import { SAMPLE_DETECTIONS, SAMPLE_PHOTO } from "@/lib/sample-scan";
 
+type PreviewState = {
+  reduced: boolean;
+  /** The system already reduces motion, so the preview can't be turned off. */
+  locked: boolean;
+  toggle: () => void;
+};
+
+const ReducedPreview = createContext<PreviewState | null>(null);
+
 /**
- * The showcase page on a baseplate, with a switch, floating at the bottom,
- * that previews reduced motion for everything inside it. The system setting
- * always wins.
+ * The showcase page on a baseplate. A `ReducedMotionSwitch` anywhere inside
+ * previews reduced motion for all of it. The system setting always wins.
  */
-export function MotionShowcase({
-  reduceLabel,
-  children,
-}: {
-  reduceLabel: string;
-  children: ReactNode;
-}) {
+export function MotionShowcase({ children }: { children: ReactNode }) {
   const [preview, setPreview] = useState(false);
   const system = useReducedMotion();
   const reduced = preview || system;
   return (
     <MotionPreview reduced={reduced}>
-      <div
-        data-motion={preview ? "reduce" : undefined}
-        className="baseplate flex flex-1 flex-col overflow-x-clip"
+      <ReducedPreview
+        value={{
+          reduced,
+          locked: system,
+          toggle: () => setPreview((value) => !value),
+        }}
       >
-        <StudGlow />
-        {children}
-        <div className="pointer-events-none sticky bottom-stud z-30 mx-auto mt-auto flex w-full max-w-(--plate-width) justify-end px-stud">
-          <button
-            type="button"
-            aria-pressed={reduced}
-            disabled={system}
-            onClick={() => setPreview((value) => !value)}
-            className="press pointer-events-auto inline-flex min-h-10 items-center gap-2.5 rounded-full border-[2.5px] border-ink bg-page px-4 text-sm font-semibold shadow-sticker [--press:3px] active:shadow-none disabled:opacity-60"
-          >
-            <span
-              aria-hidden="true"
-              className={cx(
-                "relative h-5 w-9 rounded-full border-2 border-ink transition-colors",
-                reduced ? "bg-highlight" : "bg-card",
-              )}
-            >
-              <span
-                className={cx(
-                  "absolute top-0.5 left-0.5 size-3 rounded-full bg-ink transition-transform duration-200 ease-out-expo",
-                  reduced && "translate-x-4",
-                )}
-              />
-            </span>
-            {reduceLabel}
-          </button>
+        <div
+          data-motion={preview ? "reduce" : undefined}
+          className="baseplate flex flex-1 flex-col overflow-x-clip"
+        >
+          <StudGlow />
+          {children}
         </div>
-      </div>
+      </ReducedPreview>
     </MotionPreview>
+  );
+}
+
+/**
+ * Turns the reduced-motion preview on and off. It sits in the page flow, never
+ * over content; every switch on the page shares one state.
+ */
+export function ReducedMotionSwitch({ label }: { label: string }) {
+  const state = use(ReducedPreview);
+  if (!state) return null;
+  return (
+    <button
+      type="button"
+      aria-pressed={state.reduced}
+      disabled={state.locked}
+      onClick={state.toggle}
+      className="press inline-flex min-h-10 items-center gap-2.5 rounded-full border-[2.5px] border-ink bg-page px-4 text-sm font-semibold shadow-sticker [--press:3px] active:shadow-none disabled:opacity-60"
+    >
+      <span
+        aria-hidden="true"
+        className={cx(
+          "relative h-5 w-9 shrink-0 rounded-full border-2 border-ink transition-colors",
+          state.reduced ? "bg-highlight" : "bg-card",
+        )}
+      >
+        <span
+          className={cx(
+            "absolute top-0.5 left-0.5 size-3 rounded-full bg-ink transition-transform duration-200 ease-out-expo",
+            state.reduced && "translate-x-4",
+          )}
+        />
+      </span>
+      {label}
+    </button>
   );
 }
 
