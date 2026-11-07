@@ -130,11 +130,12 @@
   }
 
   .odometer-digit::before {
-    content: "0A 1A 2A 3A 4A 5A 6A 7A 8A 9";
+    /* One digit per line: the wheel is one digit wide, so each wraps. */
+    content: "0 1 2 3 4 5 6 7 8 9";
     position: absolute;
     inset: 0 0 auto;
     text-align: center;
-    white-space: pre;
+    white-space: normal;
     transform: translateY(calc(var(--d) * var(--odometer-line) * -1));
     transition: transform var(--duration-tick) var(--ease-settle);
     animation: odometer-roll var(--duration-tick) var(--ease-out-expo) backwards;
