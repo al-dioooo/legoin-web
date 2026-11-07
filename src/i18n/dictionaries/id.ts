@@ -173,6 +173,12 @@ export const id: Dictionary = {
       home: "Kembali ke beranda",
       scan: "Mulai pindai",
     },
+    error: {
+      title: "Ada yang salah",
+      body: "Halaman ini berhenti bekerja. Coba lagi, atau kembali ke beranda. Hasil pindaimu tetap tersimpan di peramban ini.",
+      retry: "Coba lagi",
+      home: "Kembali ke beranda",
+    },
   },
   common: {
     inProgress: "Sedang dibangun",

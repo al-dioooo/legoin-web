@@ -167,6 +167,12 @@ export const en = {
       home: "Back to home",
       scan: "Start a scan",
     },
+    error: {
+      title: "Something went wrong",
+      body: "This page stopped working. Try again, or go back to the home page. Your scans are still saved in this browser.",
+      retry: "Try again",
+      home: "Back to home",
+    },
   },
   common: {
     inProgress: "Work in progress",
