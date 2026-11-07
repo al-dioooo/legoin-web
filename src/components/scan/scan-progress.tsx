@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef } from "react";
+import { ScannerSweep } from "@/components/motion/scanner";
 import { SharedPhoto } from "@/components/motion/view-transitions";
 import { Button } from "@/components/ui/button";
 import type { Dictionary } from "@/i18n/dictionaries/en";
@@ -92,10 +93,7 @@ export function ScanProgress({
             unoptimized
             className="block h-auto w-full"
           />
-          <div aria-hidden="true" className="scan-sweep motion-reduce:hidden">
-            <div className="scan-wake" />
-            <div className="scan-beam" />
-          </div>
+          <ScannerSweep />
         </div>
       </SharedPhoto>
 
