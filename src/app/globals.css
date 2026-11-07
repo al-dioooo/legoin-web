@@ -210,29 +210,50 @@
     background-size: var(--stud) var(--stud);
   }
 
-  /* Studs near the pointer light up. Script moves the mask (--glow-x, --glow-y)
-     once per frame and turns it on with --glow-on; touch and reduced motion
-     never turn it on. It sits under the plates, so only open baseplate glows. */
+  /* Studs near the pointer light up. The field covers the baseplate under the
+     plates, so only open baseplate glows. Inside it a small lens, ten studs
+     across, follows the pointer by transform; script sets --glow-x and --glow-y
+     once per frame and turns it on with --glow-on. Only the lens's own small
+     pattern is redrawn as it moves, aligned to the baseplate's grid (cqw is
+     the field's width). Touch and reduced motion never turn it on. */
   .stud-glow {
-    --glow-size: calc(var(--stud) * 10);
     position: absolute;
     inset: 0;
     z-index: -1;
+    overflow: hidden;
     pointer-events: none;
+    container-type: size;
+  }
+
+  .stud-glow::before {
+    --glow-size: calc(var(--stud) * 10);
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--glow-size);
+    height: var(--glow-size);
     background-image: radial-gradient(
       circle,
       var(--stud-lit) calc(var(--stud-r) - 0.5px),
       var(--stud-ring-lit) var(--stud-r) calc(var(--stud-r) + 1px),
       transparent calc(var(--stud-r) + 1.75px)
     );
-    background-position: var(--baseplate-x) 0;
+    background-position: calc(
+        max(0px, (100cqw - var(--plate-width)) / 2) -
+        var(--glow-x, 0px) +
+        var(--glow-size) /
+        2
+      )
+      calc(var(--glow-size) / 2 - var(--glow-y, 0px));
     background-size: var(--stud) var(--stud);
     mask-image: radial-gradient(closest-side, var(--text-primary), transparent);
-    mask-position: calc(var(--glow-x, 0px) - var(--glow-size) / 2)
-      calc(var(--glow-y, 0px) - var(--glow-size) / 2);
-    mask-repeat: no-repeat;
-    mask-size: var(--glow-size) var(--glow-size);
     opacity: var(--glow-on, 0);
+    transform: translate3d(
+      calc(var(--glow-x, 0px) - var(--glow-size) / 2),
+      calc(var(--glow-y, 0px) - var(--glow-size) / 2),
+      0
+    );
     transition: opacity 400ms var(--ease-out-expo);
   }
 
