@@ -46,6 +46,12 @@ export type ScanFailure = (typeof SCAN_FAILURES)[number];
 
 export const THEMES = ["vehicles", "animals", "buildings", "surprise"] as const;
 export type Theme = (typeof THEMES)[number];
+
+/** For untrusted input such as `?theme=` in a URL. */
+export function isTheme(value: unknown): value is Theme {
+  return (THEMES as readonly unknown[]).includes(value);
+}
+
 /** The themes ideas belong to; "surprise" mixes them. */
 export type IdeaTheme = Exclude<Theme, "surprise">;
 
