@@ -24,10 +24,10 @@
   }
 
   /* biome-ignore-start lint/complexity/noImportantStyles: reduced motion must win over component animations */
-  /* Click-ins are exempt: under reduced motion their tokens drop all travel, so
-     they become short fades that still show what changed. */
+  /* Click-ins and pop-offs are exempt: under reduced motion their tokens drop
+     all travel, so they become short fades that still show what changed. */
   @media (prefers-reduced-motion: reduce) {
-    *:not(.click-in, .assemble > *),
+    *:not(.click-in, .assemble > *, .pop-off),
     ::before,
     ::after {
       animation-duration: 0.01ms !important;
@@ -439,5 +439,67 @@
   }
   100% {
     transform: translate(var(--tx), var(--ty)) rotate(var(--rot));
+  }
+}
+
+/* Picking pieces. A selected piece lifts off the plate: its detection box tilts
+   up and leaves a dotted stud footprint where it sat, and its inventory tile
+   slides out like a part callout. A removed piece pops off; undo clicks it back. */
+@layer components {
+  .detection-box,
+  .part-tile {
+    transition-property: translate, rotate, box-shadow, background-color;
+    transition-duration: var(--duration-lift);
+    transition-timing-function: var(--ease-settle);
+  }
+
+  .detection-box::after {
+    content: "";
+    position: absolute;
+    inset: -2.5px;
+    border: 3px dotted var(--overlay);
+    border-radius: inherit;
+    opacity: 0;
+    filter: drop-shadow(0 0 1px var(--overlay-halo));
+    pointer-events: none;
+    transition-property: opacity, translate, rotate;
+    transition-duration: var(--duration-lift);
+    transition-timing-function: var(--ease-settle);
+  }
+
+  .detection-box[data-selected] {
+    z-index: 1;
+    translate: calc(var(--lift-x) * -1) calc(var(--lift-y) * -1);
+    rotate: var(--lift-tilt);
+  }
+
+  .detection-box[data-selected]::after {
+    opacity: 1;
+    translate: calc(var(--lift-x) + 3px) calc(var(--lift-y) + 4px);
+    rotate: calc(var(--lift-tilt) * -1);
+  }
+
+  .part-tile[aria-pressed="true"] {
+    position: relative;
+    z-index: 1;
+    translate: calc(var(--lift-x) * 2) calc(var(--lift-y) * -1);
+    rotate: calc(var(--lift-tilt) * 0.6);
+    box-shadow: var(--elevation-button);
+  }
+
+  .pop-off {
+    animation: pop-off var(--duration-exit) var(--ease-press) both;
+    pointer-events: none;
+  }
+}
+
+@keyframes pop-off {
+  40% {
+    opacity: 1;
+    transform: translateY(calc(var(--click-drop) * -1)) scale(var(--pop-scale));
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(calc(var(--click-drop) * -2)) scale(var(--pop-scale));
   }
 }
