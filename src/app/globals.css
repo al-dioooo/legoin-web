@@ -24,8 +24,10 @@
   }
 
   /* biome-ignore-start lint/complexity/noImportantStyles: reduced motion must win over component animations */
+  /* Click-ins and pop-offs are exempt: under reduced motion their tokens drop
+     all travel, so they become short fades that still show what changed. */
   @media (prefers-reduced-motion: reduce) {
-    *,
+    *:not(.click-in, .assemble > *, .pop-off),
     ::before,
     ::after {
       animation-duration: 0.01ms !important;
@@ -33,6 +35,14 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+  }
+  /* The same, scoped to a reduced-motion preview (data-motion="reduce"). */
+  [data-motion="reduce"] *:not(.click-in, .assemble > *, .pop-off),
+  [data-motion="reduce"] ::before,
+  [data-motion="reduce"] ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
   /* biome-ignore-end lint/complexity/noImportantStyles: reduced motion must win over component animations */
 }
@@ -73,6 +83,96 @@
   }
 }
 
+/* Motion primitives. Durations, curves and distances are tokens in tokens.css. */
+@layer components {
+  /* The signature motion: drop onto the studs, squash on impact, settle.
+     Set --i on an element (or use .assemble) to stagger it after its siblings. */
+  .click-in,
+  .assemble > * {
+    animation: click-in var(--duration-click) both;
+    animation-delay: calc(var(--i, 0) * var(--stagger-step));
+    transform-origin: 50% 100%;
+  }
+
+  /* A page or panel assembling in steps: each child clicks in after the last.
+     The run stops at 8 steps so long lists never keep people waiting. */
+  .assemble > :nth-child(2) {
+    --i: 1;
+  }
+  .assemble > :nth-child(3) {
+    --i: 2;
+  }
+  .assemble > :nth-child(4) {
+    --i: 3;
+  }
+  .assemble > :nth-child(5) {
+    --i: 4;
+  }
+  .assemble > :nth-child(6) {
+    --i: 5;
+  }
+  .assemble > :nth-child(7) {
+    --i: 6;
+  }
+  .assemble > :nth-child(n + 8) {
+    --i: 7;
+  }
+
+  /* Odometer: each digit is a 0–9 wheel behind a window one digit tall. The real
+     digit stays, hidden, to hold the width and the text baseline. */
+  .odometer {
+    --odometer-line: 1.15em;
+    display: inline-flex;
+    font-variant-numeric: tabular-nums;
+    line-height: var(--odometer-line);
+  }
+
+  .odometer-digit {
+    position: relative;
+    display: inline-block;
+    clip-path: inset(0);
+  }
+
+  .odometer-digit > span {
+    visibility: hidden;
+  }
+
+  .odometer-digit::before {
+    /* One digit per line: the wheel is one digit wide, so each wraps. */
+    content: "0 1 2 3 4 5 6 7 8 9";
+    position: absolute;
+    inset: 0 0 auto;
+    text-align: center;
+    white-space: normal;
+    transform: translateY(calc(var(--d) * var(--odometer-line) * -1));
+    transition: transform var(--duration-tick) var(--ease-settle);
+    animation: odometer-roll var(--duration-tick) var(--ease-out-expo) backwards;
+  }
+}
+
+@keyframes odometer-roll {
+  from {
+    transform: translateY(0);
+  }
+}
+
+@keyframes click-in {
+  0% {
+    opacity: 0;
+    transform: translateY(calc(var(--click-drop) * -1));
+    animation-timing-function: var(--ease-drop);
+  }
+  45% {
+    opacity: 1;
+    transform: translateY(0) scale(var(--click-squash-x), var(--click-squash-y));
+    animation-timing-function: var(--ease-settle);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @keyframes grain-boil {
   20% {
     transform: translate(-6%, 3%);
@@ -85,5 +185,376 @@
   }
   80% {
     transform: translate(5%, 4%);
+  }
+}
+
+/* The baseplate: paper with a grid of stud rings. One stud is the layout module,
+   and the grid starts at the app column's left edge, so plates sit between studs. */
+@layer components {
+  .baseplate {
+    --stud-r: calc(var(--stud) * 0.27);
+    --baseplate-x: max(
+      0px,
+      calc(50% + var(--stud) / 2 - var(--plate-width) / 2)
+    );
+    position: relative;
+    isolation: isolate;
+    background-color: var(--surface-page);
+    background-image: radial-gradient(
+      circle,
+      transparent calc(var(--stud-r) - 0.5px),
+      var(--stud-ring) var(--stud-r) calc(var(--stud-r) + 1px),
+      transparent calc(var(--stud-r) + 1.75px)
+    );
+    background-position: var(--baseplate-x) 0;
+    background-size: var(--stud) var(--stud);
+  }
+
+  /* Studs near the pointer light up. The field covers the baseplate under the
+     plates, so only open baseplate glows. Inside it a small lens, ten studs
+     across, follows the pointer by transform; script sets --glow-x and --glow-y
+     once per frame and turns it on with --glow-on. Only the lens's own small
+     pattern is redrawn as it moves, aligned to the baseplate's grid (cqw is
+     the field's width). Touch and reduced motion never turn it on. */
+  .stud-glow {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    container-type: size;
+  }
+
+  .stud-glow::before {
+    --glow-size: calc(var(--stud) * 10);
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--glow-size);
+    height: var(--glow-size);
+    background-image: radial-gradient(
+      circle,
+      var(--stud-lit) calc(var(--stud-r) - 0.5px),
+      var(--stud-ring-lit) var(--stud-r) calc(var(--stud-r) + 1px),
+      transparent calc(var(--stud-r) + 1.75px)
+    );
+    background-position: calc(
+        max(0px, (100cqw - var(--plate-width)) / 2) -
+        var(--glow-x, 0px) +
+        var(--glow-size) /
+        2
+      )
+      calc(var(--glow-size) / 2 - var(--glow-y, 0px));
+    background-size: var(--stud) var(--stud);
+    mask-image: radial-gradient(closest-side, var(--text-primary), transparent);
+    opacity: var(--glow-on, 0);
+    transform: translate3d(
+      calc(var(--glow-x, 0px) - var(--glow-size) / 2),
+      calc(var(--glow-y, 0px) - var(--glow-size) / 2),
+      0
+    );
+    transition: opacity 400ms var(--ease-out-expo);
+  }
+
+  @media (hover: none) {
+    .stud-glow {
+      display: none;
+    }
+  }
+}
+
+/* Booklet devices: oversized step numerals and off-axis sticker headings. */
+@layer components {
+  /* The step number, outlined and filled with studs, hanging off the right edge
+     of the app column (and off the screen on phones). Plates sit on top of it. */
+  .step-numeral {
+    position: absolute;
+    top: calc(var(--stud) * -0.5);
+    right: 0;
+    z-index: -1;
+    translate: 32% 0;
+    font-family: var(--font-display);
+    font-size: clamp(8rem, 3rem + 19vw, 21rem);
+    line-height: 0.8;
+    color: transparent;
+    background-image: radial-gradient(
+      circle,
+      var(--stud-ring-lit) 0 1.5px,
+      transparent 2px
+    );
+    background-size: 9px 9px;
+    background-clip: text;
+    -webkit-text-stroke: 3px var(--text-primary);
+    pointer-events: none;
+    user-select: none;
+  }
+}
+
+/* Press-fit. A filled button sinks exactly into its hard shadow while pressed,
+   then springs back; outlined buttons give a 1px nudge. --magnet-x/-y come from
+   a magnetic control. */
+@layer components {
+  .press {
+    --press: 1px;
+    /* The magnet leans by transform, quickly and without overshoot, so a new
+       target every frame never wobbles; translate is the press alone. */
+    transform: translate(var(--magnet-x, 0px), var(--magnet-y, 0px));
+    transition:
+      translate var(--duration-release) var(--ease-settle),
+      rotate var(--duration-release) var(--ease-settle),
+      box-shadow var(--duration-release) var(--ease-settle),
+      transform 140ms var(--ease-out-expo),
+      background-color 150ms,
+      color 150ms;
+  }
+
+  /* The ballers-addict hover tilt from ADR-0003, for mice and full motion. */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .press:hover {
+      rotate: -1deg;
+    }
+  }
+
+  .press:active {
+    translate: var(--press) var(--press);
+    rotate: 0deg;
+    transition-duration:
+      var(--duration-press), var(--duration-press), var(--duration-press),
+      140ms, 150ms, 150ms;
+    transition-timing-function:
+      var(--ease-press), var(--ease-press), var(--ease-press),
+      var(--ease-out-expo), ease, ease;
+  }
+}
+
+/* The scanner. A beam sweeps the photo top to bottom and the studs it passes
+   light up, then fade behind it. The sweep and the stud layer move by
+   transforms in opposite directions, so the studs stay put on the photo while
+   the lit band travels: nothing repaints per frame. */
+@layer components {
+  .scan-bed {
+    container-type: inline-size;
+  }
+
+  .scan-sweep {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    animation: scan-sweep var(--duration-sweep) linear infinite;
+  }
+
+  .scan-wake {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 62%,
+      var(--text-primary) 100%
+    );
+  }
+
+  .scan-wake::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(
+      circle,
+      var(--stud-lit-soft) 0 0.85cqw,
+      var(--stud-ring-lit) 0.85cqw 1.1cqw,
+      transparent 1.2cqw
+    );
+    background-size: 3.5cqw 3.5cqw;
+    animation: scan-sweep-hold var(--duration-sweep) linear infinite;
+  }
+
+  .scan-beam {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 4px;
+    background: var(--highlight);
+    box-shadow: 0 0 0 1.5px var(--text-primary);
+  }
+
+  /* Under reduced motion the stage list carries the progress on its own. */
+  [data-motion="reduce"] .scan-sweep {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scan-sweep {
+      display: none;
+    }
+  }
+}
+
+@keyframes scan-sweep {
+  0% {
+    transform: translateY(-100%);
+  }
+  82% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+}
+
+/* Cancels the sweep's travel, so the studs stay fixed to the photo. */
+@keyframes scan-sweep-hold {
+  0% {
+    transform: translateY(100%);
+  }
+  82%,
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* View transitions between steps (React <ViewTransition>, see
+   src/components/motion/view-transitions.tsx). The page itself swaps with a
+   quick fade; the scan photo and the current-step marker travel to their new
+   places and land with the click-in settle. Clicks pass through while it runs. */
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-old(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  animation: view-fade-in var(--duration-exit) var(--ease-out-expo) both;
+  mix-blend-mode: normal;
+}
+
+::view-transition-group(.photo-morph),
+::view-transition-group(.step-morph) {
+  animation-duration: var(--duration-morph);
+  animation-timing-function: var(--ease-settle);
+}
+
+/* The photo in flight: old and new are the same image, so no crossfade blur. */
+::view-transition-old(.photo-morph),
+::view-transition-new(.photo-morph) {
+  height: 100%;
+  animation: none;
+}
+
+::view-transition-old(.photo-morph) {
+  opacity: 0;
+}
+
+/* biome-ignore-start lint/complexity/noImportantStyles: reduced motion swaps steps without travel */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+/* biome-ignore-end lint/complexity/noImportantStyles: reduced motion swaps steps without travel */
+
+@keyframes view-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Failure: a small build holds together for a beat, wobbles, then its pieces
+   tumble apart and land scattered. Each piece sets its landing spot with --tx,
+   --ty and --rot. Under reduced motion the pieces are simply shown apart. */
+@layer components {
+  .tumble-piece {
+    position: absolute;
+    animation: tumble var(--duration-tumble) both;
+    animation-delay: calc(240ms + var(--i, 0) * 45ms);
+  }
+}
+
+@keyframes tumble {
+  0%,
+  20% {
+    transform: none;
+  }
+  34% {
+    transform: translateY(-3px) rotate(calc(var(--rot) * 0.12));
+    animation-timing-function: var(--ease-settle);
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) rotate(var(--rot));
+  }
+}
+
+/* Picking pieces. A selected piece lifts off the plate: its detection box tilts
+   up and leaves a dotted stud footprint where it sat, and its inventory tile
+   slides out like a part callout. A removed piece pops off; undo clicks it back. */
+@layer components {
+  .detection-box,
+  .part-tile {
+    transition-property: translate, rotate, box-shadow, background-color;
+    transition-duration: var(--duration-lift);
+    transition-timing-function: var(--ease-settle);
+  }
+
+  .detection-box::after {
+    content: "";
+    position: absolute;
+    inset: -2.5px;
+    border: 3px dotted var(--overlay);
+    border-radius: inherit;
+    opacity: 0;
+    filter: drop-shadow(0 0 1px var(--overlay-halo));
+    pointer-events: none;
+    transition-property: opacity, translate, rotate;
+    transition-duration: var(--duration-lift);
+    transition-timing-function: var(--ease-settle);
+  }
+
+  .detection-box[data-selected] {
+    z-index: 1;
+    translate: calc(var(--lift-x) * -1) calc(var(--lift-y) * -1);
+    rotate: var(--lift-tilt);
+  }
+
+  .detection-box[data-selected]::after {
+    opacity: 1;
+    translate: calc(var(--lift-x) + 3px) calc(var(--lift-y) + 4px);
+    rotate: calc(var(--lift-tilt) * -1);
+  }
+
+  /* Tiles slide toward the middle of the two-column list, never past its edge. */
+  .part-tile[aria-pressed="true"] {
+    position: relative;
+    z-index: 1;
+    translate: calc(var(--lift-x) * 2) calc(var(--lift-y) * -1);
+    rotate: calc(var(--lift-tilt) * 0.6);
+    box-shadow: var(--elevation-button);
+  }
+
+  li:nth-child(2n) > .part-tile[aria-pressed="true"] {
+    translate: calc(var(--lift-x) * -2) calc(var(--lift-y) * -1);
+  }
+
+  .pop-off {
+    animation: pop-off var(--duration-exit) var(--ease-press) both;
+    pointer-events: none;
+  }
+}
+
+@keyframes pop-off {
+  40% {
+    opacity: 1;
+    transform: translateY(calc(var(--click-drop) * -1)) scale(var(--pop-scale));
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(calc(var(--click-drop) * -2)) scale(var(--pop-scale));
   }
 }

@@ -19,6 +19,23 @@ export const en = {
       ideas: "Ideas",
     },
   },
+  footer: {
+    team: {
+      title: "Team",
+      body: "Made by {team} for the {course} course, School of Vocational Studies, IPB University.",
+    },
+    dataset: {
+      title: "Dataset",
+      body: "Legoin's piece detector learns from this dataset:",
+      license: "Licensed under",
+    },
+    notes: {
+      title: "Good to know",
+      photos: "The sample photos are AI-generated, not real scans.",
+      trademark:
+        "LEGO® is a trademark of the LEGO Group. Legoin is a student project and isn't affiliated with or endorsed by the LEGO Group.",
+    },
+  },
   scan: {
     title: "Photograph your pieces",
     lead: "Lay all your pieces flat on a plain table, apart from each other, and take one photo from above.",
@@ -196,12 +213,102 @@ export const en = {
       action: "Back to your pieces",
     },
   },
+  motion: {
+    title: { before: "Motion & ", sticker: "interaction" },
+    intro:
+      "Legoin works like a building-instructions booklet laid on a baseplate: screens assemble step by step, and every piece clicks into place. One motion, reused everywhere.",
+    back: "Design system",
+    reduce: "Preview reduced motion",
+    replay: "Replay",
+    tokens: {
+      title: "Tokens",
+      description:
+        "Timings, curves and distances live in tokens.css. With reduced motion every distance drops to zero, so the values below change when you preview it.",
+      name: "Token",
+      value: "Value",
+    },
+    clickIn: {
+      title: "Click-in",
+      description:
+        "A piece drops onto the studs, squashes a little on impact and settles. Screens assemble with it, one piece a stagger step after the last, eight steps at most.",
+    },
+    press: {
+      title: "Press-fit",
+      description:
+        "A filled button sinks exactly into its hard shadow while pressed and springs back. One primary button per screen is magnetic: it leans toward a nearby mouse pointer.",
+      magnetic: "I'm magnetic",
+      plain: "I'm not",
+    },
+    pick: {
+      title: "Picking pieces",
+      description:
+        "A selected piece lifts off the photo and leaves a dotted stud footprint, and its tile slides out like a part callout. A removed piece pops off; undo clicks it back. On phones the snap is a tiny vibration.",
+      remove: "Pop it off",
+      undo: "Click it back",
+    },
+    counts: {
+      title: "Counts",
+      description:
+        "Counts roll like an odometer: up from zero when they appear, to the new value when they change. Screen readers get the plain sentence.",
+      fewer: "One fewer",
+      more: "One more",
+    },
+    scanner: {
+      title: "Scanner",
+      description:
+        "While a photo is scanned, a beam sweeps it and the studs it passes light up, then fade behind it. Only transforms move, so it stays smooth on phones.",
+    },
+    apart: {
+      title: "Falling apart",
+      description:
+        "When a scan fails, a small build wobbles and tumbles apart. With reduced motion the pieces are simply shown apart.",
+    },
+    baseplate: {
+      title: "Baseplate",
+      description:
+        "Screens sit on a stud grid, and one stud is the layout module: 16px on phones, 24px from 640px. With a mouse, the studs near the pointer light up. Touch screens and reduced motion don't get the glow.",
+    },
+    steps: {
+      title: "Between steps",
+      description:
+        "From Photo to Pieces, the photo morphs from the scanner into the results and the current-step marker slides along. Add ?mockDelay=3000 to the address to slow a scan down, or ?mock=fail-too_dark to see a failure.",
+      action: "Try a scan",
+    },
+    reduced: {
+      title: "Reduced motion",
+      description:
+        "With reduced motion nothing travels, tilts or staggers. Pieces still fade in, the selection still shows, counts change at once, and the scanner beam and pointer glow are off.",
+    },
+  },
   history: {
     title: "Your scans",
     lead: "Earlier scans and their build ideas will show up here.",
   },
+  states: {
+    notFound: {
+      title: "We couldn't find that page",
+      body: "The link may be broken, or the page has moved. Your scans are still saved in this browser.",
+      home: "Back to home",
+      scan: "Start a scan",
+    },
+    error: {
+      title: "Something went wrong",
+      body: "This page stopped working. Try again, or go back to the home page. Your scans are still saved in this browser.",
+      retry: "Try again",
+      home: "Back to home",
+    },
+    design: {
+      title: "Empty and error states",
+      description:
+        "When there's nothing to show or something breaks: the scanner frame on a sticker tile, a short title, a sentence or two and the way forward. The not-found and error pages use the same card.",
+      empty: {
+        title: "No scans yet",
+        body: "Photograph your pieces and your scans will show up here.",
+        action: "Start a scan",
+      },
+    },
+  },
   common: {
-    inProgress: "Work in progress",
     step: "Step",
     partsUsed: "Parts used",
     partsMissing: "Parts missing",
@@ -229,6 +336,7 @@ export const en = {
       ],
     },
     seeSteps: "See the steps",
+    hideSteps: "Hide the steps",
   },
   home: {
     eyebrow: "Scan · Count · Build",
@@ -239,11 +347,20 @@ export const en = {
     },
     lead: "Photograph all your LEGO pieces in one shot. Legoin recognizes each part and color, then suggests three build ideas, including the parts you're missing.",
     ctaScan: "Start scanning",
-    ctaDesign: "See the design system",
+    ctaHistory: "Your scans",
     facts: {
       parts: "13 part types",
       colors: "10 colors",
       ideas: "3 ideas per photo",
+    },
+    how: {
+      title: "How it works",
+      photo:
+        "Spread your pieces on a plain table and take one photo from above.",
+      pieces:
+        "Legoin finds each piece and names its part and color. Fix anything it got wrong.",
+      ideas:
+        "Pick a theme and get three build ideas, with the parts you have and the ones you're missing.",
     },
     tape: ["Legoin", "Snap your pieces", "Auto count", "Three build ideas"],
   },

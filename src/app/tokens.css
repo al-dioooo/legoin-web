@@ -85,6 +85,13 @@
   --elevation-card: 5px 5px 0 var(--neutral-950);
   --elevation-raised: 8px 8px 0 var(--neutral-950);
 
+  /* Baseplate studs: line-art rings on paper, and the lit studs that follow the
+     pointer or trail the scanner. Decoration, never data. */
+  --stud-ring: rgb(5 19 29 / 0.09);
+  --stud-ring-lit: rgb(5 19 29 / 0.55);
+  --stud-lit: rgb(242 205 55 / 0.95);
+  --stud-lit-soft: rgb(242 205 55 / 0.6);
+
   /* Film grain from ballers-addict, standing in for print texture. */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='2.2' intercept='-.6'/%3E%3CfeFuncG type='linear' slope='2.2' intercept='-.6'/%3E%3CfeFuncB type='linear' slope='2.2' intercept='-.6'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
@@ -137,26 +144,84 @@
   --logo-ink: var(--neutral-950);
 }
 
+/* Layout module: one stud of the baseplate. Plates, gaps and offsets are stud multiples. */
+:root {
+  --stud: 1rem;
+  /* The app column: 49 studs wide on desktop, so both edges fall between studs. */
+  --plate-width: calc(var(--stud) * 49);
+}
+
+@media (min-width: 40rem) {
+  :root {
+    --stud: 1.5rem;
+  }
+}
+
+/* Motion: one signature "click-in". A piece drops onto the studs, squashes a
+   little on impact and settles. Every entrance, press and selection reuses it. */
+:root {
+  --duration-press: 80ms;
+  --duration-release: 280ms;
+  --duration-lift: 260ms;
+  --duration-click: 420ms;
+  --duration-exit: 200ms;
+  --duration-morph: 440ms;
+  --duration-tick: 900ms;
+  --duration-sweep: 2200ms;
+  --duration-tumble: 900ms;
+  /* Siblings click in one after another; CSS caps the run at 8 steps. */
+  --stagger-step: 55ms;
+
+  --click-drop: 0.75rem;
+  --click-squash-x: 1.04;
+  --click-squash-y: 0.92;
+  --lift-y: 0.375rem;
+  --lift-x: 0.25rem;
+  --lift-tilt: -1.5deg;
+  /* How far a removed piece grows as it pops off the studs. */
+  --pop-scale: 1.12;
+}
+
+/* Reduced motion keeps every fade and state change and drops the travel:
+   pieces appear in place, nothing tilts, nothing staggers. The second block is
+   the same values for previewing it (data-motion="reduce", /desain/gerak). */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-click: 160ms;
+    --duration-exit: 120ms;
+    --stagger-step: 0ms;
+    --click-drop: 0px;
+    --click-squash-x: 1;
+    --click-squash-y: 1;
+    --lift-y: 0px;
+    --lift-x: 0px;
+    --lift-tilt: 0deg;
+    --pop-scale: 1;
+  }
+}
+
+[data-motion="reduce"] {
+  --duration-click: 160ms;
+  --duration-exit: 120ms;
+  --stagger-step: 0ms;
+  --click-drop: 0px;
+  --click-squash-x: 1;
+  --click-squash-y: 1;
+  --lift-y: 0px;
+  --lift-x: 0px;
+  --lift-tilt: 0deg;
+  --pop-scale: 1;
+}
+
 /* Tailwind bridge. The default palette is removed so only these roles exist as utilities. */
 @theme {
   --color-*: initial;
 
   --animate-marquee: marquee 40s linear infinite;
-  --animate-scan-sweep: scan-sweep 1.6s ease-in-out infinite alternate;
 
   @keyframes marquee {
     to {
       transform: translateX(-50%);
-    }
-  }
-
-  /* A highlight line passing over the photo while it's scanned. */
-  @keyframes scan-sweep {
-    from {
-      top: 0;
-    }
-    to {
-      top: calc(100% - 4px);
     }
   }
 }
@@ -215,4 +280,10 @@
 
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Click-in: falls like a weight, then settles with a small overshoot. */
+  --ease-drop: cubic-bezier(0.55, 0, 0.85, 0.35);
+  --ease-settle: cubic-bezier(0.22, 1.3, 0.36, 1);
+  --ease-press: cubic-bezier(0.3, 0, 0.2, 1);
+
+  --spacing-stud: var(--stud);
 }

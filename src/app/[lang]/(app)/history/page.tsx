@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 import { getDictionary } from "@/i18n/dictionaries";
+import { languageAlternates } from "@/i18n/locales";
 
 export async function generateMetadata(): Promise<Metadata> {
   const dict = await getDictionary();
-  return { title: dict.history.title };
+  return {
+    title: dict.history.title,
+    alternates: languageAlternates("/history"),
+  };
 }
 
 /** Past scans. The list arrives with #20. */

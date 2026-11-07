@@ -4,13 +4,14 @@ import { cx } from "@/lib/cx";
 type ButtonVariant = "primary" | "secondary" | "highlight" | "ghost" | "danger";
 type ButtonSize = "md" | "sm";
 
-// Filled buttons carry a hard ink shadow and press into it; outlined ones stay flat.
+// Filled buttons carry a hard ink shadow and press all the way into it (the
+// shadow's 4px); outlined ones stay flat and give a 1px nudge.
 const variants: Record<ButtonVariant, string> = {
   primary:
-    "border-ink bg-primary text-primary-foreground shadow-button hover:bg-primary-hover active:shadow-pressed",
+    "border-ink bg-primary text-primary-foreground shadow-button [--press:4px] hover:bg-primary-hover active:shadow-none",
   secondary: "border-ink bg-page text-ink hover:bg-highlight",
   highlight:
-    "border-ink bg-highlight text-highlight-foreground shadow-button hover:bg-highlight-hover active:shadow-pressed",
+    "border-ink bg-highlight text-highlight-foreground shadow-button [--press:4px] hover:bg-highlight-hover active:shadow-none",
   ghost: "border-transparent text-ink hover:bg-highlight-subtle",
   // Red is the brand, so destructive actions are outlined and confirmed, never filled.
   danger: "border-danger bg-page text-danger hover:bg-danger-subtle",
@@ -30,7 +31,7 @@ export function buttonStyles({
   size = "md",
 }: ButtonStyleOptions = {}) {
   return cx(
-    "inline-flex items-center justify-center gap-2 rounded-full border-[2.5px] font-semibold transition-[rotate,translate,box-shadow,background-color] duration-300 ease-spring hover:-rotate-1 active:translate-x-0.5 active:translate-y-0.5 disabled:pointer-events-none disabled:opacity-50",
+    "press inline-flex items-center justify-center gap-2 rounded-full border-[2.5px] font-semibold disabled:pointer-events-none disabled:opacity-50",
     variants[variant],
     sizes[size],
   );

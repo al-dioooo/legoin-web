@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { BrickGlyph } from "@/components/ui/brick-glyph";
+import { Sticker } from "@/components/ui/sticker";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 
 type Guide = Dictionary["scan"]["guide"];
@@ -56,9 +57,10 @@ function Tip({
   body: string;
 }) {
   return (
-    // Side by side on phones so four tips don't take four screens; stacked from sm up.
-    <li className="flex gap-4 rounded-callout border-2 border-ink bg-card p-4 sm:flex-col sm:gap-3">
-      <div className="flex h-20 w-28 shrink-0 items-center justify-center gap-2 rounded-[0.625rem] bg-page sm:w-auto sm:gap-3">
+    // Side by side on phones so four tips don't take four screens, stacked in
+    // the two-column grid, and side by side again down the desktop column.
+    <li className="flex gap-4 rounded-callout border-2 border-ink bg-card p-4 shadow-sticker sm:flex-col sm:gap-3 lg:flex-row lg:gap-4">
+      <div className="flex h-20 w-28 shrink-0 items-center justify-center gap-2 rounded-[0.625rem] bg-page sm:w-auto sm:gap-3 lg:w-28 lg:gap-2">
         {illustration}
       </div>
       <div className="flex flex-col items-start gap-2">
@@ -80,9 +82,11 @@ export function PhotoGuide({ guide }: { guide: Guide }) {
   return (
     <section aria-labelledby="photo-tips">
       <h2 id="photo-tips" className="font-display text-2xl">
-        {guide.title}
+        <Sticker tone="paper" className="rotate-2">
+          {guide.title}
+        </Sticker>
       </h2>
-      <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="assemble mt-stud grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
         <Tip
           illustration={
             <>
