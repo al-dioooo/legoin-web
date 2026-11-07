@@ -1,22 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
+import { SampleIdea } from "@/components/home/sample-idea";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { Badge } from "@/components/ui/badge";
 import { buttonStyles } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { DetectedPhoto } from "@/components/ui/detected-photo";
 import { Grain } from "@/components/ui/grain";
 import { InventoryList } from "@/components/ui/inventory-list";
 import { Marquee } from "@/components/ui/marquee";
 import { Sticker } from "@/components/ui/sticker";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
-import { fill, plural } from "@/i18n/format";
+import { plural } from "@/i18n/format";
 import { languageAlternates } from "@/i18n/locales";
 import {
   SAMPLE_DETECTIONS,
   SAMPLE_INVENTORY,
-  SAMPLE_MISSING_COUNT,
   SAMPLE_PHOTO,
   sampleBoxes,
 } from "@/lib/sample-scan";
@@ -109,29 +108,11 @@ export default async function Home() {
             locale={locale}
             className="mt-2"
           />
-          <Card className="mt-5 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="font-mono text-xs font-bold">
-                {fill(common.ideaOf, { index: 1, total: 3 })}
-              </span>
-              <span className="flex gap-1.5">
-                <Badge tone="highlight">{sample.idea.difficulty}</Badge>
-                <Badge tone="warning">
-                  {plural(common.missingCount, SAMPLE_MISSING_COUNT, locale)}
-                </Badge>
-              </span>
-            </div>
-            <h3 className="mt-2 font-display text-2xl">{sample.idea.title}</h3>
-            <p className="mt-1 text-sm text-ink-secondary">
-              {sample.idea.summary}
-            </p>
-            <Link
-              href={`/${locale}/desain#example`}
-              className={`${buttonStyles({ size: "sm" })} mt-4`}
-            >
-              {sample.seeSteps} <span aria-hidden="true">→</span>
-            </Link>
-          </Card>
+          <SampleIdea
+            copy={{ sample, common }}
+            locale={locale}
+            className="mt-5"
+          />
         </aside>
       </div>
 

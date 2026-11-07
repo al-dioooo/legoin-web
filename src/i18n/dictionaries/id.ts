@@ -192,6 +192,7 @@ export const id: Dictionary = {
       ],
     },
     seeSteps: "Lihat langkah",
+    hideSteps: "Tutup langkah",
   },
   home: {
     eyebrow: "Pindai · Hitung · Rakit",

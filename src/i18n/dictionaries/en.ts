@@ -188,6 +188,7 @@ export const en = {
       ],
     },
     seeSteps: "See the steps",
+    hideSteps: "Hide the steps",
   },
   home: {
     eyebrow: "Scan · Count · Build",
