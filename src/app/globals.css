@@ -178,3 +178,85 @@
     transform: translate(5%, 4%);
   }
 }
+
+/* The baseplate: paper with a grid of stud rings. One stud is the layout module,
+   and the grid starts at the app column's left edge, so plates sit between studs. */
+@layer components {
+  .baseplate {
+    --stud-r: calc(var(--stud) * 0.27);
+    --baseplate-x: max(
+      0px,
+      calc(50% + var(--stud) / 2 - var(--plate-width) / 2)
+    );
+    position: relative;
+    isolation: isolate;
+    background-color: var(--surface-page);
+    background-image: radial-gradient(
+      circle,
+      transparent calc(var(--stud-r) - 0.5px),
+      var(--stud-ring) var(--stud-r) calc(var(--stud-r) + 1px),
+      transparent calc(var(--stud-r) + 1.75px)
+    );
+    background-position: var(--baseplate-x) 0;
+    background-size: var(--stud) var(--stud);
+  }
+
+  /* Studs near the pointer light up. Script moves the mask (--glow-x, --glow-y)
+     once per frame and turns it on with --glow-on; touch and reduced motion
+     never turn it on. It sits under the plates, so only open baseplate glows. */
+  .stud-glow {
+    --glow-size: calc(var(--stud) * 10);
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(
+      circle,
+      var(--stud-lit) calc(var(--stud-r) - 0.5px),
+      var(--stud-ring-lit) var(--stud-r) calc(var(--stud-r) + 1px),
+      transparent calc(var(--stud-r) + 1.75px)
+    );
+    background-position: var(--baseplate-x) 0;
+    background-size: var(--stud) var(--stud);
+    mask-image: radial-gradient(closest-side, var(--text-primary), transparent);
+    mask-position: calc(var(--glow-x, 0px) - var(--glow-size) / 2)
+      calc(var(--glow-y, 0px) - var(--glow-size) / 2);
+    mask-repeat: no-repeat;
+    mask-size: var(--glow-size) var(--glow-size);
+    opacity: var(--glow-on, 0);
+    transition: opacity 400ms var(--ease-out-expo);
+  }
+
+  @media (hover: none) {
+    .stud-glow {
+      display: none;
+    }
+  }
+}
+
+/* Booklet devices: oversized step numerals and off-axis sticker headings. */
+@layer components {
+  /* The step number, outlined and filled with studs, hanging off the right edge
+     of the app column (and off the screen on phones). Plates sit on top of it. */
+  .step-numeral {
+    position: absolute;
+    top: calc(var(--stud) * -0.5);
+    right: 0;
+    z-index: -1;
+    translate: 32% 0;
+    font-family: var(--font-display);
+    font-size: clamp(8rem, 3rem + 19vw, 21rem);
+    line-height: 0.8;
+    color: transparent;
+    background-image: radial-gradient(
+      circle,
+      var(--stud-ring-lit) 0 1.5px,
+      transparent 2px
+    );
+    background-size: 9px 9px;
+    background-clip: text;
+    -webkit-text-stroke: 3px var(--text-primary);
+    pointer-events: none;
+    user-select: none;
+  }
+}
