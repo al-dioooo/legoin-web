@@ -498,12 +498,17 @@
     rotate: calc(var(--lift-tilt) * -1);
   }
 
+  /* Tiles slide toward the middle of the two-column list, never past its edge. */
   .part-tile[aria-pressed="true"] {
     position: relative;
     z-index: 1;
     translate: calc(var(--lift-x) * 2) calc(var(--lift-y) * -1);
     rotate: calc(var(--lift-tilt) * 0.6);
     box-shadow: var(--elevation-button);
+  }
+
+  li:nth-child(2n) > .part-tile[aria-pressed="true"] {
+    translate: calc(var(--lift-x) * -2) calc(var(--lift-y) * -1);
   }
 
   .pop-off {
