@@ -36,6 +36,14 @@
       scroll-behavior: auto !important;
     }
   }
+  /* The same, scoped to a reduced-motion preview (data-motion="reduce"). */
+  [data-motion="reduce"] *:not(.click-in, .assemble > *, .pop-off),
+  [data-motion="reduce"] ::before,
+  [data-motion="reduce"] ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
   /* biome-ignore-end lint/complexity/noImportantStyles: reduced motion must win over component animations */
 }
 
@@ -337,6 +345,17 @@
     height: 4px;
     background: var(--highlight);
     box-shadow: 0 0 0 1.5px var(--text-primary);
+  }
+
+  /* Under reduced motion the stage list carries the progress on its own. */
+  [data-motion="reduce"] .scan-sweep {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scan-sweep {
+      display: none;
+    }
   }
 }
 

@@ -5,7 +5,7 @@
  */
 export function ScannerSweep() {
   return (
-    <div aria-hidden="true" className="scan-sweep motion-reduce:hidden">
+    <div aria-hidden="true" className="scan-sweep">
       <div className="scan-wake" />
       <div className="scan-beam" />
     </div>

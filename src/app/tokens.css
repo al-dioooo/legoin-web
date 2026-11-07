@@ -183,7 +183,8 @@
 }
 
 /* Reduced motion keeps every fade and state change and drops the travel:
-   pieces appear in place, nothing tilts, nothing staggers. */
+   pieces appear in place, nothing tilts, nothing staggers. The second block is
+   the same values for previewing it (data-motion="reduce", /desain/gerak). */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --duration-click: 160ms;
@@ -197,6 +198,19 @@
     --lift-tilt: 0deg;
     --pop-scale: 1;
   }
+}
+
+[data-motion="reduce"] {
+  --duration-click: 160ms;
+  --duration-exit: 120ms;
+  --stagger-step: 0ms;
+  --click-drop: 0px;
+  --click-squash-x: 1;
+  --click-squash-y: 1;
+  --lift-y: 0px;
+  --lift-x: 0px;
+  --lift-tilt: 0deg;
+  --pop-scale: 1;
 }
 
 /* Tailwind bridge. The default palette is removed so only these roles exist as utilities. */
