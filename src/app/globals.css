@@ -24,8 +24,10 @@
   }
 
   /* biome-ignore-start lint/complexity/noImportantStyles: reduced motion must win over component animations */
+  /* Click-ins are exempt: under reduced motion their tokens drop all travel, so
+     they become short fades that still show what changed. */
   @media (prefers-reduced-motion: reduce) {
-    *,
+    *:not(.click-in, .assemble > *),
     ::before,
     ::after {
       animation-duration: 0.01ms !important;
@@ -70,6 +72,59 @@
     .grain::before {
       animation: none;
     }
+  }
+}
+
+/* Motion primitives. Durations, curves and distances are tokens in tokens.css. */
+@layer components {
+  /* The signature motion: drop onto the studs, squash on impact, settle.
+     Set --i on an element (or use .assemble) to stagger it after its siblings. */
+  .click-in,
+  .assemble > * {
+    animation: click-in var(--duration-click) both;
+    animation-delay: calc(var(--i, 0) * var(--stagger-step));
+    transform-origin: 50% 100%;
+  }
+
+  /* A page or panel assembling in steps: each child clicks in after the last.
+     The run stops at 8 steps so long lists never keep people waiting. */
+  .assemble > :nth-child(2) {
+    --i: 1;
+  }
+  .assemble > :nth-child(3) {
+    --i: 2;
+  }
+  .assemble > :nth-child(4) {
+    --i: 3;
+  }
+  .assemble > :nth-child(5) {
+    --i: 4;
+  }
+  .assemble > :nth-child(6) {
+    --i: 5;
+  }
+  .assemble > :nth-child(7) {
+    --i: 6;
+  }
+  .assemble > :nth-child(n + 8) {
+    --i: 7;
+  }
+}
+
+@keyframes click-in {
+  0% {
+    opacity: 0;
+    transform: translateY(calc(var(--click-drop) * -1));
+    animation-timing-function: var(--ease-drop);
+  }
+  45% {
+    opacity: 1;
+    transform: translateY(0) scale(var(--click-squash-x), var(--click-squash-y));
+    animation-timing-function: var(--ease-settle);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
   }
 }
 
