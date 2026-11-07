@@ -2,8 +2,19 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { type DragEvent, useEffect, useRef, useState } from "react";
+import {
+  type DragEvent,
+  startTransition,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { LogoMark } from "@/components/brand/logo";
+import { useMagnetic } from "@/components/motion/magnetic";
+import {
+  SharedPhoto,
+  STEP_FORWARD,
+} from "@/components/motion/view-transitions";
 import { ScanFailureView } from "@/components/scan/scan-failure";
 import { ScanProgress } from "@/components/scan/scan-progress";
 import { Button } from "@/components/ui/button";
@@ -18,6 +29,7 @@ import {
 } from "@/lib/mock/api";
 import { EVENING_PHOTO } from "@/lib/mock/fixtures";
 import { readPhoto, validatePhoto } from "@/lib/photo";
+import { handOffScan } from "@/lib/scan-handoff";
 
 type Copy = Pick<
   Dictionary["scan"],
@@ -33,7 +45,9 @@ type Status =
 
 /**
  * Camera, file or drag-and-drop, a preview to retake or scan (PRD F1), then the
- * pipeline's progress and, if it fails, what to do next.
+ * pipeline's progress and, if it fails, what to do next. The photo is one
+ * shared element throughout: view changes run as transitions, so it morphs
+ * from the preview into the scanner and on into the results.
  */
 export function CaptureFlow({ copy, locale }: { copy: Copy; locale: Locale }) {
   const router = useRouter();
@@ -47,6 +61,8 @@ export function CaptureFlow({ copy, locale }: { copy: Copy; locale: Locale }) {
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  // The one magnetic control: the step's main action.
+  const magnet = useMagnetic();
 
   const view = !chosen
     ? "choose"
@@ -109,7 +125,7 @@ export function CaptureFlow({ copy, locale }: { copy: Copy; locale: Locale }) {
 
   function cancel() {
     abort.current?.abort();
-    setStatus({ kind: "idle" });
+    startTransition(() => setStatus({ kind: "idle" }));
   }
 
   async function scan() {
@@ -118,14 +134,19 @@ export function CaptureFlow({ copy, locale }: { copy: Copy; locale: Locale }) {
     abort.current = controller;
     setError(null);
     setElapsed(0);
-    setStatus({ kind: "scanning", stage: "detecting" });
+    const showStage = (stage: ScanStage) =>
+      startTransition(() => setStatus({ kind: "scanning", stage }));
+    showStage("detecting");
     try {
       const result = await createScan(chosen.photo, {
         ...mockOptionsFromSearch(window.location.search),
         signal: controller.signal,
-        onStage: (stage) => setStatus({ kind: "scanning", stage }),
+        onStage: showStage,
       });
-      router.push(`/${locale}/scan/${result.id}`);
+      handOffScan(result);
+      router.push(`/${locale}/scan/${result.id}`, {
+        transitionTypes: [STEP_FORWARD],
+      });
     } catch (caught) {
       // Cancelled: the preview is already back.
       if (controller.signal.aborted) return;
@@ -166,17 +187,27 @@ export function CaptureFlow({ copy, locale }: { copy: Copy; locale: Locale }) {
           onRetry={scan}
         />
       ) : chosen ? (
-        <div className="rounded-card border-[2.5px] border-ink bg-card p-4 shadow-card sm:p-5">
-          <Image
-            src={chosen.photo.src}
-            width={chosen.photo.width}
-            height={chosen.photo.height}
-            alt={chosen.alt}
-            unoptimized
-            className="block h-auto max-h-[60vh] w-full rounded-callout border-2 border-ink object-contain"
-          />
-          <div className="mt-4 flex flex-wrap gap-3">
-            <Button ref={scanButton} onClick={scan}>
+        <div className="click-in rounded-card border-[2.5px] border-ink bg-card p-4 shadow-card sm:p-5">
+          <SharedPhoto>
+            <div className="overflow-hidden rounded-callout border-[2.5px] border-ink">
+              <Image
+                src={chosen.photo.src}
+                width={chosen.photo.width}
+                height={chosen.photo.height}
+                alt={chosen.alt}
+                unoptimized
+                className="block h-auto max-h-[60vh] w-full object-contain"
+              />
+            </div>
+          </SharedPhoto>
+          <div className="mt-stud flex flex-wrap gap-3">
+            <Button
+              ref={(node) => {
+                scanButton.current = node;
+                return magnet(node);
+              }}
+              onClick={scan}
+            >
               {copy.capture.submit}
             </Button>
             <Button variant="secondary" onClick={retake}>

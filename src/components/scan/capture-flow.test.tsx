@@ -76,7 +76,11 @@ test("a chosen photo shows a preview, and retake goes back", async () => {
 test("the sample photo scans and opens the results", async () => {
   api.createScan.mockResolvedValue({ id: "abc" });
   scanSample();
-  await waitFor(() => expect(push).toHaveBeenCalledWith("/en/scan/abc"));
+  await waitFor(() =>
+    expect(push).toHaveBeenCalledWith("/en/scan/abc", {
+      transitionTypes: ["step-forward"],
+    }),
+  );
   expect(api.createScan.mock.calls[0][0]).toMatchObject({
     src: "/contoh/kepingan-2.jpg",
   });
@@ -126,7 +130,9 @@ test("a dropped connection can be retried with the same photo", async () => {
     .mockResolvedValueOnce({ id: "retried" });
   scanSample();
   fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
-  await waitFor(() => expect(push).toHaveBeenCalledWith("/en/scan/retried"));
+  await waitFor(() =>
+    expect(push).toHaveBeenCalledWith("/en/scan/retried", expect.anything()),
+  );
   expect(api.createScan).toHaveBeenCalledTimes(2);
 });
 
