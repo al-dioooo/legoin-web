@@ -170,6 +170,12 @@ test("a scan with no pieces sends people back to add some", async () => {
   );
   route.search = "theme=animals&mockDelay=0";
   render(<IdeasScreen copy={copy} locale="en" />);
-  const back = await screen.findByRole("link", { name: en.ideas.empty.action });
+  expect(
+    await screen.findByRole("heading", {
+      level: 1,
+      name: en.ideas.empty.title,
+    }),
+  ).toBeDefined();
+  const back = screen.getByRole("link", { name: en.ideas.empty.action });
   expect(back.getAttribute("href")).toBe("/en/scan/demo-evening");
 });

@@ -6,6 +6,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import { IdeaCard } from "@/components/ideas/idea-card";
 import { ThemePicker } from "@/components/ideas/theme-picker";
 import { Button, buttonStyles } from "@/components/ui/button";
+import { EmptyState, EmptyStateIcon } from "@/components/ui/empty-state";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { plural } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
@@ -130,16 +131,17 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
 
   if (scanState.scan.detections.length === 0) {
     return (
-      <section className="max-w-xl rounded-card border-[2.5px] border-ink bg-card p-6 shadow-card">
-        <h1 className="font-display text-3xl">{copy.ideas.empty.title}</h1>
-        <p className="mt-2 text-ink-secondary">{copy.ideas.empty.body}</p>
-        <Link
-          href={`/${locale}/scan/${id}`}
-          className={`${buttonStyles()} mt-5`}
-        >
-          {copy.ideas.empty.action}
-        </Link>
-      </section>
+      <EmptyState
+        as="h1"
+        icon={<EmptyStateIcon />}
+        title={copy.ideas.empty.title}
+        body={copy.ideas.empty.body}
+        actions={
+          <Link href={`/${locale}/scan/${id}`} className={buttonStyles()}>
+            {copy.ideas.empty.action}
+          </Link>
+        }
+      />
     );
   }
 
