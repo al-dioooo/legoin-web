@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -11,6 +12,7 @@ import { Marquee } from "@/components/ui/marquee";
 import { Sticker } from "@/components/ui/sticker";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
 import { fill, plural } from "@/i18n/format";
+import { languageAlternates } from "@/i18n/locales";
 import {
   SAMPLE_DETECTIONS,
   SAMPLE_INVENTORY,
@@ -18,6 +20,10 @@ import {
   SAMPLE_PHOTO,
   sampleBoxes,
 } from "@/lib/sample-scan";
+
+export const metadata: Metadata = {
+  alternates: languageAlternates("/"),
+};
 
 export default async function Home() {
   const locale = await currentLocale();

@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import { CaptureFlow } from "@/components/scan/capture-flow";
 import { PhotoGuide } from "@/components/scan/photo-guide";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
+import { languageAlternates } from "@/i18n/locales";
 
 export async function generateMetadata(): Promise<Metadata> {
   const dict = await getDictionary();
-  return { title: dict.scan.title };
+  return { title: dict.scan.title, alternates: languageAlternates("/scan") };
 }
 
 /** Photo step: capture first, the tips right below. */

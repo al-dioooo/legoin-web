@@ -23,6 +23,18 @@ export function localizedPath(pathname: string, locale: Locale) {
   return path ? `/${locale}/${path}` : `/${locale}`;
 }
 
+/**
+ * A page's `hreflang` alternates for `generateMetadata`: the same page in every
+ * language. Pass the path without its prefix, e.g. "/scan" or "/" for home.
+ */
+export function languageAlternates(path: string) {
+  return {
+    languages: Object.fromEntries(
+      LOCALES.map((locale) => [locale, localizedPath(path, locale)]),
+    ) as Record<Locale, string>,
+  };
+}
+
 /** Where to send a request that has no locale prefix, or null when it has one. */
 export function defaultLocaleRedirect(pathname: string) {
   const [, first = ""] = pathname.split("/");

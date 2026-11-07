@@ -33,11 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
       template: "%s · Legoin",
     },
     description: dict.meta.description,
-    alternates: {
-      languages: Object.fromEntries(
-        LOCALES.map((locale) => [locale, `/${locale}`]),
-      ),
-    },
+    // Each page sets its own `alternates`, since only the page knows its path.
   };
 }
 

@@ -19,6 +19,7 @@ import { StepNumber } from "@/components/ui/step-number";
 import { Sticker } from "@/components/ui/sticker";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
 import { fill, plural } from "@/i18n/format";
+import { languageAlternates } from "@/i18n/locales";
 import {
   BRICK_COLORS,
   BRICK_PARTS,
@@ -37,7 +38,10 @@ import {
 
 export async function generateMetadata(): Promise<Metadata> {
   const dict = await getDictionary();
-  return { title: dict.meta.designSystem };
+  return {
+    title: dict.meta.designSystem,
+    alternates: languageAlternates("/desain"),
+  };
 }
 
 const STEPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
