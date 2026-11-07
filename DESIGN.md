@@ -82,7 +82,7 @@ A piece drops onto the studs, squashes a little on impact and settles.
 | `--ease-drop`, `--ease-settle`, `--ease-press` | curves | Fall, settle with a small overshoot, press |
 
 - **Entrances:** `.click-in` on one element (set `--i` to stagger it), or `.assemble` on a parent so its children click in one after another.
-- **Presses:** every `Button` uses `.press`. Filled buttons sink exactly into their 4px hard shadow; outlined ones nudge 1px.
+- **Presses:** every `Button` uses `.press`. Filled buttons sink exactly into their 4px hard shadow; outlined ones nudge 1px. The ADR-0003 hover tilt stays, for mice and full motion only.
 - **Selection:** a selected detection box lifts and tilts, leaving a dotted stud footprint; its inventory tile turns yellow and slides out like a part callout; the selected-piece panel clicks in fresh.
 - **Removal and undo:** a removed piece pops off (`.pop-off`) while the change saves; undo clicks it back.
 - **Counts** roll like an odometer (`Count`, `Odometer`), up from 0 when they appear and to the new value when they change.
@@ -97,7 +97,7 @@ A piece drops onto the studs, squashes a little on impact and settles.
 
 ### Pointer and touch
 
-- **Stud glow:** with a mouse, studs near the pointer light up (`StudGlow`), updated once per frame through a mask. Off on touch screens and under reduced motion.
+- **Stud glow:** with a mouse, studs near the pointer light up (`StudGlow`): a lens ten studs across follows the pointer by transform, once per frame, under the plates. Off on touch screens and under reduced motion.
 - **Magnetic button:** one primary action per screen at most leans toward a nearby pointer (`useMagnetic`); today that's **Scan pieces**.
 - **Haptics:** on phones, selecting a piece and undoing a removal give an 8ms vibration where the browser supports it.
 
