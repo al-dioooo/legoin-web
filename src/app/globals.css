@@ -287,3 +287,55 @@
     transition-timing-function: var(--ease-press);
   }
 }
+
+/* View transitions between steps (React <ViewTransition>, see
+   src/components/motion/view-transitions.tsx). The page itself swaps with a
+   quick fade; the scan photo and the current-step marker travel to their new
+   places and land with the click-in settle. Clicks pass through while it runs. */
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-old(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  animation: view-fade-in var(--duration-exit) var(--ease-out-expo) both;
+  mix-blend-mode: normal;
+}
+
+::view-transition-group(.photo-morph),
+::view-transition-group(.step-morph) {
+  animation-duration: var(--duration-morph);
+  animation-timing-function: var(--ease-settle);
+}
+
+/* The photo in flight: old and new are the same image, so no crossfade blur. */
+::view-transition-old(.photo-morph),
+::view-transition-new(.photo-morph) {
+  height: 100%;
+  animation: none;
+}
+
+::view-transition-old(.photo-morph) {
+  opacity: 0;
+}
+
+/* biome-ignore-start lint/complexity/noImportantStyles: reduced motion swaps steps without travel */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+/* biome-ignore-end lint/complexity/noImportantStyles: reduced motion swaps steps without travel */
+
+@keyframes view-fade-in {
+  from {
+    opacity: 0;
+  }
+}
