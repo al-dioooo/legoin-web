@@ -5,28 +5,37 @@ import { BrickSwatch } from "@/components/ui/brick-swatch";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
 import { BRICK_PARTS, formatPercent } from "@/lib/bricks";
+import { cx } from "@/lib/cx";
 import { type Detection, needsCheck } from "@/lib/domain";
 
 type Copy = Dictionary["results"]["piece"];
 
-/** The selected piece: what it is, how sure the detector was, and what to check. */
+/**
+ * The selected piece as a part callout: what it is, how sure the detector was,
+ * and what to check.
+ */
 export function PieceDetail({
   detection,
   locale,
   copy,
   children,
+  className,
 }: {
   detection: Detection | null;
   locale: Locale;
   copy: Copy;
   /** Actions for the piece, such as editing (#16). */
   children?: ReactNode;
+  className?: string;
 }) {
   return (
     <section
       aria-labelledby="piece-title"
       aria-live="polite"
-      className="rounded-card border-[2.5px] border-ink bg-card p-4 shadow-card"
+      className={cx(
+        "rounded-card border-[2.5px] border-ink bg-card p-4 shadow-card",
+        className,
+      )}
     >
       <h2
         id="piece-title"
@@ -35,7 +44,8 @@ export function PieceDetail({
         {copy.title}
       </h2>
       {detection ? (
-        <div className="mt-3">
+        // Keyed by piece, so each newly selected piece clicks into the callout.
+        <div key={detection.id} className="click-in mt-3">
           <div className="flex items-center gap-4">
             <div className="grid h-16 w-20 shrink-0 place-items-center rounded-[0.625rem] bg-page">
               <BrickGlyph
