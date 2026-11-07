@@ -293,28 +293,38 @@
 
 /* Press-fit. A filled button sinks exactly into its hard shadow while pressed,
    then springs back; outlined buttons give a 1px nudge. --magnet-x/-y come from
-   a magnetic control and add to the press. */
+   a magnetic control. */
 @layer components {
   .press {
     --press: 1px;
-    translate: var(--magnet-x, 0px) var(--magnet-y, 0px);
-    transition-property: translate, rotate, box-shadow, background-color, color;
-    transition-duration: var(--duration-release);
-    transition-timing-function: var(--ease-settle);
+    /* The magnet leans by transform, quickly and without overshoot, so a new
+       target every frame never wobbles; translate is the press alone. */
+    transform: translate(var(--magnet-x, 0px), var(--magnet-y, 0px));
+    transition:
+      translate var(--duration-release) var(--ease-settle),
+      rotate var(--duration-release) var(--ease-settle),
+      box-shadow var(--duration-release) var(--ease-settle),
+      transform 140ms var(--ease-out-expo),
+      background-color 150ms,
+      color 150ms;
   }
 
-  @media (hover: hover) {
+  /* The ballers-addict hover tilt from ADR-0003, for mice and full motion. */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
     .press:hover {
       rotate: -1deg;
     }
   }
 
   .press:active {
-    translate: calc(var(--magnet-x, 0px) + var(--press))
-      calc(var(--magnet-y, 0px) + var(--press));
+    translate: var(--press) var(--press);
     rotate: 0deg;
-    transition-duration: var(--duration-press);
-    transition-timing-function: var(--ease-press);
+    transition-duration:
+      var(--duration-press), var(--duration-press), var(--duration-press),
+      140ms, 150ms, 150ms;
+    transition-timing-function:
+      var(--ease-press), var(--ease-press), var(--ease-press),
+      var(--ease-out-expo), ease, ease;
   }
 }
 

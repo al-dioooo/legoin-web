@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   type DragEvent,
   startTransition,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -61,8 +62,20 @@ export function CaptureFlow({ copy, locale }: { copy: Copy; locale: Locale }) {
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
-  // The one magnetic control: the step's main action.
+  // The one magnetic control: the step's main action. The ref also keeps the
+  // button for focus, and lets go of both when it unmounts.
   const magnet = useMagnetic();
+  const scanButtonRef = useCallback(
+    (node: HTMLButtonElement | null) => {
+      scanButton.current = node;
+      const release = magnet(node);
+      return () => {
+        scanButton.current = null;
+        release?.();
+      };
+    },
+    [magnet],
+  );
 
   const view = !chosen
     ? "choose"
@@ -201,13 +214,7 @@ export function CaptureFlow({ copy, locale }: { copy: Copy; locale: Locale }) {
             </div>
           </SharedPhoto>
           <div className="mt-stud flex flex-wrap gap-3">
-            <Button
-              ref={(node) => {
-                scanButton.current = node;
-                return magnet(node);
-              }}
-              onClick={scan}
-            >
+            <Button ref={scanButtonRef} onClick={scan}>
               {copy.capture.submit}
             </Button>
             <Button variant="secondary" onClick={retake}>
