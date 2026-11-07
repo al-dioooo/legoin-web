@@ -37,11 +37,15 @@ test("hreflang alternates point at the same page in each language", () => {
   });
 });
 
+// Pages that only call notFound(): a 404 has no other-language version.
+const NEVER_RENDERS = new Set(["src/app/[lang]/[...rest]/page.tsx"]);
+
 // The root layout can't see the path, so each page has to set its own.
 test("every page sets its own hreflang alternates", () => {
   const pages = globSync("src/app/**/page.tsx");
   expect(pages.length).toBeGreaterThan(0);
   for (const page of pages) {
+    if (NEVER_RENDERS.has(page)) continue;
     expect(readFileSync(page, "utf8"), page).toContain("languageAlternates(");
   }
 });
