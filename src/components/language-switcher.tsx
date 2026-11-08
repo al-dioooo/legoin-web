@@ -79,11 +79,16 @@ function Pills({
           aria-current={locale === current ? "true" : undefined}
           className={cx(
             "inline-flex min-h-10 min-w-12 items-center justify-center rounded-full px-3 font-mono text-sm font-bold uppercase transition-colors",
-            locale === current ? "bg-highlight" : "hover:bg-highlight-subtle",
+            // Outlined, not only yellow, so it still shows in forced colors.
+            locale === current
+              ? "border-2 border-ink bg-highlight"
+              : "hover:bg-highlight-subtle",
           )}
         >
-          <span aria-hidden="true">{locale}</span>
-          <span className="sr-only">{names[locale]}</span>
+          {/* The code people see starts the name, so saying "ID" works for
+              voice control; the language's own name follows. */}
+          {locale}
+          <span className="sr-only">, {names[locale]}</span>
         </Link>
       ))}
     </nav>

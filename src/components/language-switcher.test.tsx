@@ -24,10 +24,19 @@ function renderSwitcher() {
     />,
   );
   return {
-    english: screen.getByRole("link", { name: "English" }),
-    indonesian: screen.getByRole("link", { name: "Bahasa Indonesia" }),
+    english: screen.getByRole("link", { name: "en, English" }),
+    indonesian: screen.getByRole("link", { name: "id, Bahasa Indonesia" }),
   };
 }
+
+// Voice control users say what they see, so the visible code starts the name.
+test("names each link by its visible code, then the language", () => {
+  const { english, indonesian } = renderSwitcher();
+  expect(english.textContent).toBe("en, English");
+  expect(indonesian.textContent).toBe("id, Bahasa Indonesia");
+  expect(english.getAttribute("lang")).toBe("en");
+  expect(indonesian.getAttribute("lang")).toBe("id");
+});
 
 test("links to the same page in each language and marks the current one", () => {
   const { english, indonesian } = renderSwitcher();
