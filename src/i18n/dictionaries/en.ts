@@ -326,6 +326,7 @@ export const en = {
     newScan: "New scan",
     lastTheme: "Last theme: {theme}",
     ideas: "See ideas",
+    ideaList: "Latest ideas",
     delete: {
       action: "Delete",
       question: "Delete this scan? You can't get it back.",

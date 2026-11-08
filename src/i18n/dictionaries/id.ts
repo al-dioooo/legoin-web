@@ -334,6 +334,7 @@ export const id: Dictionary = {
     newScan: "Pindai baru",
     lastTheme: "Tema terakhir: {theme}",
     ideas: "Lihat ide",
+    ideaList: "Ide terakhir",
     delete: {
       action: "Hapus",
       question:
