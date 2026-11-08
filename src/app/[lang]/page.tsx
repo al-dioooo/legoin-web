@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { MAIN_ID } from "@/components/app/skip-link";
 import { Logo } from "@/components/brand/logo";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { SampleIdea } from "@/components/home/sample-idea";
@@ -11,6 +12,7 @@ import { Grain } from "@/components/ui/grain";
 import { InventoryList } from "@/components/ui/inventory-list";
 import { Marquee } from "@/components/ui/marquee";
 import { Sticker } from "@/components/ui/sticker";
+import { TapeBand } from "@/components/ui/tape-band";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
 import { plural } from "@/i18n/format";
 import { languageAlternates } from "@/i18n/locales";
@@ -31,7 +33,11 @@ export default async function Home() {
   const { home, sample, common } = dict;
 
   return (
-    <main className="flex flex-1 flex-col overflow-x-clip">
+    <main
+      id={MAIN_ID}
+      tabIndex={-1}
+      className="flex flex-1 flex-col overflow-x-clip outline-none"
+    >
       <div className="mx-auto grid w-full max-w-6xl gap-12 px-4 pt-6 pb-12 sm:px-6 lg:grid-cols-[1fr_26rem] lg:items-start">
         <section className="relative">
           <Grain />
@@ -123,13 +129,16 @@ export default async function Home() {
       />
 
       <section aria-label="Legoin" className="py-10">
-        <Marquee words={home.tape} tone="ink" className="-mx-4 -rotate-3" />
-        <Marquee
-          words={home.tape}
-          tone="primary"
-          reverse
-          className="-mx-4 -mt-6 rotate-2"
-        />
+        <TapeBand copy={common.tape}>
+          <Marquee words={home.tape} tone="ink" className="-mx-4 -rotate-3" />
+          <Marquee
+            words={home.tape}
+            tone="primary"
+            reverse
+            decorative
+            className="-mx-4 -mt-6 rotate-2"
+          />
+        </TapeBand>
       </section>
     </main>
   );

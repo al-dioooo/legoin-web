@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { MAIN_ID } from "@/components/app/skip-link";
 import { Logo } from "@/components/brand/logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import {
@@ -108,7 +109,11 @@ export default async function MotionPage() {
         />
       </header>
 
-      <main className="relative mx-auto w-full max-w-(--plate-width) px-stud pb-[calc(var(--stud)*4)]">
+      <main
+        id={MAIN_ID}
+        tabIndex={-1}
+        className="relative mx-auto w-full max-w-(--plate-width) px-stud pb-[calc(var(--stud)*4)] outline-none"
+      >
         <div className="assemble pt-[calc(var(--stud)*3)] pb-stud">
           <h1 className="font-display text-display">
             {motion.title.before}

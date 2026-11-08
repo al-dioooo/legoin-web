@@ -72,10 +72,12 @@ export function ThemePicker({
                 cards ? "mb-2 size-6" : "size-4",
               )}
             >
+              {/* Drawn as a thick border, which forced colors keep and
+                  fills don't. */}
               <span
                 className={cx(
-                  "rounded-full bg-ink opacity-0 group-has-checked:opacity-100",
-                  cards ? "size-2.5" : "size-1.5",
+                  "rounded-full border-ink opacity-0 group-has-checked:opacity-100",
+                  cards ? "size-2.5 border-[5px]" : "size-1.5 border-[3px]",
                 )}
               />
             </span>

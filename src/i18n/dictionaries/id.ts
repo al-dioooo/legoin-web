@@ -14,6 +14,7 @@ export const id: Dictionary = {
   app: {
     home: "Beranda Legoin",
     history: "Riwayat",
+    skip: "Langsung ke konten",
     steps: {
       label: "Progres pindai",
       photo: "Foto",
@@ -139,6 +140,11 @@ export const id: Dictionary = {
     },
     labels: { hide: "Sembunyikan label", show: "Tampilkan label" },
     zoom: { in: "Perbesar", out: "Perkecil" },
+    pick: {
+      before: "Pilih kepingan lewat kotaknya, atau di ",
+      link: "inventori",
+      after: ".",
+    },
     piece: {
       title: "Kepingan terpilih",
       empty:
@@ -413,6 +419,7 @@ export const id: Dictionary = {
     missingCount: { one: "Kurang {count} part", other: "Kurang {count} part" },
     pieces: { one: "{count} kepingan", other: "{count} kepingan" },
     ideaOf: "IDE {index}/{total}",
+    tape: { pause: "Jeda teks berjalan", play: "Putar teks berjalan" },
   },
   sample: {
     title: "Contoh hasil pindai",

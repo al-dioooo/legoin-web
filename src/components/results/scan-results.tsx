@@ -43,6 +43,13 @@ type State =
   | { kind: "missing" }
   | { kind: "ready"; scan: Scan };
 
+/**
+ * Where keyboard focus goes once a change has saved, since the control that
+ * made it may be gone or disabled: the empty state, Undo, the inventory's
+ * heading, or back to Add.
+ */
+type FocusAfter = "empty" | "undo" | "inventory" | "add";
+
 export function ResultsLoading({ label }: { label: string }) {
   return (
     <div className="space-y-4" aria-busy="true">
@@ -88,9 +95,12 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   const [status, setStatus] = useState("");
   const [undo, setUndo] = useState<DetectionChange[] | null>(null);
   const addPart = useRef<HTMLSelectElement>(null);
+  const addButton = useRef<HTMLButtonElement>(null);
+  const undoButton = useRef<HTMLButtonElement>(null);
   const emptyHeading = useRef<HTMLHeadingElement>(null);
-  /** Set when a change removes the last piece, so focus lands on the empty state. */
-  const focusEmpty = useRef(false);
+  const inventoryHeading = useRef<HTMLHeadingElement>(null);
+  /** Set by a change that saved, for the render that shows it. */
+  const focusAfter = useRef<FocusAfter | null>(null);
   const photoFrame = useRef<HTMLDivElement>(null);
   const piecePanel = useRef<HTMLElement>(null);
   /** The photo frame's width on screen; 0 until measured. */
@@ -152,12 +162,20 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
     });
   }, [zoomed, selectedId, state]);
 
-  // The selected piece's controls are gone with it, so focus would drop to the page.
+  // A change can take away or disable the control that made it, which would
+  // drop focus to the page. Runs once the change shows and nothing's pending.
   useEffect(() => {
-    if (state.kind !== "ready" || !focusEmpty.current) return;
-    focusEmpty.current = false;
-    emptyHeading.current?.focus();
-  }, [state]);
+    const target = focusAfter.current;
+    if (state.kind !== "ready" || pending || !target) return;
+    focusAfter.current = null;
+    const targets = {
+      empty: emptyHeading,
+      undo: undoButton,
+      inventory: inventoryHeading,
+      add: addButton,
+    };
+    targets[target].current?.focus();
+  }, [state, pending]);
 
   if (state.kind === "loading") {
     return <ResultsLoading label={copy.results.loading} />;
@@ -243,11 +261,14 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
       select,
       isUndo = false,
       exitMs = 0,
+      focus,
     }: {
       select?: (before: Scan, after: Scan) => string | null;
       isUndo?: boolean;
       /** Keep the old view up at least this long, for an exit animation. */
       exitMs?: number;
+      /** Where focus goes once saved; the empty state wins if it appears. */
+      focus?: FocusAfter;
     } = {},
   ) {
     setPending(true);
@@ -257,8 +278,9 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
         updateDetections(scan.id, changes),
         wait(exitMs),
       ]);
-      focusEmpty.current =
+      const emptied =
         before.detections.length > 0 && after.detections.length === 0;
+      focusAfter.current = emptied ? "empty" : (focus ?? null);
       setState({ kind: "ready", scan: after });
       setUndo(
         isUndo ? null : inverseChanges(before.detections, after.detections),
@@ -277,6 +299,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
     void apply(
       [{ type: "edit", id: selected.id, part, color }],
       copy.results.status.edited,
+      { focus: "undo" },
     );
   }
 
@@ -290,6 +313,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
       {
         select: () => null,
         exitMs: readDuration("--duration-exit"),
+        focus: "undo",
       },
     ).finally(() => setLeavingId(null));
   }
@@ -299,6 +323,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
       [{ type: "add", part, color, quantity }],
       plural(copy.results.status.added, quantity, locale),
       {
+        focus: "add",
         select: (before, after) => {
           const known = new Set(before.detections.map((d) => d.id));
           return after.detections.find((d) => !known.has(d.id))?.id ?? null;
@@ -312,6 +337,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
     snapHaptic();
     void apply(undo, copy.results.status.undone, {
       isUndo: true,
+      focus: "inventory",
       select: (_, after) =>
         after.detections.some((d) => d.id === selectedId) ? selectedId : null,
     });
@@ -369,7 +395,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
         )}
 
         {boxes.length > 0 && (
-          <div className="mt-stud flex flex-wrap gap-2">
+          <div className="mt-stud flex flex-wrap items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
@@ -385,6 +411,18 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
             >
               {zoomedIn ? copy.results.zoom.out : copy.results.zoom.in}
             </Button>
+            {/* The inventory selects the same pieces, so it stands in for
+                boxes too small to tap; the link also skips past the boxes. */}
+            <p className="text-sm text-ink-secondary sm:ml-2">
+              {copy.results.pick.before}
+              <a
+                href="#inventory-title"
+                className="rounded-sm font-semibold text-ink underline decoration-2 underline-offset-4 hover:bg-highlight"
+              >
+                {copy.results.pick.link}
+              </a>
+              {copy.results.pick.after}
+            </p>
           </div>
         )}
 
@@ -457,7 +495,12 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
 
         <section aria-labelledby="inventory-title" className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-x-stud gap-y-2">
-            <h2 id="inventory-title" className="font-display text-xl">
+            <h2
+              ref={inventoryHeading}
+              id="inventory-title"
+              tabIndex={-1}
+              className="font-display text-xl outline-none"
+            >
               <Sticker tone="paper" className="rotate-2">
                 {copy.common.inventory}
               </Sticker>
@@ -530,6 +573,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
             <output className="text-sm font-semibold">{status}</output>
             {undo && undo.length > 0 && (
               <Button
+                ref={undoButton}
                 variant="ghost"
                 size="sm"
                 disabled={pending}
@@ -541,6 +585,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
           </div>
           <AddPiece
             partRef={addPart}
+            submitRef={addButton}
             locale={locale}
             copy={copy.results.add}
             pending={pending}

@@ -7,6 +7,7 @@ import {
   errorCopy,
   useRouteLocale,
 } from "@/components/app/error-screen";
+import { SkipLink } from "@/components/app/skip-link";
 
 // The font tokens read variables that the root layout's fonts define, and this
 // page replaces that layout. Point them at system fonts instead of loading the
@@ -29,6 +30,7 @@ export default function GlobalError({ retry }: { retry: () => void }) {
     <html lang={locale} style={SYSTEM_FONTS} className="h-full antialiased">
       <body className="flex min-h-full flex-col bg-page font-sans text-ink">
         <title>{`${errorCopy(locale).title} · Legoin`}</title>
+        <SkipLink label={errorCopy(locale).skip} />
         <div className="baseplate flex flex-1 flex-col overflow-x-clip">
           <ErrorScreen retry={retry} />
         </div>

@@ -10,6 +10,9 @@
   body {
     background-color: var(--surface-page);
     color: var(--text-primary);
+    /* A word too long for its box, such as an Indonesian label in a narrow
+       tile or a title under wider text spacing, wraps instead of spilling. */
+    overflow-wrap: break-word;
   }
 
   /* One focus ring for every control: ink reads on red, yellow and photos alike. */
@@ -51,6 +54,8 @@
   /* A die-cut sticker: ink outline and a hard comic shadow, sized in em. */
   .sticker {
     display: inline-block;
+    /* Never wider than its line, so a long word in it can wrap. */
+    max-width: 100%;
     padding: 0.02em 0.16em 0.1em;
     border: max(2px, 0.04em) solid var(--text-primary);
     border-radius: 0.14em;
@@ -294,6 +299,14 @@
     -webkit-text-stroke: 3px var(--text-primary);
     pointer-events: none;
     user-select: none;
+  }
+
+  /* Forced colors fill the outline in solid, which turns a quiet decoration
+     into a big black glyph behind the page. */
+  @media (forced-colors: active) {
+    .step-numeral {
+      display: none;
+    }
   }
 }
 

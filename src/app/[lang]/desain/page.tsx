@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { MAIN_ID } from "@/components/app/skip-link";
 import { Logo, LogoMark } from "@/components/brand/logo";
 import { TokenSwatch } from "@/components/desain/token-swatch";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -18,6 +19,7 @@ import { PartCallout } from "@/components/ui/part-callout";
 import { Select } from "@/components/ui/select";
 import { StepNumber } from "@/components/ui/step-number";
 import { Sticker } from "@/components/ui/sticker";
+import { TapeBand } from "@/components/ui/tape-band";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
 import { fill, plural } from "@/i18n/format";
 import { languageAlternates } from "@/i18n/locales";
@@ -100,7 +102,11 @@ export default async function DesignSystemPage() {
   const { design, common, sample, states } = dict;
 
   return (
-    <main className="mx-auto w-full max-w-5xl overflow-x-clip px-4 pb-16 sm:px-6">
+    <main
+      id={MAIN_ID}
+      tabIndex={-1}
+      className="mx-auto w-full max-w-5xl overflow-x-clip px-4 pb-16 sm:px-6 outline-none"
+    >
       <header className="relative py-10">
         <Grain />
         <div className="flex flex-wrap items-center gap-3">
@@ -335,7 +341,10 @@ export default async function DesignSystemPage() {
             <Grain />
             <p className="font-display text-2xl">{design.stickers.grain}</p>
           </div>
-          <div className="-mx-4 overflow-x-clip py-6 sm:-mx-6">
+          <TapeBand
+            copy={common.tape}
+            className="-mx-4 overflow-x-clip py-6 sm:-mx-6"
+          >
             <Marquee
               words={design.stickers.tape}
               tone="ink"
@@ -345,9 +354,10 @@ export default async function DesignSystemPage() {
               words={design.stickers.tape}
               tone="highlight"
               reverse
+              decorative
               className="-mt-4 rotate-1"
             />
-          </div>
+          </TapeBand>
         </div>
       </Section>
 

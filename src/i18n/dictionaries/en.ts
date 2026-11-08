@@ -12,6 +12,7 @@ export const en = {
   app: {
     home: "Legoin home",
     history: "History",
+    skip: "Skip to content",
     steps: {
       label: "Scan progress",
       photo: "Photo",
@@ -137,6 +138,12 @@ export const en = {
     },
     labels: { hide: "Hide labels", show: "Show labels" },
     zoom: { in: "Zoom in", out: "Zoom out" },
+    // Small boxes are hard to tap; the inventory picks the same pieces.
+    pick: {
+      before: "Pick a piece by its box, or in the ",
+      link: "inventory",
+      after: ".",
+    },
     piece: {
       title: "Selected piece",
       empty: "Select a piece on the photo or in the inventory to see it here.",
@@ -405,6 +412,7 @@ export const en = {
     },
     pieces: { one: "{count} piece", other: "{count} pieces" },
     ideaOf: "IDEA {index}/{total}",
+    tape: { pause: "Pause scrolling text", play: "Play scrolling text" },
   },
   sample: {
     title: "Sample scan",

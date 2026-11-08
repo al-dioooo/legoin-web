@@ -73,9 +73,11 @@ export function DetectionBox({
     "--i": order ?? 0,
   } as CSSProperties;
   const lifted = selected ? "" : undefined;
+  // Hidden from screen readers: a box button is named by `name`, and a plain
+  // photo's alt text lists its pieces.
   const tag = label && labelMode !== "never" && (
     <span
-      aria-hidden={onSelect ? true : undefined}
+      aria-hidden="true"
       className={cx(
         "absolute z-10 rounded-sm px-1.5 py-0.5 font-mono text-xs font-semibold whitespace-nowrap",
         LABEL_PLACES[placement.side][placement.align],

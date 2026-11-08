@@ -21,7 +21,8 @@ export function BrickSwatch({
     >
       <span
         aria-hidden="true"
-        className="size-4 shrink-0 rounded-full border-2 border-ink"
+        // A brick's real color is data, so forced colors leave it alone.
+        className="size-4 shrink-0 rounded-full border-2 border-ink forced-color-adjust-none"
         style={{ backgroundColor: brickColorVar(color) }}
       />
       {colorLabel(color, locale)}

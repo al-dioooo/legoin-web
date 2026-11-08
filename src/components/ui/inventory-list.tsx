@@ -57,14 +57,18 @@ export function InventoryList({
         const flagged = flaggedKeys?.has(key) ?? false;
         const tileClass = cx(
           "part-tile flex h-full w-full items-center gap-2.5 rounded-callout border-ink px-3 py-2 text-left",
-          selected ? "border-[3px] bg-highlight" : "border-2 bg-card",
+          // Forced colors drop the yellow and the shadow, so an outline marks it.
+          selected
+            ? "border-[3px] bg-highlight forced-colors:outline-2 forced-colors:outline-offset-2"
+            : "border-2 bg-card",
           flagged && "border-dashed",
         );
         const content = (
           <>
             <span
               aria-hidden="true"
-              className="size-4 shrink-0 rounded-full border-2 border-ink"
+              // A brick's real color is data, so forced colors leave it alone.
+              className="size-4 shrink-0 rounded-full border-2 border-ink forced-color-adjust-none"
               style={{ backgroundColor: brickColorVar(line.color) }}
             />
             <span className="text-sm leading-tight">
