@@ -51,7 +51,7 @@ Tokens come in three layers: primitive scales, semantic roles, and a Tailwind br
 - **Outlines:** cards, buttons, inputs and part boxes use 2.5px ink; badges and tiles use 2px. Missing parts get a dashed 2px frame.
 - **Hard shadows** are solid ink, offset down and right, with no blur: `shadow-sticker` (3px), `shadow-button` (4px), `shadow-card` (5px), `shadow-raised` (8px).
 - **Radius:** cards `rounded-card` (22px), boxes and inputs `rounded-callout` / `rounded-control` (14px), buttons and badges fully round.
-- **Tap targets** are at least 48px (`Button` size `md`).
+- **Tap targets** are at least 48px (`Button` size `md`), and never under 24px. Detection boxes on a busy photo can be smaller; the inventory selects the same pieces, and the results screen says so.
 
 ## Motion & interaction
 
@@ -119,7 +119,7 @@ UI primitives live in `src/components/ui`, the logo in `src/components/brand`.
 | `Badge` | Status with a dot: `neutral`, `success`, `warning`, `danger`, `highlight` |
 | `Card` | Die-cut panel with an ink outline and hard shadow |
 | `Sticker` | Highlights one word inline: `highlight`, `primary`, `paper` |
-| `Marquee` | Scrolling tape band: `ink`, `primary`, `highlight`; the looping copy is hidden from screen readers |
+| `Marquee`, `TapeBand` | Scrolling tape band: `ink`, `primary`, `highlight`. Screen readers get its words once; mark a repeated tape `decorative`. Tapes sit in a `TapeBand`, whose button pauses them. |
 | `Grain` | Film grain over its `relative` parent, for marketing surfaces only |
 | `Select` | Native select inside its label, for label correction |
 | `BrickGlyph` | A part drawn from above. Decorative, so label it nearby. |
@@ -128,7 +128,7 @@ UI primitives live in `src/components/ui`, the logo in `src/components/brand`.
 | `PartCallout` | Parts box with counts; `missing` gives a dashed frame, `detailed` adds names |
 | `StepNumber` | Numbered step as a yellow sticker |
 | `EmptyState`, `EmptyStateIcon` | Nothing to show, not found, or an error: the scanner frame on a sticker tile (`highlight` or `danger`), a title, a short body and the way forward. `as="h1"` when it is the whole page, as on the not-found and error pages. |
-| `DetectionBox`, `DetectedPhoto` | Detected pieces over a scan photo, in 0–1 fractions of the image. A label sits above its box's left side. `fitLabels` keeps it inside the photo: near the right edge it lines up with the box's right side, and at the top edge it goes inside a big box's top or below a small box. |
+| `DetectionBox`, `DetectedPhoto` | Detected pieces over a scan photo, in 0–1 fractions of the image. A label sits above its box's left side, and its text is always part of the box's spoken name, so voice control works. `fitLabels` keeps it inside the photo: near the right edge it lines up with the box's right side, and at the top edge it goes inside a big box's top or below a small box. |
 | `Logo`, `LogoMark` | Wordmark with mark, or the mark alone with a `title` |
 | `LanguageSwitcher` | EN/ID pill in the header that keeps the current page (`src/components`) |
 | `SiteFooter` | Footer on every page: team, the CC BY 4.0 dataset credit, the AI-photo and LEGO trademark notes (`src/components`, credits in `src/lib/credits.ts`) |
@@ -145,8 +145,12 @@ The sample scan in `src/lib/sample-scan.ts` and `public/contoh/kepingan.jpg` fee
 ## Accessibility
 
 - WCAG 2.2 AA, with an ink focus ring on every control and reduced motion respected.
+- A skip link (`SkipLink`) is the first stop on every page and lands on `<main id="main">`. A page that brings its own `<main>` gives it `id={MAIN_ID}` and `tabIndex={-1}`; a test checks.
 - Glyphs, swatches and decorative SVGs are `aria-hidden`, with text beside them or in `sr-only`. A part callout announces each line as "2× Brick 2×4 red".
-- Layouts work from 360px wide with no horizontal scroll.
+- Focus never drops to the page. When an action removes or disables the control that made it, focus moves to the next thing to do, such as Undo, the heading of what changed, or the empty state. Escape backs out of every in-place confirmation.
+- State is never yellow alone. Current and selected things also get an ink outline, a dot or a tick, because yellow is 1.5:1 on paper and forced colors drop fills. Brick color chips keep their real colors in forced colors (`forced-color-adjust-none`).
+- Text that moves by itself can be paused (`TapeBand`), and reduced motion stops it.
+- Layouts reflow from 320px wide, at 200% zoom and with WCAG text spacing, with no horizontal scroll. Long words wrap instead of spilling out of their box.
 
 ## Extending the system
 
