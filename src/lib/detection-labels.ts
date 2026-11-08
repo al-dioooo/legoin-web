@@ -18,6 +18,21 @@ export type LabeledBox = {
   selected: boolean;
   /** Low confidence and not corrected yet: drawn dashed and called out for checking. */
   flagged: boolean;
+  /** Set by `fitLabels` once the photo is measured. Until then, above and to the left. */
+  placement?: LabelPlacement;
+};
+
+/**
+ * Where a label sits on its box so the photo's frame doesn't cut it off.
+ * `side` is above the box. When the box touches the photo's top edge, the
+ * label goes just inside the box's top if the box is big enough to hold it
+ * and still show its piece, and just below the box otherwise. `align` lines
+ * the label up with the box's left side, or with its right side when the box
+ * is near the photo's right edge.
+ */
+export type LabelPlacement = {
+  side: "above" | "inside" | "below";
+  align: "left" | "right";
 };
 
 /**

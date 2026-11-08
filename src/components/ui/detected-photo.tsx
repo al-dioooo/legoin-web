@@ -74,6 +74,7 @@ export function DetectedPhoto({
           selected={detection.selected}
           flagged={detection.flagged}
           labelMode={labelMode(labels, detection.selected)}
+          placement={detection.placement}
           order={assembling ? staggerIndex(index) : undefined}
           leaving={detection.id === leavingId}
           onSelect={onSelect ? () => onSelect(detection.id) : undefined}
