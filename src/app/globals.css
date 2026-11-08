@@ -300,6 +300,14 @@
     pointer-events: none;
     user-select: none;
   }
+
+  /* Forced colors fill the outline in solid, which turns a quiet decoration
+     into a big black glyph behind the page. */
+  @media (forced-colors: active) {
+    .step-numeral {
+      display: none;
+    }
+  }
 }
 
 /* Press-fit. A filled button sinks exactly into its hard shadow while pressed,
