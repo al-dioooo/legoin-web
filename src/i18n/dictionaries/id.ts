@@ -449,6 +449,7 @@ export const id: Dictionary = {
     title: { before: "Sistem ", sticker: "desain" },
     intro:
       "Gaya ballers-addict dengan warna LEGO: kertas, garis tinta, bayangan keras, dan stiker. Merah untuk aksi, kuning untuk sorotan, warna kepingan hanya untuk kepingan.",
+    motion: "Gerak & interaksi",
     colors: {
       title: "Warna",
       description:
