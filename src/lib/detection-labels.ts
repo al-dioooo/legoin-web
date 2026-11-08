@@ -125,3 +125,19 @@ export function fitLabels(boxes: LabeledBox[], size: DrawnSize): LabeledBox[] {
     keep.has(index) ? box : { ...box, label: "" },
   );
 }
+
+/** The smallest box worth tapping, in CSS pixels (WCAG 2.2 target size). */
+export const MIN_TARGET = 24;
+
+/**
+ * How far to zoom a photo drawn at `size` so its smallest box is at least
+ * `MIN_TARGET` across: twice at least, four times at most.
+ */
+export function zoomFor(boxes: Pick<LabeledBox, "box">[], size: DrawnSize) {
+  const sides = boxes.map(({ box }) =>
+    Math.min(box.width * size.width, box.height * size.height),
+  );
+  const smallest = Math.min(...sides);
+  if (!(smallest > 0)) return 2;
+  return Math.min(4, Math.max(2, Math.ceil(MIN_TARGET / smallest)));
+}

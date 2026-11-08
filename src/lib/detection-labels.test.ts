@@ -5,6 +5,7 @@ import {
   fitLabels,
   type LabeledBox,
   labeledBoxes,
+  zoomFor,
 } from "@/lib/detection-labels";
 
 const box = { x: 0.1, y: 0.1, width: 0.2, height: 0.2 };
@@ -153,4 +154,27 @@ test("the selected piece keeps its label, then flagged pieces win", () => {
   expect(shown(fitLabels(row, photo))).toEqual(["big", "selected"]);
   // Without a selection, the flagged piece beats the bigger one.
   expect(shown(fitLabels(row.slice(0, 2), photo))).toEqual(["flagged"]);
+});
+
+test("zooming in goes far enough for the smallest box to be tapped", () => {
+  const phone = { width: 300, height: 200 };
+  // The 8-piece demo's smallest box is 22px wide here: the usual 2×.
+  expect(
+    zoomFor([{ box: { x: 0, y: 0, width: 0.074, height: 0.15 } }], phone),
+  ).toBe(2);
+  // A round 1×1 in a 30-piece photo is 9px wide: 3× makes it 28px.
+  expect(
+    zoomFor([{ box: { x: 0, y: 0, width: 0.031, height: 0.074 } }], phone),
+  ).toBe(3);
+  // Never more than 4×, and 2× before the photo is measured or with no boxes.
+  expect(
+    zoomFor([{ box: { x: 0, y: 0, width: 0.001, height: 0.001 } }], phone),
+  ).toBe(4);
+  expect(
+    zoomFor([{ box: { x: 0, y: 0, width: 0.1, height: 0.1 } }], {
+      width: 0,
+      height: 0,
+    }),
+  ).toBe(2);
+  expect(zoomFor([], phone)).toBe(2);
 });

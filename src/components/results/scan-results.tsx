@@ -19,10 +19,20 @@ import { plural } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { getScan, updateDetections } from "@/lib/api";
 import type { BrickColorId, BrickPartId, PartCount } from "@/lib/bricks";
-import { countUnplaced, fitLabels, labeledBoxes } from "@/lib/detection-labels";
+import {
+  countUnplaced,
+  fitLabels,
+  labeledBoxes,
+  zoomFor,
+} from "@/lib/detection-labels";
 import { type DetectionChange, needsCheck, type Scan } from "@/lib/domain";
 import { inventoryKey, inverseChanges, toInventory } from "@/lib/inventory";
-import { MAX_STAGGER, readDuration, snapHaptic } from "@/lib/motion";
+import {
+  MAX_STAGGER,
+  prefersReducedMotion,
+  readDuration,
+  snapHaptic,
+} from "@/lib/motion";
 import { forgetHandedOffScan, handedOffScan } from "@/lib/scan-handoff";
 
 type Copy = { results: Dictionary["results"]; common: Dictionary["common"] };
@@ -122,6 +132,24 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
     return () => observer.disconnect();
   }, [ready]);
 
+  // Zoomed in, the selected piece may be off to the side: bring it into view.
+  useEffect(() => {
+    const frame = photoFrame.current;
+    const box =
+      state.kind === "ready"
+        ? state.scan.detections.find((d) => d.id === selectedId)?.box
+        : null;
+    if (!zoomed || !frame || !box) return;
+    const left = box.x * frame.scrollWidth;
+    const right = (box.x + box.width) * frame.scrollWidth;
+    const view = frame.scrollLeft;
+    if (left >= view && right <= view + frame.clientWidth) return;
+    frame.scrollTo?.({
+      left: (left + right - frame.clientWidth) / 2,
+      behavior: prefersReducedMotion() ? "auto" : "smooth",
+    });
+  }, [zoomed, selectedId, state]);
+
   // The selected piece's controls are gone with it, so focus would drop to the page.
   useEffect(() => {
     if (state.kind !== "ready" || !focusEmpty.current) return;
@@ -153,18 +181,25 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   const editedKeys = new Set(
     scan.detections.filter((d) => d.edited).map(inventoryKey),
   );
-  // The photo is drawn inside a 2.5px border, scaled to its frame.
-  const drawnWidth = Math.max(frameWidth * (zoomed ? 2 : 1) - 5, 0);
   const allBoxes = labeledBoxes(
     scan.detections,
     locale,
     selectedId ?? undefined,
   );
+  // The photo is drawn inside a 2.5px border, scaled to its frame. Zooming in
+  // goes far enough for the smallest box to be a usable tap target.
+  const ratio = scan.photo.height / scan.photo.width;
+  const fullWidth = Math.max(frameWidth - 5, 0);
+  const zoom = zoomFor(allBoxes, {
+    width: fullWidth,
+    height: fullWidth * ratio,
+  });
+  const drawnWidth = Math.max(frameWidth * (zoomed ? zoom : 1) - 5, 0);
   const boxes =
     drawnWidth > 0
       ? fitLabels(allBoxes, {
           width: drawnWidth,
-          height: (drawnWidth * scan.photo.height) / scan.photo.width,
+          height: drawnWidth * ratio,
         })
       : allBoxes;
   // Found pieces with nowhere on the photo: the mock's stand-in for a photo it
@@ -345,7 +380,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
             plate's right edge, never the photo. */}
         <div className="mt-3 rounded-card border-[2.5px] border-ink bg-card p-2 shadow-card sm:p-3 lg:pr-[calc(var(--stud)+0.75rem)]">
           <div ref={photoFrame} className="overflow-auto rounded-callout">
-            <div style={{ width: zoomed ? "200%" : "100%" }}>
+            <div style={{ width: zoomed ? `${zoom * 100}%` : "100%" }}>
               <SharedPhoto>
                 <DetectedPhoto
                   photo={scan.photo}
