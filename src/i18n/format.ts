@@ -39,3 +39,23 @@ export function pluralParts(
   if (at === -1) return null;
   return [template.slice(0, at), template.slice(at + "{count}".length)];
 }
+
+/**
+ * A moment for people to read, in the language's own words and order:
+ * "October 26, 2026 at 6:20 PM", "26 Oktober 2026 pukul 18.20". Takes an
+ * ISO 8601 string such as a scan's `createdAt`. The time is the reader's own
+ * unless `timeZone` says otherwise; something that isn't a date comes back as is.
+ */
+export function formatDate(
+  value: string | Date,
+  locale: Locale,
+  { timeZone }: { timeZone?: string } = {},
+) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat(LOCALE_TAGS[locale], {
+    dateStyle: "long",
+    timeStyle: "short",
+    timeZone,
+  }).format(date);
+}
