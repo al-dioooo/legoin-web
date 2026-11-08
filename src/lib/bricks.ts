@@ -176,11 +176,14 @@ export function describePart(
   return `${quantity}× ${BRICK_PARTS[part].label} ${colorLabel(color, locale).toLowerCase()}`;
 }
 
-/** Compact name for tight spots like detection labels: "2×4", "plate 1×2". */
+/**
+ * Compact name for tight spots like detection labels: "2×4", "plate 1×2",
+ * "slope 45° 2×2". It's always a piece of the full label, so the spoken name
+ * of a box holds what its label shows, and saying it works for voice control.
+ */
 export function shortPartLabel(part: BrickPartId) {
-  const { kind, studs } = BRICK_PARTS[part];
-  const size = studs.join("×");
-  return kind === "brick" ? size : `${kind} ${size}`;
+  const { kind, label } = BRICK_PARTS[part];
+  return kind === "brick" ? label.replace(/^Brick /, "") : label.toLowerCase();
 }
 
 /** Detector confidence in the reader's number format: 0.94 in English, 0,94 in Indonesian. */

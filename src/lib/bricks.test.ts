@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import { expect, test } from "vitest";
 import {
   BRICK_COLORS,
+  BRICK_PARTS,
+  type BrickPartId,
   describePart,
   formatConfidence,
   formatPercent,
@@ -28,7 +30,17 @@ test("describePart reads as quantity, part and color in each language", () => {
 test("short labels keep bricks bare and name other kinds", () => {
   expect(shortPartLabel("brick-2x4")).toBe("2×4");
   expect(shortPartLabel("plate-1x2")).toBe("plate 1×2");
-  expect(shortPartLabel("slope-2x2")).toBe("slope 2×2");
+  expect(shortPartLabel("slope-2x2")).toBe("slope 45° 2×2");
+});
+
+// WCAG 2.5.3: a box is named by its full label, and its visible label has to
+// be part of that name.
+test("every short label is part of its full label", () => {
+  for (const part of Object.keys(BRICK_PARTS) as BrickPartId[]) {
+    expect(BRICK_PARTS[part].label.toLowerCase()).toContain(
+      shortPartLabel(part).toLowerCase(),
+    );
+  }
 });
 
 test("confidence follows the language's decimal separator", () => {
