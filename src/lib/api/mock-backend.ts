@@ -38,4 +38,5 @@ export const mockBackend: Backend = {
     asApiError(
       mock.getIdeas(scanId, theme, locale, { ...demoOptions(), ...options }),
     ),
+  getIdea: (scanId, ideaId) => mock.getIdea(scanId, ideaId, QUICK),
 };

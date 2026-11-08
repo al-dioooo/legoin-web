@@ -1,5 +1,5 @@
 import { beforeEach, expect, test } from "vitest";
-import { ApiError, createScan, getIdeas, getScan } from "@/lib/api";
+import { ApiError, createScan, getIdea, getIdeas, getScan } from "@/lib/api";
 import { SCAN_STAGES, type ScanStage } from "@/lib/domain";
 import { EVENING_PHOTO } from "@/lib/sample-scan";
 
@@ -50,4 +50,27 @@ test("ideas skip the ones already shown", async () => {
   for (const idea of next) {
     expect(first.map(({ id }) => id)).not.toContain(idea.id);
   }
+});
+
+test("an idea reads back with its set, as written, even in a failure demo", async () => {
+  visit("mockDelay=0");
+  const ideas = await getIdeas("demo-evening", "animals", "en");
+  // Reading stored ideas is quick and never fails on demand, like reading a scan.
+  visit("mock=fail-network");
+  expect(await getIdea("demo-evening", ideas[2].id)).toEqual({
+    idea: ideas[2],
+    set: { theme: "animals", locale: "en", items: ideas },
+  });
+  expect(await getIdea("demo-evening", "dragon")).toBeNull();
+  expect(await getIdea("nope", ideas[2].id)).toBeNull();
+});
+
+test("ideas skipped with exclude stay out of the kept set", async () => {
+  visit("mockDelay=0");
+  const first = await getIdeas("demo-desk", "buildings", "id");
+  const next = await getIdeas("demo-desk", "buildings", "id", {
+    exclude: first.map((idea) => idea.id),
+  });
+  expect((await getScan("demo-desk"))?.ideas?.items).toEqual(next);
+  expect(await getIdea("demo-desk", first[0].id)).toBeNull();
 });

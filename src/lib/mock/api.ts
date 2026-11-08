@@ -17,6 +17,7 @@ import {
   type Scan,
   type ScanFailure,
   type ScanStage,
+  type StoredIdea,
   type Theme,
 } from "@/lib/domain";
 import { applyChanges, checkInventory, toInventory } from "@/lib/inventory";
@@ -181,7 +182,8 @@ function freshFirst(templates: IdeaTemplate[], exclude: readonly string[]) {
 
 /**
  * Three ideas for a scan, in the requested language, each checked against the
- * scan's inventory. "surprise" picks one idea from every theme.
+ * scan's inventory. "surprise" picks one idea from every theme. The answer is
+ * saved on the scan as its `ideas`, replacing the ones before.
  *
  * For "Try other ideas", `exclude` lists the ids already shown, oldest first.
  * Ideas not shown yet come first; once they run out, the ones shown longest ago.
@@ -199,8 +201,6 @@ export function getIdeas(
     const scans = load();
     const scan = scans.find((candidate) => candidate.id === scanId);
     if (!scan) throw new Error(`No scan with id ${scanId}`);
-    scan.lastTheme = theme;
-    save(scans);
 
     const inventory = toInventory(scan.detections);
     const ofTheme = (ideaTheme: IdeaTheme) =>
@@ -215,7 +215,7 @@ export function getIdeas(
           )
         : ofTheme(theme).slice(0, IDEAS_PER_REQUEST);
 
-    return templates
+    const ideas: Idea[] = templates
       .filter((template) => template !== undefined)
       .map((template) => ({
         id: template.id,
@@ -226,5 +226,27 @@ export function getIdeas(
         steps: template.steps[locale],
         ...checkInventory(template.requires, inventory),
       }));
+
+    scan.lastTheme = theme;
+    scan.ideas = { theme, locale, items: ideas };
+    save(scans);
+    return ideas;
+  });
+}
+
+/**
+ * One idea from the scan's latest set, with that set, exactly as it was
+ * written: an idea asked for in English stays English. Null when the scan is
+ * gone or its latest set has no idea with this id.
+ */
+export function getIdea(
+  scanId: string,
+  ideaId: string,
+  options: MockOptions = {},
+): Promise<StoredIdea | null> {
+  return respond(options, () => {
+    const set = load().find((scan) => scan.id === scanId)?.ideas;
+    const idea = set?.items.find((item) => item.id === ideaId);
+    return set && idea ? { idea, set } : null;
   });
 }
