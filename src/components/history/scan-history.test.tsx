@@ -151,7 +151,8 @@ test("confirming deletes the scan and moves focus to the next one", async () => 
   expect(deleteScan).toHaveBeenCalledWith("evening");
   await waitFor(() => expect(screen.getAllByRole("article")).toHaveLength(1));
   expect(screen.getByRole("status").textContent).toBe("Scan deleted.");
-  expect(document.activeElement).toBe(opens(desk));
+  // Focus moves in an effect after the list re-renders; wait for it.
+  await waitFor(() => expect(document.activeElement).toBe(opens(desk)));
   expect(screen.getByText("1 scan")).toBeDefined();
 });
 
@@ -169,8 +170,11 @@ test("a failed delete keeps the scan and says so", async () => {
     ),
   );
   expect(screen.getAllByRole("article")).toHaveLength(2);
-  expect(document.activeElement).toBe(
-    within(first).getByRole("button", { name: /^Delete/ }),
+  // The button comes back after the status, and focus after the button.
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      within(first).getByRole("button", { name: /^Delete/ }),
+    ),
   );
 });
 
@@ -184,7 +188,8 @@ test("deleting the last scan leaves the empty state, focused", async () => {
   const heading = await screen.findByRole("heading", {
     name: en.history.empty.title,
   });
-  expect(document.activeElement).toBe(heading);
+  // Focus moves in an effect after the list re-renders; wait for it.
+  await waitFor(() => expect(document.activeElement).toBe(heading));
   expect(screen.getByRole("status").textContent).toBe("Scan deleted.");
 });
 
@@ -204,7 +209,7 @@ test("Clear my scans deletes them all after asking", async () => {
   });
   expect(deleteScan).toHaveBeenCalledWith("evening");
   expect(deleteScan).toHaveBeenCalledWith("desk");
-  expect(document.activeElement).toBe(heading);
+  await waitFor(() => expect(document.activeElement).toBe(heading));
   expect(screen.getByRole("status").textContent).toBe(en.history.clear.done);
 });
 
@@ -224,7 +229,7 @@ test("Clear my scans keeps the ones it couldn't delete", async () => {
     ),
   );
   expect(screen.getAllByRole("article")).toHaveLength(1);
-  expect(document.activeElement).toBe(opens(desk));
+  await waitFor(() => expect(document.activeElement).toBe(opens(desk)));
   // With one scan left, its own Delete is enough.
   expect(screen.queryByRole("button", { name: "Clear my scans" })).toBeNull();
 });
