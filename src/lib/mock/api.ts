@@ -24,6 +24,7 @@ import {
   DEMO_SCANS,
   detectionsForPhoto,
   IDEA_TEMPLATES,
+  type IdeaTemplate,
 } from "@/lib/mock/fixtures";
 
 const STORAGE_KEY = "legoin.mock.scans.v1";
@@ -167,15 +168,32 @@ export function deleteScan(id: string, options: MockOptions = {}) {
   });
 }
 
+const IDEAS_PER_REQUEST = 3;
+
+/** Ideas not shown yet first, in template order; then shown ones, longest ago first. */
+function freshFirst(templates: IdeaTemplate[], exclude: readonly string[]) {
+  const fresh = templates.filter((template) => !exclude.includes(template.id));
+  const shown = exclude.flatMap((id) =>
+    templates.filter((template) => template.id === id),
+  );
+  return [...fresh, ...shown];
+}
+
 /**
  * Three ideas for a scan, in the requested language, each checked against the
- * scan's inventory. "surprise" picks the first idea of every theme.
+ * scan's inventory. "surprise" picks one idea from every theme.
+ *
+ * For "Try other ideas", `exclude` lists the ids already shown, oldest first.
+ * Ideas not shown yet come first; once they run out, the ones shown longest ago.
  */
 export function getIdeas(
   scanId: string,
   theme: Theme,
   locale: Locale,
-  options: MockOptions = {},
+  {
+    exclude = [],
+    ...options
+  }: MockOptions & { exclude?: readonly string[] } = {},
 ): Promise<Idea[]> {
   return respond({ delayMs: 1200, ...options }, () => {
     const scans = load();
@@ -185,13 +203,17 @@ export function getIdeas(
     save(scans);
 
     const inventory = toInventory(scan.detections);
+    const ofTheme = (ideaTheme: IdeaTheme) =>
+      freshFirst(
+        IDEA_TEMPLATES.filter((template) => template.theme === ideaTheme),
+        exclude,
+      );
     const templates =
       theme === "surprise"
         ? (["vehicles", "animals", "buildings"] satisfies IdeaTheme[]).map(
-            (ideaTheme) =>
-              IDEA_TEMPLATES.find((template) => template.theme === ideaTheme),
+            (ideaTheme) => ofTheme(ideaTheme)[0],
           )
-        : IDEA_TEMPLATES.filter((template) => template.theme === theme);
+        : ofTheme(theme).slice(0, IDEAS_PER_REQUEST);
 
     return templates
       .filter((template) => template !== undefined)
