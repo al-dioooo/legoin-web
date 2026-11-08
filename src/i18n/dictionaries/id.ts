@@ -294,6 +294,15 @@ export const id: Dictionary = {
     newScan: "Pindai baru",
     lastTheme: "Tema terakhir: {theme}",
     ideas: "Lihat ide",
+    delete: {
+      action: "Hapus",
+      question:
+        "Hapus hasil pindai ini? Yang sudah dihapus tidak bisa kembali.",
+      confirm: "Hapus hasil pindai",
+      keep: "Batal",
+      done: "Hasil pindai dihapus.",
+      failed: "Kami tidak bisa menghapusnya. Coba lagi.",
+    },
     empty: {
       title: "Belum ada hasil pindai",
       body: "Potret kepinganmu, dan hasil pindainya tersimpan di sini, di peramban ini.",

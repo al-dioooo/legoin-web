@@ -1,13 +1,19 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 import { ScanHistory } from "@/components/history/scan-history";
 import { en } from "@/i18n/dictionaries/en";
 import { id } from "@/i18n/dictionaries/id";
 import { formatDate } from "@/i18n/format";
-import { listScans } from "@/lib/api";
+import { deleteScan, listScans } from "@/lib/api";
 import type { Detection, Scan } from "@/lib/domain";
 
-vi.mock("@/lib/api", () => ({ listScans: vi.fn() }));
+vi.mock("@/lib/api", () => ({ listScans: vi.fn(), deleteScan: vi.fn() }));
 
 const copyFor = (dict: typeof en) => ({
   history: dict.history,
@@ -50,6 +56,7 @@ function showHistory(scans: Scan[], locale: "en" | "id" = "en") {
 
 beforeEach(() => {
   vi.mocked(listScans).mockReset();
+  vi.mocked(deleteScan).mockReset().mockResolvedValue(undefined);
 });
 
 test("lists scans in the order the data layer gives, newest first", async () => {
@@ -95,6 +102,79 @@ test("reads in Indonesian, dates included", async () => {
   expect(within(card).getByText("8 kepingan")).toBeDefined();
   expect(within(card).getByText("Tema terakhir: Hewan")).toBeDefined();
   expect(opens(evening, "id").getAttribute("href")).toBe("/id/scan/evening");
+  expect(within(card).getByRole("button", { name: /^Hapus/ })).toBeDefined();
+});
+
+test("delete asks first, and keeping the scan puts focus back", async () => {
+  showHistory([evening, desk]);
+  const [first] = await screen.findAllByRole("article");
+
+  const remove = within(first).getByRole("button", { name: /^Delete/ });
+  // Each delete button says which scan it deletes.
+  expect(remove.textContent).toContain(formatDate(evening.createdAt, "en"));
+  fireEvent.click(remove);
+
+  const question = within(first).getByRole("group", {
+    name: en.history.delete.question,
+  });
+  const keep = within(question).getByRole("button", { name: "Keep it" });
+  expect(document.activeElement).toBe(keep);
+  expect(deleteScan).not.toHaveBeenCalled();
+
+  fireEvent.click(keep);
+  expect(within(first).queryByRole("group")).toBeNull();
+  expect(document.activeElement).toBe(
+    within(first).getByRole("button", { name: /^Delete/ }),
+  );
+  expect(deleteScan).not.toHaveBeenCalled();
+  expect(screen.getAllByRole("article")).toHaveLength(2);
+});
+
+test("confirming deletes the scan and moves focus to the next one", async () => {
+  showHistory([evening, desk]);
+  const [first] = await screen.findAllByRole("article");
+
+  fireEvent.click(within(first).getByRole("button", { name: /^Delete/ }));
+  fireEvent.click(within(first).getByRole("button", { name: /^Delete scan/ }));
+
+  expect(deleteScan).toHaveBeenCalledWith("evening");
+  await waitFor(() => expect(screen.getAllByRole("article")).toHaveLength(1));
+  expect(screen.getByRole("status").textContent).toBe("Scan deleted.");
+  expect(document.activeElement).toBe(opens(desk));
+  expect(screen.getByText("1 scan")).toBeDefined();
+});
+
+test("a failed delete keeps the scan and says so", async () => {
+  vi.mocked(deleteScan).mockRejectedValue(new Error("offline"));
+  showHistory([evening, desk]);
+  const [first] = await screen.findAllByRole("article");
+
+  fireEvent.click(within(first).getByRole("button", { name: /^Delete/ }));
+  fireEvent.click(within(first).getByRole("button", { name: /^Delete scan/ }));
+
+  await waitFor(() =>
+    expect(screen.getByRole("status").textContent).toBe(
+      en.history.delete.failed,
+    ),
+  );
+  expect(screen.getAllByRole("article")).toHaveLength(2);
+  expect(document.activeElement).toBe(
+    within(first).getByRole("button", { name: /^Delete/ }),
+  );
+});
+
+test("deleting the last scan leaves the empty state, focused", async () => {
+  showHistory([desk]);
+  const card = await screen.findByRole("article");
+
+  fireEvent.click(within(card).getByRole("button", { name: /^Delete/ }));
+  fireEvent.click(within(card).getByRole("button", { name: /^Delete scan/ }));
+
+  const heading = await screen.findByRole("heading", {
+    name: en.history.empty.title,
+  });
+  expect(document.activeElement).toBe(heading);
+  expect(screen.getByRole("status").textContent).toBe("Scan deleted.");
 });
 
 test("with no scans, the empty state leads to a first scan", async () => {

@@ -288,6 +288,14 @@ export const en = {
     newScan: "New scan",
     lastTheme: "Last theme: {theme}",
     ideas: "See ideas",
+    delete: {
+      action: "Delete",
+      question: "Delete this scan? You can't get it back.",
+      confirm: "Delete scan",
+      keep: "Keep it",
+      done: "Scan deleted.",
+      failed: "We couldn't delete that scan. Try again.",
+    },
     empty: {
       title: "No scans yet",
       body: "Photograph your pieces and the scan is saved here, in this browser.",
