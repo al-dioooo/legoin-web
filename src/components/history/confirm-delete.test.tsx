@@ -72,7 +72,10 @@ test("confirms once, and comes back to try again if deleting fails", async () =>
 
   finish(false);
   await waitFor(() => expect(screen.queryByRole("group")).toBeNull());
-  expect(document.activeElement).toBe(
-    screen.getByRole("button", { name: "Delete" }),
+  // Focus moves in an effect once the button is back; wait for it.
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Delete" }),
+    ),
   );
 });

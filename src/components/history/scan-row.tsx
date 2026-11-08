@@ -11,15 +11,19 @@ import type { Locale } from "@/i18n/locales";
 import type { Scan } from "@/lib/domain";
 
 export type ScanRowCopy = {
-  history: Pick<Dictionary["history"], "lastTheme" | "ideas" | "delete">;
+  history: Pick<
+    Dictionary["history"],
+    "lastTheme" | "ideas" | "ideaList" | "delete"
+  >;
   themes: Dictionary["ideas"]["picker"]["themes"];
   pieces: Dictionary["common"]["pieces"];
 };
 
 /**
  * One past scan on a die-cut card: its photo, when it was scanned, how many
- * pieces it found and the theme last asked for. The whole card opens the scan;
- * the shortcut back to its ideas and the delete button sit above that link.
+ * pieces it found, the theme last asked for and the ideas it keeps. The whole
+ * card opens the scan; each idea, the shortcut back to its ideas and the
+ * delete button sit above that link.
  */
 export function ScanRow({
   scan,
@@ -39,6 +43,7 @@ export function ScanRow({
   const titleId = useId();
   const date = formatDate(scan.createdAt, locale);
   const theme = scan.lastTheme;
+  const kept = scan.ideas;
 
   return (
     <article
@@ -76,7 +81,36 @@ export function ScanRow({
             })}
           </p>
         )}
-        {/* The ideas this scan got go here once ideas are stored (#19). */}
+        {kept && kept.items.length > 0 && (
+          <ul
+            aria-label={copy.history.ideaList}
+            className="mt-2 flex flex-col items-start gap-1"
+          >
+            {kept.items.map((idea) => (
+              <li key={idea.id} className="max-w-full">
+                {/* Positioned, so it stays clickable above the card's link. */}
+                <Link
+                  href={`/${locale}/scan/${scan.id}/ideas/${encodeURIComponent(idea.id)}?theme=${kept.theme}`}
+                  className="group relative flex min-h-6 items-start gap-2 rounded-sm py-0.5 text-sm font-semibold transition-colors hover:bg-highlight"
+                >
+                  {/* A stud for a bullet. */}
+                  <span
+                    aria-hidden="true"
+                    className="mt-1.5 size-2 shrink-0 rounded-full border-2 border-ink group-hover:bg-ink"
+                  />
+                  {/* Ideas keep the language they were written in (ADR-0004). */}
+                  <span
+                    lang={kept.locale}
+                    className="min-w-0 break-words underline decoration-2 underline-offset-4"
+                  >
+                    {idea.title}
+                  </span>
+                  <span className="sr-only">, {date}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       {/* Positioned after the stretched link, so these stay clickable above it. */}
       <div className="relative col-span-2 flex flex-wrap items-start gap-2">

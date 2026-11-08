@@ -135,7 +135,7 @@ UI primitives live in `src/components/ui`, the logo in `src/components/brand`.
 | `ThemePicker` | Theme radio group of native radios: `cards` for the first choice, `compact` pills to switch theme in place (`src/components/ideas`) |
 | `IdeaCard` | One build idea in a list: difficulty, pieces used and missing (or "Uses only your pieces"), and a link to its steps (`src/components/ideas`) |
 | `IdeaDetail` | One idea in full, laid out as a booklet page: parts used, a "What you're missing" summary whose counts add up, numbered steps that click in, and links to the ideas beside it (`src/components/ideas`) |
-| `ScanRow` | One past scan in history: photo, date, piece count and last theme; the card opens the scan (`src/components/history`) |
+| `ScanRow` | One past scan in history: photo, date, piece count, last theme and the titles of the ideas it keeps, each linking to its idea in the language it was written in; the card opens the scan (`src/components/history`) |
 | `ConfirmDelete` | `danger` button that asks in place before deleting, with focus on "Keep it"; Escape backs out (`src/components/history`) |
 
 The brick catalogue lives in `src/lib/bricks.ts`. To add a color, add `--brick-<id>` to `tokens.css` and an entry to `BRICK_COLORS`; a test checks that the two match.
