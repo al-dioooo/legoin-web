@@ -133,13 +133,105 @@ test("a label that would cover another piece's box goes", () => {
   expect(fitted[0]).toMatchObject({ id: "a", name: "a", label: "" });
 });
 
-test("a label the photo's edge would cut off goes, unless it's selected", () => {
+/** A photo drawn about 300px wide, as on a 360px phone. */
+const phone = { width: 300, height: 200 };
+/** A selected round 1×1 at (x, y) on `phone`, in fractions; its label is 127px wide. */
+const round = (id: string, x: number, y: number): LabeledBox => ({
+  id,
+  box: { x, y, width: 0.04, height: 0.08 },
+  label: "round 1×1 · 0.55",
+  name: id,
+  selected: true,
+  flagged: false,
+});
+const placement = (boxes: LabeledBox[]) =>
+  boxes.map(({ placement }) => placement);
+const placeOne = (box: LabeledBox) => fitLabels([box], phone)[0].placement;
+
+test("labels sit above their box, lined up with its left side", () => {
+  expect(placeOne(round("left", 0.2, 0.5))).toEqual({
+    side: "above",
+    align: "left",
+  });
+});
+
+test("near the photo's right edge, a label lines up with its box's right side", () => {
+  // Lined up left, the label would end at 335px, past the 300px edge.
+  // Lined up right, it runs from 97px to 224px.
+  expect(placeOne(round("right", 0.7, 0.5))).toEqual({
+    side: "above",
+    align: "right",
+  });
+});
+
+test("at the photo's top edge, a big box holds its label just inside its top", () => {
+  // 4px from the top leaves no room for a 20px label above. The box is
+  // 180 × 60px, so the 127px label covers less than half of it.
+  const big = {
+    ...round("big", 0.1, 0.02),
+    box: { x: 0.1, y: 0.02, width: 0.6, height: 0.3 },
+  };
+  expect(placeOne(big)).toEqual({ side: "inside", align: "left" });
+});
+
+test("at the photo's top edge, a small box's label goes just below it", () => {
+  // Inside, the label would hide the 12 × 16px piece, so it goes below.
+  expect(placeOne(round("top", 0.2, 0.05))).toEqual({
+    side: "below",
+    align: "left",
+  });
+  // In the top right corner, it goes below and lines up right.
+  expect(placeOne(round("corner", 0.9, 0))).toEqual({
+    side: "below",
+    align: "right",
+  });
+  // On a photo too short for room below, it stays inside after all.
+  const strip = { ...round("strip", 0.2, 0.05), selected: false };
+  expect(fitLabels([strip], { width: 300, height: 24 })[0].placement).toEqual({
+    side: "inside",
+    align: "left",
+  });
+});
+
+test("the selected box's lift leaves room for its label above", () => {
+  // 28px from the top holds a label above, until the box lifts 6px and tilts.
+  const near = round("near", 0.2, 0.14);
+  expect(placeOne({ ...near, selected: false })?.side).toBe("above");
+  expect(placeOne(near)?.side).toBe("below");
+});
+
+test("labels that move to fit the photo are kept, not dropped", () => {
   const top = at("top", 400, 10);
-  const right = at("right", 980, 400);
-  expect(shown(fitLabels([top, right], photo))).toEqual([]);
-  expect(shown(fitLabels([{ ...top, selected: true }], photo))).toEqual([
-    "top",
+  const right = at("right", 940, 400, { label: "plate 2×2" });
+  const fitted = fitLabels([top, right], photo);
+  expect(shown(fitted)).toEqual(["top", "right"]);
+  expect(placement(fitted)).toEqual([
+    { side: "inside", align: "left" },
+    { side: "above", align: "right" },
   ]);
+});
+
+test("a label the photo is too narrow to hold goes, unless it's selected", () => {
+  // 100px across, the label is cut off whichever side it lines up with.
+  const narrow = { width: 100, height: 100 };
+  const piece = round("piece", 0.4, 0.5);
+  expect(shown(fitLabels([{ ...piece, selected: false }], narrow))).toEqual([]);
+  // Selected, it keeps its label on the side that loses less.
+  const [kept] = fitLabels([piece], narrow);
+  expect(kept.label).toBe(piece.label);
+  expect(kept.placement).toEqual({ side: "above", align: "left" });
+});
+
+test("a label that moves is checked where it lands", () => {
+  // Lined up right, the label reaches back to the left, over the neighbor.
+  const edge = {
+    ...round("edge", 0.8, 0.5),
+    selected: false,
+    label: "plate 1×2",
+  };
+  const neighbor = { ...round("neighbor", 0.62, 0.45), selected: false };
+  expect(shown(fitLabels([edge], phone))).toEqual(["edge"]);
+  expect(shown(fitLabels([edge, neighbor], phone))).toEqual(["neighbor"]);
 });
 
 test("the selected piece keeps its label, then flagged pieces win", () => {
