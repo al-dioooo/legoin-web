@@ -288,7 +288,22 @@ export const id: Dictionary = {
   },
   history: {
     title: "Riwayat pindai",
-    lead: "Pindaian sebelumnya dan ide rakitannya akan muncul di sini.",
+    lead: "Hasil pindai tersimpan di peramban ini. Buka salah satunya untuk melihat lagi kepingan dan idenya.",
+    loading: "Memuat hasil pindaimu…",
+    count: { one: "{count} hasil pindai", other: "{count} hasil pindai" },
+    newScan: "Pindai baru",
+    lastTheme: "Tema terakhir: {theme}",
+    ideas: "Lihat ide",
+    empty: {
+      title: "Belum ada hasil pindai",
+      body: "Potret kepinganmu, dan hasil pindainya tersimpan di sini, di peramban ini.",
+      action: "Mulai pindai",
+    },
+    failed: {
+      title: "Kami tidak bisa memuat hasil pindaimu",
+      body: "Coba lagi sebentar lagi. Hasil pindaimu tetap tersimpan di peramban ini.",
+      retry: "Coba lagi",
+    },
   },
   states: {
     notFound: {
