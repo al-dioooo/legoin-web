@@ -96,6 +96,9 @@ export type IdeaSet = {
   items: Idea[];
 };
 
+/** A stored idea and the set it belongs to, as written. */
+export type StoredIdea = { idea: Idea; set: IdeaSet };
+
 /** A correction to a scan's detections. */
 export type DetectionChange =
   | { type: "edit"; id: string; part?: BrickPartId; color?: BrickColorId }

@@ -3,6 +3,7 @@ import { toInventory } from "@/lib/inventory";
 import {
   createScan,
   deleteScan,
+  getIdea,
   getIdeas,
   getScan,
   listScans,
@@ -84,6 +85,23 @@ test("the latest ideas are kept on the scan with their theme and language", asyn
   });
 });
 
+test("a kept idea reads back with its set, in the language it was written in", async () => {
+  const ideas = await getIdeas("demo-evening", "animals", "id", fast);
+  const stored = await getIdea("demo-evening", ideas[1].id, fast);
+  expect(stored?.idea).toEqual(ideas[1]);
+  expect(stored?.idea.title).toBe("Kura-kura");
+  expect(stored?.set).toMatchObject({ theme: "animals", locale: "id" });
+  expect(ids(stored?.set.items ?? [])).toEqual(ids(ideas));
+});
+
+test("an unknown scan or idea, or a scan without ideas yet, has no idea", async () => {
+  expect(await getIdea("demo-desk", "race-car", fast)).toBeNull();
+  await getIdeas("demo-desk", "vehicles", "en", fast);
+  expect(await getIdea("demo-desk", "race-car", fast)).not.toBeNull();
+  expect(await getIdea("demo-desk", "dragon", fast)).toBeNull();
+  expect(await getIdea("nope", "race-car", fast)).toBeNull();
+});
+
 test("other ideas replace the kept ones", async () => {
   const first = await getIdeas("demo-evening", "vehicles", "en", fast);
   const second = await getIdeas("demo-evening", "vehicles", "en", {
@@ -92,6 +110,10 @@ test("other ideas replace the kept ones", async () => {
   });
   const kept = (await getScan("demo-evening", fast))?.ideas;
   expect(ids(kept?.items ?? [])).toEqual(ids(second));
+  expect(await getIdea("demo-evening", first[0].id, fast)).toBeNull();
+  expect((await getIdea("demo-evening", second[0].id, fast))?.idea).toEqual(
+    second[0],
+  );
 });
 
 test("a failed request keeps the ideas from before", async () => {

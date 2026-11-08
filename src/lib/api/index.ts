@@ -10,7 +10,14 @@ import {
   type GetIdeasOptions,
   inOrder,
 } from "@/lib/api/backend";
-import type { DetectionChange, Idea, Photo, Scan, Theme } from "@/lib/domain";
+import type {
+  DetectionChange,
+  Idea,
+  Photo,
+  Scan,
+  StoredIdea,
+  Theme,
+} from "@/lib/domain";
 
 export type { CreateScanOptions, GetIdeasOptions } from "@/lib/api/backend";
 export { ApiError } from "@/lib/api/error";
@@ -70,4 +77,17 @@ export function getIdeas(
   { exclude }: GetIdeasOptions = {},
 ): Promise<Idea[]> {
   return backend.getIdeas(scanId, theme, locale, { exclude });
+}
+
+/**
+ * One idea from the scan's latest set, with that set (its theme, its language
+ * and the ideas around it). Ideas come back in the language they were written
+ * in, never translated; compare `set.locale` with the page's. Null when the
+ * scan is gone or its latest set has no such idea.
+ */
+export function getIdea(
+  scanId: string,
+  ideaId: string,
+): Promise<StoredIdea | null> {
+  return backend.getIdea(scanId, ideaId);
 }

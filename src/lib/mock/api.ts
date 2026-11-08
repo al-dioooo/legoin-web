@@ -17,6 +17,7 @@ import {
   type Scan,
   type ScanFailure,
   type ScanStage,
+  type StoredIdea,
   type Theme,
 } from "@/lib/domain";
 import { applyChanges, checkInventory, toInventory } from "@/lib/inventory";
@@ -230,5 +231,22 @@ export function getIdeas(
     scan.ideas = { theme, locale, items: ideas };
     save(scans);
     return ideas;
+  });
+}
+
+/**
+ * One idea from the scan's latest set, with that set, exactly as it was
+ * written: an idea asked for in English stays English. Null when the scan is
+ * gone or its latest set has no idea with this id.
+ */
+export function getIdea(
+  scanId: string,
+  ideaId: string,
+  options: MockOptions = {},
+): Promise<StoredIdea | null> {
+  return respond(options, () => {
+    const set = load().find((scan) => scan.id === scanId)?.ideas;
+    const idea = set?.items.find((item) => item.id === ideaId);
+    return set && idea ? { idea, set } : null;
   });
 }

@@ -10,6 +10,7 @@ import {
   SCAN_STAGES,
   type Scan,
   type ScanStage,
+  type StoredIdea,
   type Theme,
 } from "@/lib/domain";
 
@@ -37,6 +38,7 @@ export type Backend = {
     locale: Locale,
     options: GetIdeasOptions,
   ): Promise<Idea[]>;
+  getIdea(scanId: string, ideaId: string): Promise<StoredIdea | null>;
 };
 
 /**
