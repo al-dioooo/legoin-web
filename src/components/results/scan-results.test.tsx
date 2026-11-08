@@ -104,3 +104,22 @@ test("demo photos with boxes carry no demo note", async () => {
   await screen.findByText("8 pieces");
   expect(screen.queryByRole("note")).toBeNull();
 });
+
+test("picking a line far down the inventory brings the piece panel back", async () => {
+  render(<ScanResults copy={copy} locale="en" />);
+  await screen.findByText("8 pieces");
+  const panel = screen.getByRole("region", { name: "Selected piece" });
+  const scrollIntoView = vi.fn();
+  panel.scrollIntoView = scrollIntoView;
+
+  // In view: nothing moves.
+  fireEvent.click(inventoryTile("Plate 2×4"));
+  expect(scrollIntoView).not.toHaveBeenCalled();
+
+  // Scrolled away above the list: it comes back.
+  panel.getBoundingClientRect = () => ({ top: -400 }) as DOMRect;
+  fireEvent.click(inventoryTile("Brick 2×3"));
+  expect(scrollIntoView).toHaveBeenCalledWith(
+    expect.objectContaining({ block: "start" }),
+  );
+});

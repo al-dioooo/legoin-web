@@ -91,6 +91,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   /** Set when a change removes the last piece, so focus lands on the empty state. */
   const focusEmpty = useRef(false);
   const photoFrame = useRef<HTMLDivElement>(null);
+  const piecePanel = useRef<HTMLElement>(null);
   /** The photo frame's width on screen; 0 until measured. */
   const [frameWidth, setFrameWidth] = useState(0);
 
@@ -220,6 +221,15 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
     );
     const index = group.findIndex((d) => d.id === selectedId);
     select(group[(index + 1) % group.length]?.id ?? null);
+    // Far down a long inventory the piece panel has scrolled away; bring it
+    // back so the pick shows, with its controls.
+    const panel = piecePanel.current;
+    if (panel && panel.getBoundingClientRect().top < 0) {
+      panel.scrollIntoView?.({
+        block: "start",
+        behavior: prefersReducedMotion() ? "auto" : "smooth",
+      });
+    }
   }
 
   /** Saves changes, remembers how to undo them, and says what happened. */
@@ -404,7 +414,8 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
       <div className="space-y-[calc(var(--stud)*1.5)] lg:relative lg:z-10 lg:col-span-4 lg:col-start-9 lg:pt-[calc(var(--stud)*5)]">
         {!empty && (
           <PieceDetail
-            className="lg:-ml-[calc(var(--stud)*2)]"
+            ref={piecePanel}
+            className="scroll-mt-stud lg:-ml-[calc(var(--stud)*2)]"
             detection={selected}
             locale={locale}
             copy={
