@@ -26,6 +26,8 @@ export function localizedPath(pathname: string, locale: Locale) {
 /**
  * A page's `hreflang` alternates for `generateMetadata`: the same page in every
  * language. Pass the path without its prefix, e.g. "/scan" or "/" for home.
+ * A path built from `params`, e.g. `/scan/${id}`, needs `<UrlMetadataMarker />`
+ * on the page too; see `url-metadata.tsx`.
  */
 export function languageAlternates(path: string) {
   return {
