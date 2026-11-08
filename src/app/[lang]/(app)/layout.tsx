@@ -4,21 +4,20 @@ import { StepNumeral } from "@/components/app/step-numeral";
 import { StepProgress } from "@/components/app/step-progress";
 import { Logo } from "@/components/brand/logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
-import { StudGlow } from "@/components/motion/stud-glow";
 import { buttonStyles } from "@/components/ui/button";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
 
 /**
- * Shell for the scan flow and history: a baseplate the screens are built on,
- * with the logo, step progress, history and language on top.
+ * Shell for the scan flow and history: the logo, step progress, history and
+ * language on top, and the step numeral behind the page. The baseplate under
+ * it all comes from the root layout.
  */
 export default async function AppLayout({ children }: LayoutProps<"/[lang]">) {
   const locale = await currentLocale();
   const dict = await getDictionary();
 
   return (
-    <div className="baseplate flex flex-1 flex-col overflow-x-clip">
-      <StudGlow />
+    <>
       <header className="mx-auto flex w-full max-w-(--plate-width) flex-wrap items-center gap-3 px-stud pt-stud">
         <Link
           href={`/${locale}`}
@@ -61,6 +60,6 @@ export default async function AppLayout({ children }: LayoutProps<"/[lang]">) {
         </Suspense>
         {children}
       </main>
-    </div>
+    </>
   );
 }

@@ -5,6 +5,7 @@ import {
   applyChanges,
   checkInventory,
   inverseChanges,
+  sameInventory,
   toInventory,
 } from "@/lib/inventory";
 
@@ -122,4 +123,33 @@ test("inverseChanges undoes edits, removals and additions", () => {
 
 test("nothing to undo when nothing changed", () => {
   expect(inverseChanges(detections, detections)).toEqual([]);
+});
+
+test("sameInventory compares counts per part and color, not pieces", () => {
+  // Confirming a flagged piece as it was, in any order, changes nothing.
+  const confirmed = applyChanges(
+    [...detections].reverse(),
+    [{ type: "edit", id: "c", part: "brick-2x2", color: "black" }],
+    () => "new",
+  );
+  expect(sameInventory(detections, confirmed)).toBe(true);
+  expect(sameInventory([], [])).toBe(true);
+
+  const recolored = applyChanges(
+    detections,
+    [{ type: "edit", id: "c", color: "dark-gray" }],
+    () => "new",
+  );
+  expect(sameInventory(detections, recolored)).toBe(false);
+  // Same groups, different counts.
+  const swapped = applyChanges(
+    detections,
+    [
+      { type: "remove", id: "a" },
+      { type: "add", part: "tile-1x2", color: "light-gray", quantity: 1 },
+    ],
+    () => "new",
+  );
+  expect(sameInventory(detections, swapped)).toBe(false);
+  expect(sameInventory(detections, detections.slice(1))).toBe(false);
 });

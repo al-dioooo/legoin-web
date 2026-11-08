@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { IdeaCard } from "@/components/ideas/idea-card";
 import { ThemePicker } from "@/components/ideas/theme-picker";
 import { Button, buttonStyles } from "@/components/ui/button";
@@ -27,10 +27,11 @@ type ScanState =
 /** Another ask for the same theme: other ideas or a retry. */
 type Ask = { theme: Theme; exclude: string[]; attempt: number };
 
-/** A finished request, kept with the key it was asked under. */
-type IdeasResult =
-  | { key: string; ideas: Idea[] }
-  | { key: string; failed: true };
+/**
+ * How the last ask went, with the key it was asked under. The ideas themselves
+ * are read from the scan's kept set, which every answer replaces.
+ */
+type Answer = { key: string; failed: boolean };
 
 const NONE: string[] = [];
 
@@ -54,6 +55,10 @@ export function IdeasLoading({ label }: { label: string }) {
  * Ideas step (PRD F6–F7). Without `?theme=` it asks for a theme, preselecting
  * the one used last; with it, it shows ideas for that theme and lets people
  * switch theme in place.
+ *
+ * Ideas the scan already keeps for this theme, in this language, are shown
+ * without asking again, so coming back costs no wait and keeps the same ideas.
+ * Other ideas, a retry and a theme the kept set isn't for always ask.
  */
 export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
   const { id } = useParams<{ id: string }>();
@@ -66,18 +71,43 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
   const [scanState, setScanState] = useState<ScanState>({ kind: "loading" });
   const [choice, setChoice] = useState<Theme | null>(null);
   const [ask, setAsk] = useState<Ask | null>(null);
-  const [result, setResult] = useState<IdeasResult | null>(null);
+  const [answer, setAnswer] = useState<Answer | null>(null);
+  // An ask on its way, so showing the page again waits for it instead of
+  // sending it twice.
+  const pending = useRef<{ key: string; ideas: Promise<Idea[]> } | null>(null);
   // A new theme starts over; asks for an earlier theme no longer apply.
   const current = ask && ask.theme === theme ? ask : null;
   const exclude = current?.exclude ?? NONE;
   const attempt = current?.attempt ?? 0;
   const key = `${theme}:${attempt}`;
 
+  const scan = scanState.kind === "ready" ? scanState.scan : null;
+  // Ideas aren't translated (ADR-0004), so a set in the other language doesn't
+  // count; neither does one a correction dropped.
+  const kept =
+    scan?.ideas?.theme === theme && scan.ideas.locale === locale
+      ? scan.ideas.items
+      : null;
+  const answered = answer?.key === key ? answer : null;
+  const failed = answered?.failed === true;
+  // Other ideas and retries wait for their own answer.
+  const ideas = !failed && (attempt === 0 || answered) ? kept : null;
+  const shouldAsk =
+    theme !== null &&
+    scan !== null &&
+    scan.detections.length > 0 &&
+    !failed &&
+    ideas === null;
+
   useEffect(() => {
     let active = true;
-    void getScan(id).then((scan) => {
+    // Runs again when Next shows this page again, so a dropped or replaced
+    // set doesn't linger.
+    void getScan(id).then((found) => {
       if (active)
-        setScanState(scan ? { kind: "ready", scan } : { kind: "missing" });
+        setScanState(
+          found ? { kind: "ready", scan: found } : { kind: "missing" },
+        );
     });
     return () => {
       active = false;
@@ -85,20 +115,44 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
   }, [id]);
 
   useEffect(() => {
-    if (!theme) return;
+    if (!shouldAsk || !theme) return;
     let active = true;
     const asked = `${theme}:${attempt}`;
-    getIdeas(id, theme, locale, { exclude })
-      .then((ideas) => {
-        if (active) setResult({ key: asked, ideas });
-      })
-      .catch(() => {
-        if (active) setResult({ key: asked, failed: true });
+    const answering =
+      pending.current?.key === asked
+        ? pending.current.ideas
+        : getIdeas(id, theme, locale, { exclude });
+    pending.current = { key: asked, ideas: answering };
+    answering
+      .then(
+        (items) => {
+          // The scan keeps these now, even if the page moved on, so it never
+          // shows a set the scan no longer has.
+          setScanState((state) =>
+            state.kind === "ready"
+              ? {
+                  kind: "ready",
+                  scan: {
+                    ...state.scan,
+                    lastTheme: theme,
+                    ideas: { theme, locale, items },
+                  },
+                }
+              : state,
+          );
+          if (active) setAnswer({ key: asked, failed: false });
+        },
+        () => {
+          if (active) setAnswer({ key: asked, failed: true });
+        },
+      )
+      .finally(() => {
+        if (pending.current?.ideas === answering) pending.current = null;
       });
     return () => {
       active = false;
     };
-  }, [id, theme, locale, exclude, attempt]);
+  }, [id, theme, locale, exclude, attempt, shouldAsk]);
 
   /** The same page with another theme, keeping the demo options. */
   function themeHref(next: Theme) {
@@ -171,9 +225,7 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
     );
   }
 
-  const view = result?.key === key ? result : null;
-  const ideas = view && "ideas" in view ? view.ideas : null;
-  const failed = view !== null && "failed" in view;
+  const loading = !ideas && !failed;
   const status = failed
     ? ""
     : !ideas
@@ -183,7 +235,7 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
         : plural(copy.ideas.found, ideas.length, locale);
 
   // Stays while other ideas load, so keyboard focus isn't lost.
-  const canTryOthers = (ideas?.length ?? 0) > 0 || (!view && attempt > 0);
+  const canTryOthers = (ideas?.length ?? 0) > 0 || (loading && attempt > 0);
 
   // Shown ideas move to the end of `exclude`, so the mock offers unseen ones
   // first, then the ones shown longest ago.
@@ -228,7 +280,7 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
         </div>
       )}
 
-      {!view && (
+      {loading && (
         <div aria-hidden="true" className="mt-4 grid gap-5 lg:grid-cols-3">
           {[0, 1, 2].map((index) => (
             <div

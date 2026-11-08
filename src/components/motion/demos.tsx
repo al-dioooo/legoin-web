@@ -21,7 +21,6 @@ import {
   useReducedMotion,
 } from "@/components/motion/reduced-motion";
 import { ScannerSweep } from "@/components/motion/scanner";
-import { StudGlow } from "@/components/motion/stud-glow";
 import { BrickGlyph } from "@/components/ui/brick-glyph";
 import { Button } from "@/components/ui/button";
 import { DetectedPhoto } from "@/components/ui/detected-photo";
@@ -45,8 +44,9 @@ type PreviewState = {
 const ReducedPreview = createContext<PreviewState | null>(null);
 
 /**
- * The showcase page on a baseplate. A `ReducedMotionSwitch` anywhere inside
- * previews reduced motion for all of it. The system setting always wins.
+ * The showcase page. A `ReducedMotionSwitch` anywhere inside previews reduced
+ * motion for all of it, the baseplate's pointer glow included (see
+ * `globals.css`). The system setting always wins.
  */
 export function MotionShowcase({ children }: { children: ReactNode }) {
   const [preview, setPreview] = useState(false);
@@ -63,9 +63,8 @@ export function MotionShowcase({ children }: { children: ReactNode }) {
       >
         <div
           data-motion={preview ? "reduce" : undefined}
-          className="baseplate flex flex-1 flex-col overflow-x-clip"
+          className="flex flex-1 flex-col"
         >
-          <StudGlow />
           {children}
         </div>
       </ReducedPreview>

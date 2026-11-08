@@ -264,7 +264,7 @@ export const id: Dictionary = {
     },
     missing: {
       title: "Kami tidak menemukan ide itu",
-      body: "Meminta ide baru menggantikan ide sebelumnya, jadi ide ini mungkin sudah tidak ada.",
+      body: "Ide baru menggantikan ide sebelumnya, dan memperbaiki kepinganmu menghapusnya, jadi ide ini mungkin sudah tidak ada.",
       action: "Lihat idemu",
     },
     failed: {
@@ -463,6 +463,7 @@ export const id: Dictionary = {
     title: { before: "Sistem ", sticker: "desain" },
     intro:
       "Gaya ballers-addict dengan warna LEGO: kertas, garis tinta, bayangan keras, dan stiker. Merah untuk aksi, kuning untuk sorotan, warna kepingan hanya untuk kepingan.",
+    motion: "Gerak & interaksi",
     colors: {
       title: "Warna",
       description:

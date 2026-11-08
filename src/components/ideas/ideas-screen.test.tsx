@@ -1,4 +1,12 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
+import { Activity, type ReactNode } from "react";
 import { beforeEach, expect, test, vi } from "vitest";
 import { IdeasScreen } from "@/components/ideas/ideas-screen";
 import { en } from "@/i18n/dictionaries/en";
@@ -13,6 +21,15 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(route.search),
   useRouter: () => ({ push, replace }),
 }));
+// The real data layer, watched, to tell showing kept ideas from asking again.
+vi.mock("@/lib/api", async (importOriginal) => {
+  const api = await importOriginal<typeof import("@/lib/api")>();
+  return {
+    ...api,
+    getScan: vi.fn(api.getScan),
+    getIdeas: vi.fn(api.getIdeas),
+  };
+});
 
 const copyFor = (dict: typeof en) => ({
   ideas: dict.ideas,
@@ -43,7 +60,27 @@ beforeEach(() => {
   visit("");
   push.mockClear();
   replace.mockClear();
+  vi.mocked(getScan).mockClear();
+  vi.mocked(getIdeas).mockClear();
 });
+
+/** Ideas asked for before the page opens, as an earlier visit would have. */
+async function askedBefore(
+  theme: "animals" | "vehicles",
+  locale: "en" | "id" = "en",
+) {
+  const page = window.location.href;
+  window.history.replaceState(null, "", "/en/scan?mockDelay=0");
+  const ideas = await getIdeas(route.id, theme, locale);
+  window.history.replaceState(null, "", page);
+  vi.mocked(getIdeas).mockClear();
+  return ideas;
+}
+
+const titles = () =>
+  screen
+    .getAllByRole("article")
+    .map((card) => within(card).getByRole("heading").textContent);
 
 test("asks for a theme, with Surprise me selected by default", async () => {
   render(<IdeasScreen copy={copy} locale="en" />);
@@ -56,8 +93,7 @@ test("asks for a theme, with Surprise me selected by default", async () => {
 });
 
 test("preselects the theme used last", async () => {
-  visit("mockDelay=0");
-  await getIdeas("demo-evening", "animals", "en");
+  await askedBefore("animals");
   render(<IdeasScreen copy={copy} locale="en" />);
   await screen.findByRole("heading", { name: en.ideas.picker.title });
   expect(radio(/^Animals/).checked).toBe(true);
@@ -102,11 +138,13 @@ test("an unknown theme in the URL asks for one", async () => {
   ).toBeDefined();
 });
 
-test("an unknown scan id offers a new scan", async () => {
+test("an unknown scan id offers a new scan, without asking for ideas", async () => {
   route.id = "nope";
+  visit("theme=animals&mockDelay=0");
   render(<IdeasScreen copy={copy} locale="en" />);
   const action = await screen.findByRole("link", { name: "Start a new scan" });
   expect(action.getAttribute("href")).toBe("/en/scan");
+  expect(getIdeas).not.toHaveBeenCalled();
 });
 
 test("shows three ideas with difficulty, counts and a link to the steps", async () => {
@@ -183,4 +221,113 @@ test("a scan with no pieces sends people back to add some", async () => {
   ).toBeDefined();
   const back = screen.getByRole("link", { name: en.ideas.empty.action });
   expect(back.getAttribute("href")).toBe("/en/scan/demo-evening");
+  expect(getIdeas).not.toHaveBeenCalled();
+});
+
+test("kept ideas for this theme and language show again without asking", async () => {
+  const kept = await askedBefore("animals");
+  visit("theme=animals&mockDelay=0");
+  const { unmount } = render(<IdeasScreen copy={copy} locale="en" />);
+  expect(await screen.findByText("3 ideas ready.")).toBeDefined();
+  expect(titles()).toEqual(kept.map((idea) => idea.title));
+
+  // Opening the URL again, or from history, doesn't ask either.
+  unmount();
+  render(<IdeasScreen copy={copy} locale="en" />);
+  await screen.findByText("3 ideas ready.");
+  expect(titles()).toEqual(kept.map((idea) => idea.title));
+  expect(getIdeas).not.toHaveBeenCalled();
+});
+
+test("coming back to the page keeps the ideas it showed, without asking", async () => {
+  visit("theme=vehicles&mockDelay=0");
+  // Next keeps a page you leave in a hidden <Activity>; its effects run again
+  // when you come back.
+  const page = (mode: "visible" | "hidden"): ReactNode => (
+    <Activity mode={mode}>
+      <IdeasScreen copy={copy} locale="en" />
+    </Activity>
+  );
+  const { rerender } = render(page("visible"));
+  await screen.findByRole("article", { name: "Little race car" });
+  fireEvent.click(screen.getByRole("button", { name: "Try other ideas" }));
+  await screen.findByRole("article", { name: "Go-kart" });
+  expect(getIdeas).toHaveBeenCalledTimes(2);
+
+  rerender(page("hidden"));
+  rerender(page("visible"));
+  // The scan is read again, in case a correction dropped its ideas meanwhile.
+  await waitFor(() => expect(getScan).toHaveBeenCalledTimes(2));
+  await act(() => vi.mocked(getScan).mock.results[1].value);
+  expect(screen.getByRole("article", { name: "Go-kart" })).toBeDefined();
+  expect(getIdeas).toHaveBeenCalledTimes(2);
+});
+
+test("leaving while ideas load and coming back waits for the same ask", async () => {
+  visit("theme=animals&mockDelay=300");
+  const page = (mode: "visible" | "hidden"): ReactNode => (
+    <Activity mode={mode}>
+      <IdeasScreen copy={copy} locale="en" />
+    </Activity>
+  );
+  const { rerender } = render(page("visible"));
+  await waitFor(() => expect(getIdeas).toHaveBeenCalledTimes(1));
+  rerender(page("hidden"));
+  rerender(page("visible"));
+  expect(
+    await screen.findByText("3 ideas ready.", undefined, { timeout: 2000 }),
+  ).toBeDefined();
+  expect(getIdeas).toHaveBeenCalledTimes(1);
+});
+
+test("kept ideas in the other language are asked for again in this one", async () => {
+  await askedBefore("animals", "en");
+  visit("theme=animals&mockDelay=0");
+  render(<IdeasScreen copy={copyFor(id)} locale="id" />);
+  expect(await screen.findByText("Kura-kura")).toBeDefined();
+  expect(getIdeas).toHaveBeenCalledTimes(1);
+  expect(getIdeas).toHaveBeenCalledWith("demo-evening", "animals", "id", {
+    exclude: [],
+  });
+});
+
+test("other ideas and another theme still ask", async () => {
+  const kept = await askedBefore("animals");
+  visit("theme=animals&mockDelay=0");
+  const { rerender } = render(<IdeasScreen copy={copy} locale="en" />);
+  await screen.findByText("3 ideas ready.");
+  expect(getIdeas).not.toHaveBeenCalled();
+
+  fireEvent.click(screen.getByRole("button", { name: "Try other ideas" }));
+  await screen.findByRole("article", { name: "Snail" });
+  expect(getIdeas).toHaveBeenLastCalledWith("demo-evening", "animals", "en", {
+    exclude: kept.map((idea) => idea.id),
+  });
+
+  // Switching theme replaces the URL; the page reads the new one.
+  fireEvent.click(radio(/^Buildings/));
+  visit("theme=buildings&mockDelay=0");
+  rerender(<IdeasScreen copy={copy} locale="en" />);
+  await screen.findByRole("article", { name: "Little house" });
+  expect(getIdeas).toHaveBeenCalledTimes(2);
+  expect(getIdeas).toHaveBeenLastCalledWith("demo-evening", "buildings", "en", {
+    exclude: [],
+  });
+
+  // Back to animals: the scan now keeps buildings, so it asks again.
+  visit("theme=animals&mockDelay=0");
+  rerender(<IdeasScreen copy={copy} locale="en" />);
+  await screen.findByRole("article", { name: "Snail" });
+  expect(getIdeas).toHaveBeenCalledTimes(3);
+});
+
+test("after a correction changes the pieces, the list asks again", async () => {
+  await askedBefore("animals");
+  await updateDetections("demo-evening", [
+    { type: "edit", id: "evening-6", part: "plate-2x2" },
+  ]);
+  visit("theme=animals&mockDelay=0");
+  render(<IdeasScreen copy={copy} locale="en" />);
+  expect(await screen.findByText("3 ideas ready.")).toBeDefined();
+  expect(getIdeas).toHaveBeenCalledTimes(1);
 });
