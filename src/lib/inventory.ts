@@ -38,6 +38,27 @@ export function toInventory(
   );
 }
 
+/**
+ * True when two sets of detections add up to the same inventory: the same
+ * parts, in the same colors and counts. Boxes, ids and `edited` don't count.
+ */
+export function sameInventory(
+  a: Pick<Detection, "part" | "color">[],
+  b: Pick<Detection, "part" | "color">[],
+): boolean {
+  const left = toInventory(a);
+  const right = toInventory(b);
+  // toInventory sorts the same way every time, so equal inventories line up.
+  return (
+    left.length === right.length &&
+    left.every(
+      (line, index) =>
+        inventoryKey(line) === inventoryKey(right[index]) &&
+        line.quantity === right[index].quantity,
+    )
+  );
+}
+
 /** Applies corrections in order. Added pieces get one detection each, with no box. */
 export function applyChanges(
   detections: Detection[],
