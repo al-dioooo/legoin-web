@@ -12,7 +12,7 @@ type Copy = Dictionary["results"]["piece"];
 
 /**
  * The selected piece as a part callout: what it is, how sure the detector was,
- * and what to check.
+ * and what to check. A newly selected piece is announced; its actions aren't.
  */
 export function PieceDetail({
   ref,
@@ -34,7 +34,6 @@ export function PieceDetail({
     <section
       ref={ref}
       aria-labelledby="piece-title"
-      aria-live="polite"
       className={cx(
         "rounded-card border-[2.5px] border-ink bg-card p-4 shadow-card",
         className,
@@ -46,48 +45,54 @@ export function PieceDetail({
       >
         {copy.title}
       </h2>
-      {detection ? (
-        // Keyed by piece, so each newly selected piece clicks into the callout.
-        <div key={detection.id} className="click-in mt-3">
-          <div className="flex items-center gap-4">
-            <div className="grid h-16 w-20 shrink-0 place-items-center rounded-[0.625rem] bg-page">
-              <BrickGlyph
-                part={detection.part}
-                color={detection.color}
-                unit={14}
-              />
+      <div aria-live="polite">
+        {detection ? (
+          // Keyed by piece, so each newly selected piece clicks into the callout.
+          <div key={detection.id} className="click-in mt-3">
+            <div className="flex items-center gap-4">
+              <div className="grid h-16 w-20 shrink-0 place-items-center rounded-[0.625rem] bg-page">
+                <BrickGlyph
+                  part={detection.part}
+                  color={detection.color}
+                  unit={14}
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="font-display text-xl">
+                  {BRICK_PARTS[detection.part].label}
+                </p>
+                <BrickSwatch color={detection.color} locale={locale} />
+                <p className="mt-1 font-mono text-xs">
+                  {detection.confidence === null ? (
+                    copy.added
+                  ) : (
+                    <>
+                      <span className="text-ink-secondary">
+                        {copy.confidence}
+                      </span>{" "}
+                      <span className="font-bold">
+                        {formatPercent(detection.confidence, locale)}
+                      </span>
+                    </>
+                  )}
+                </p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="font-display text-xl">
-                {BRICK_PARTS[detection.part].label}
-              </p>
-              <BrickSwatch color={detection.color} locale={locale} />
-              <p className="mt-1 font-mono text-xs">
-                {detection.confidence === null ? (
-                  copy.added
-                ) : (
-                  <>
-                    <span className="text-ink-secondary">
-                      {copy.confidence}
-                    </span>{" "}
-                    <span className="font-bold">
-                      {formatPercent(detection.confidence, locale)}
-                    </span>
-                  </>
-                )}
-              </p>
-            </div>
+            {needsCheck(detection) && (
+              <div className="mt-3 flex flex-col items-start gap-1.5">
+                <Badge tone="warning">{copy.check}</Badge>
+                <p className="text-sm">{copy.lowConfidence}</p>
+              </div>
+            )}
           </div>
-          {needsCheck(detection) && (
-            <div className="mt-3 flex flex-col items-start gap-1.5">
-              <Badge tone="warning">{copy.check}</Badge>
-              <p className="text-sm">{copy.lowConfidence}</p>
-            </div>
-          )}
+        ) : (
+          <p className="mt-3 text-sm text-ink-secondary">{copy.empty}</p>
+        )}
+      </div>
+      {detection && children && (
+        <div key={detection.id} className="click-in">
           {children}
         </div>
-      ) : (
-        <p className="mt-3 text-sm text-ink-secondary">{copy.empty}</p>
       )}
     </section>
   );

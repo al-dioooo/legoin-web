@@ -42,6 +42,19 @@ test("starts on the piece to check and flags it", async () => {
   expect(inventoryTile("Brick 2×2").getAttribute("aria-pressed")).toBe("true");
 });
 
+// The panel's live region speaks the piece when the selection changes; its
+// fields would turn every pick into a long read of option lists.
+test("announces a newly selected piece, not its form", async () => {
+  render(<ScanResults copy={copy} locale="en" />);
+  const panel = await screen.findByRole("region", { name: "Selected piece" });
+  const live = panel.querySelector<HTMLElement>("[aria-live]");
+  if (!live) throw new Error("no live region");
+  expect(live.textContent).toContain("Brick 2×2");
+  expect(within(live).queryByRole("combobox")).toBeNull();
+  expect(within(live).queryByRole("button")).toBeNull();
+  expect(within(panel).getAllByRole("combobox")).toHaveLength(2);
+});
+
 test("selecting a box highlights its inventory line", async () => {
   render(<ScanResults copy={copy} locale="en" />);
   fireEvent.click(
