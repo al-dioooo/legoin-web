@@ -181,6 +181,7 @@ export const en = {
     empty: {
       title: "No pieces here",
       body: "Add the pieces the scan missed, or retake the photo with your pieces spread apart.",
+      add: "Add a missed piece",
       retake: "Retake photo",
       continueHint: "Add at least one piece to get build ideas.",
     },

@@ -187,6 +187,7 @@ export const id: Dictionary = {
     empty: {
       title: "Belum ada kepingan",
       body: "Tambahkan kepingan yang terlewat, atau foto ulang dengan kepingan disebar berjauhan.",
+      add: "Tambah kepingan",
       retake: "Foto ulang",
       continueHint:
         "Tambahkan minimal satu kepingan untuk melihat ide rakitan.",

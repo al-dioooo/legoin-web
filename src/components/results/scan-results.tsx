@@ -411,7 +411,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
                     variant="secondary"
                     onClick={() => addPart.current?.focus()}
                   >
-                    {copy.results.add.title}
+                    {copy.results.empty.add}
                   </Button>
                   <Link
                     href={`/${locale}/scan`}
