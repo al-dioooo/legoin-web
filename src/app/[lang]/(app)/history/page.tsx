@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { getDictionary } from "@/i18n/dictionaries";
+import { ScanHistory } from "@/components/history/scan-history";
+import { Sticker } from "@/components/ui/sticker";
+import { currentLocale, getDictionary } from "@/i18n/dictionaries";
 import { languageAlternates } from "@/i18n/locales";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -10,13 +12,28 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-/** Past scans. The list arrives with #20. */
+/**
+ * Past scans (PRD F8). A static shell: scans live in the browser, so the list
+ * loads on the client through the data layer.
+ */
 export default async function HistoryPage() {
-  const { history } = await getDictionary();
+  const locale = await currentLocale();
+  const { history, ideas, common } = await getDictionary();
+  const copy = { history, themes: ideas.picker.themes, pieces: common.pieces };
   return (
-    <section>
-      <h1 className="font-display text-4xl">{history.title}</h1>
-      <p className="mt-3 max-w-xl text-lg text-ink-secondary">{history.lead}</p>
+    <section aria-labelledby="history-title" className="max-w-5xl">
+      <div className="click-in">
+        <h1
+          id="history-title"
+          className="font-display text-3xl leading-tight sm:text-5xl"
+        >
+          <Sticker className="-rotate-2">{history.title}</Sticker>
+        </h1>
+        <p className="mt-stud max-w-xl text-lg text-ink-secondary">
+          {history.lead}
+        </p>
+      </div>
+      <ScanHistory copy={copy} locale={locale} />
     </section>
   );
 }

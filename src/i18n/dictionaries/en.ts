@@ -320,7 +320,39 @@ export const en = {
   },
   history: {
     title: "Your scans",
-    lead: "Earlier scans and their build ideas will show up here.",
+    lead: "Scans are saved in this browser. Open one to see its pieces and ideas again.",
+    loading: "Loading your scans…",
+    count: { one: "{count} scan", other: "{count} scans" },
+    newScan: "New scan",
+    lastTheme: "Last theme: {theme}",
+    ideas: "See ideas",
+    delete: {
+      action: "Delete",
+      question: "Delete this scan? You can't get it back.",
+      confirm: "Delete scan",
+      keep: "Keep it",
+      done: "Scan deleted.",
+      failed: "We couldn't delete that scan. Try again.",
+    },
+    clear: {
+      action: "Clear my scans",
+      question:
+        "Delete all {count} scans from this browser? You can't get them back.",
+      confirm: "Delete all",
+      keep: "Keep my scans",
+      done: "Your scans are cleared.",
+      failed: "We couldn't clear your scans. Try again.",
+    },
+    empty: {
+      title: "No scans yet",
+      body: "Photograph your pieces and the scan is saved here, in this browser.",
+      action: "Start a scan",
+    },
+    failed: {
+      title: "We couldn't load your scans",
+      body: "Try again in a moment. Your scans are still saved in this browser.",
+      retry: "Try again",
+    },
   },
   states: {
     notFound: {
