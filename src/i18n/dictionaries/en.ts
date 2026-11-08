@@ -31,7 +31,8 @@ export const en = {
     },
     notes: {
       title: "Good to know",
-      photos: "The sample photos are AI-generated, not real scans.",
+      photos:
+        "The sample photos are AI-generated or drawn by a script, not real scans.",
       trademark:
         "LEGO® is a trademark of the LEGO Group. Legoin is a student project and isn't affiliated with or endorsed by the LEGO Group.",
     },
@@ -120,6 +121,7 @@ export const en = {
     title: "Your pieces",
     loading: "Loading your scan…",
     photoAlt: "Your photo with a box around each piece found",
+    photoAltPlain: "Your photo",
     missing: {
       title: "We couldn't find that scan",
       body: "It may have been deleted from this browser.",
@@ -129,11 +131,16 @@ export const en = {
       one: "{count} piece to check",
       other: "{count} pieces to check",
     },
+    demo: {
+      label: "Demo results",
+      body: "The detector isn't connected yet, so nothing is marked on your photo and this inventory is a sample. Edit it to match your pieces.",
+    },
     labels: { hide: "Hide labels", show: "Show labels" },
     zoom: { in: "Zoom in", out: "Zoom out" },
     piece: {
       title: "Selected piece",
       empty: "Select a piece on the photo or in the inventory to see it here.",
+      emptyList: "Select a piece in the inventory to see it here.",
       confidence: "Confidence",
       added: "Added by you",
       check: "Check this",
@@ -172,6 +179,13 @@ export const en = {
       failed: "We couldn't save that. Try again.",
     },
     continue: "Get build ideas",
+    empty: {
+      title: "No pieces here",
+      body: "Add the pieces the scan missed, or retake the photo with your pieces spread apart.",
+      add: "Add a missed piece",
+      retake: "Retake photo",
+      continueHint: "Add at least one piece to get build ideas.",
+    },
   },
   ideas: {
     title: "Build ideas",
@@ -242,7 +256,7 @@ export const en = {
     },
     missing: {
       title: "We couldn't find that idea",
-      body: "Asking for new ideas replaces the ones before, so this one may be gone.",
+      body: "New ideas replace the ones before, and fixing your pieces clears them, so this one may be gone.",
       action: "See your ideas",
     },
     failed: {
@@ -439,6 +453,7 @@ export const en = {
     title: { before: "Design ", sticker: "system" },
     intro:
       "The ballers-addict style in LEGO colors: paper, ink outlines, hard shadows and stickers. Red for actions, yellow for highlights, brick colors for bricks only.",
+    motion: "Motion & interaction",
     colors: {
       title: "Colors",
       description:

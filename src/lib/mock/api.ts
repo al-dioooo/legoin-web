@@ -3,8 +3,8 @@
  * so history and corrections survive reloads, and can fake slowness and failures.
  * Browser only: call it from Client Components.
  *
- * Until real detection exists, a new photo gets a demo scan's detections, so the
- * boxes only line up on the demo photos.
+ * Until real detection exists, a demo photo gets its demo scan's detections and
+ * any other photo gets sample pieces with no boxes (see `detectionsForPhoto`).
  */
 import type { Locale } from "@/i18n/locales";
 import {
@@ -20,7 +20,12 @@ import {
   type StoredIdea,
   type Theme,
 } from "@/lib/domain";
-import { applyChanges, checkInventory, toInventory } from "@/lib/inventory";
+import {
+  applyChanges,
+  checkInventory,
+  sameInventory,
+  toInventory,
+} from "@/lib/inventory";
 import {
   DEMO_SCANS,
   detectionsForPhoto,
@@ -147,7 +152,13 @@ export function listScans(options: MockOptions = {}) {
   );
 }
 
-/** Applies corrections and returns the updated scan. */
+/**
+ * Applies corrections and returns the updated scan. Kept ideas were checked
+ * against the pieces as they were, so a correction that changes the inventory
+ * drops them; the next request for ideas checks the corrected pieces. One that
+ * leaves it as it was, like confirming a flagged piece, keeps them. Either way
+ * `lastTheme` stays.
+ */
 export function updateDetections(
   id: string,
   changes: DetectionChange[],
@@ -157,7 +168,9 @@ export function updateDetections(
     const scans = load();
     const scan = scans.find((candidate) => candidate.id === id);
     if (!scan) throw new Error(`No scan with id ${id}`);
-    scan.detections = applyChanges(scan.detections, changes, newId);
+    const before = scan.detections;
+    scan.detections = applyChanges(before, changes, newId);
+    if (!sameInventory(before, scan.detections)) delete scan.ideas;
     save(scans);
     return scan;
   });
@@ -237,7 +250,7 @@ export function getIdeas(
 /**
  * One idea from the scan's latest set, with that set, exactly as it was
  * written: an idea asked for in English stays English. Null when the scan is
- * gone or its latest set has no idea with this id.
+ * gone, or its latest set was replaced or dropped and has no idea with this id.
  */
 export function getIdea(
   scanId: string,

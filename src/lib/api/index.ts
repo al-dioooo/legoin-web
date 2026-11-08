@@ -51,7 +51,12 @@ export function listScans(): Promise<Scan[]> {
   return backend.listScans();
 }
 
-/** Applies corrections and returns the updated scan. */
+/**
+ * Applies corrections and returns the updated scan. A correction that changes
+ * the inventory drops the scan's `ideas`, since they were checked against the
+ * pieces as they were; `lastTheme` stays. One that leaves the inventory as it
+ * was, like confirming a flagged piece, keeps them.
+ */
 export function updateDetections(
   id: string,
   changes: DetectionChange[],
@@ -64,11 +69,14 @@ export function deleteScan(id: string): Promise<void> {
 }
 
 /**
- * Three ideas for a scan, in the requested language, each checked against the
- * scan's inventory. They're kept as the scan's `ideas`, replacing the ones
- * before, and the theme becomes its `lastTheme`. For "Try other ideas",
- * `exclude` lists the ids already shown, oldest first. A failed request rejects
- * with an ApiError.
+ * Asks for three new ideas for a scan, in the requested language, each checked
+ * against the scan's inventory. They're kept as the scan's `ideas`, replacing
+ * the ones before, and the theme becomes its `lastTheme`. For "Try other
+ * ideas", `exclude` lists the ids already shown, oldest first. A failed request
+ * rejects with an ApiError.
+ *
+ * Every call asks again; with a real model that's a wait and different ideas.
+ * To show the kept ones, read `ideas` from `getScan` instead.
  */
 export function getIdeas(
   scanId: string,

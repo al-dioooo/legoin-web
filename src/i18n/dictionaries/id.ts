@@ -33,7 +33,8 @@ export const id: Dictionary = {
     },
     notes: {
       title: "Perlu diketahui",
-      photos: "Foto contoh dibuat dengan AI, bukan hasil pindai sungguhan.",
+      photos:
+        "Foto contoh dibuat dengan AI atau digambar oleh skrip, bukan hasil pindai sungguhan.",
       trademark:
         "LEGO® adalah merek dagang LEGO Group. Legoin adalah proyek mahasiswa dan tidak berafiliasi dengan maupun didukung oleh LEGO Group.",
     },
@@ -122,6 +123,7 @@ export const id: Dictionary = {
     title: "Kepinganmu",
     loading: "Memuat hasil pindai…",
     photoAlt: "Fotomu dengan kotak di setiap kepingan yang ditemukan",
+    photoAltPlain: "Fotomu",
     missing: {
       title: "Kami tidak menemukan hasil pindai itu",
       body: "Mungkin sudah dihapus dari peramban ini.",
@@ -131,12 +133,17 @@ export const id: Dictionary = {
       one: "{count} kepingan perlu dicek",
       other: "{count} kepingan perlu dicek",
     },
+    demo: {
+      label: "Hasil demo",
+      body: "Detektor belum tersambung, jadi tidak ada yang ditandai di fotomu dan inventori ini hanya contoh. Ubah agar sesuai dengan kepinganmu.",
+    },
     labels: { hide: "Sembunyikan label", show: "Tampilkan label" },
     zoom: { in: "Perbesar", out: "Perkecil" },
     piece: {
       title: "Kepingan terpilih",
       empty:
         "Pilih kepingan di foto atau di inventori untuk melihatnya di sini.",
+      emptyList: "Pilih kepingan di inventori untuk melihatnya di sini.",
       confidence: "Keyakinan",
       added: "Ditambahkan olehmu",
       check: "Perlu dicek",
@@ -178,6 +185,14 @@ export const id: Dictionary = {
       failed: "Kami tidak bisa menyimpannya. Coba lagi.",
     },
     continue: "Lihat ide rakitan",
+    empty: {
+      title: "Belum ada kepingan",
+      body: "Tambahkan kepingan yang terlewat, atau foto ulang dengan kepingan disebar berjauhan.",
+      add: "Tambah kepingan",
+      retake: "Foto ulang",
+      continueHint:
+        "Tambahkan minimal satu kepingan untuk melihat ide rakitan.",
+    },
   },
   ideas: {
     title: "Ide rakitan",
@@ -250,7 +265,7 @@ export const id: Dictionary = {
     },
     missing: {
       title: "Kami tidak menemukan ide itu",
-      body: "Meminta ide baru menggantikan ide sebelumnya, jadi ide ini mungkin sudah tidak ada.",
+      body: "Ide baru menggantikan ide sebelumnya, dan memperbaiki kepinganmu menghapusnya, jadi ide ini mungkin sudah tidak ada.",
       action: "Lihat idemu",
     },
     failed: {
@@ -450,6 +465,7 @@ export const id: Dictionary = {
     title: { before: "Sistem ", sticker: "desain" },
     intro:
       "Gaya ballers-addict dengan warna LEGO: kertas, garis tinta, bayangan keras, dan stiker. Merah untuk aksi, kuning untuk sorotan, warna kepingan hanya untuk kepingan.",
+    motion: "Gerak & interaksi",
     colors: {
       title: "Warna",
       description:

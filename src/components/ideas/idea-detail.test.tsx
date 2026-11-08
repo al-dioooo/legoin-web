@@ -4,7 +4,7 @@ import { IdeaDetail } from "@/components/ideas/idea-detail";
 import { IdeasScreen } from "@/components/ideas/ideas-screen";
 import { en } from "@/i18n/dictionaries/en";
 import { id } from "@/i18n/dictionaries/id";
-import { getIdea, getIdeas } from "@/lib/api";
+import { getIdea, getIdeas, updateDetections } from "@/lib/api";
 
 const route = vi.hoisted(() => ({
   id: "demo-evening",
@@ -229,6 +229,23 @@ test("an idea in the page's language has no language note", async () => {
 test("an unknown or replaced idea leads back to the ideas", async () => {
   await askForIdeas();
   visit("dragon");
+  render(<IdeaDetail copy={copy} locale="en" />);
+  expect(
+    await screen.findByRole("heading", {
+      level: 1,
+      name: en.ideaDetail.missing.title,
+    }),
+  ).toBeDefined();
+  expect(href(en.ideaDetail.missing.action)).toBe(
+    "/en/scan/demo-evening/ideas?theme=vehicles&mockDelay=0",
+  );
+});
+
+test("an idea a correction dropped leads back to the ideas", async () => {
+  await askForIdeas();
+  // The kept set was checked against the pieces as they were.
+  await updateDetections(route.id, [{ type: "remove", id: "evening-1" }]);
+  visit("race-car");
   render(<IdeaDetail copy={copy} locale="en" />);
   expect(
     await screen.findByRole("heading", {

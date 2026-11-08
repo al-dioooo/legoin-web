@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
+import { type FormEvent, type Ref, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import type { Dictionary } from "@/i18n/dictionaries/en";
@@ -19,11 +19,14 @@ export const MAX_ADD_QUANTITY = 20;
 
 /** Adds pieces the detector missed, by part, color and quantity (PRD F5). */
 export function AddPiece({
+  partRef,
   locale,
   copy,
   pending,
   onAdd,
 }: {
+  /** The part field, for actions elsewhere that lead here. */
+  partRef?: Ref<HTMLSelectElement>;
   locale: Locale;
   copy: Copy;
   pending: boolean;
@@ -57,8 +60,9 @@ export function AddPiece({
       <h3 id="add-title" className="font-display text-lg">
         {copy.title}
       </h3>
-      <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_6rem] lg:grid-cols-1 xl:grid-cols-[1fr_1fr_6rem]">
+      <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_6rem] lg:grid-cols-1">
         <Select
+          ref={partRef}
           label={copy.part}
           value={part}
           disabled={pending}

@@ -262,6 +262,12 @@
       display: none;
     }
   }
+
+  /* The glow lives on the page's baseplate, outside any reduced-motion preview
+     (data-motion="reduce"), so a preview anywhere on the page turns it off. */
+  .baseplate:has([data-motion="reduce"]) > .stud-glow {
+    display: none;
+  }
 }
 
 /* Booklet devices: oversized step numerals and off-axis sticker headings. */

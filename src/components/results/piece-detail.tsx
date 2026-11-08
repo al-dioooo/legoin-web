@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 import { Badge } from "@/components/ui/badge";
 import { BrickGlyph } from "@/components/ui/brick-glyph";
 import { BrickSwatch } from "@/components/ui/brick-swatch";
@@ -15,12 +15,14 @@ type Copy = Dictionary["results"]["piece"];
  * and what to check.
  */
 export function PieceDetail({
+  ref,
   detection,
   locale,
   copy,
   children,
   className,
 }: {
+  ref?: Ref<HTMLElement>;
   detection: Detection | null;
   locale: Locale;
   copy: Copy;
@@ -30,6 +32,7 @@ export function PieceDetail({
 }) {
   return (
     <section
+      ref={ref}
       aria-labelledby="piece-title"
       aria-live="polite"
       className={cx(

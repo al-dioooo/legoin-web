@@ -110,6 +110,12 @@ export default async function DesignSystemPage() {
           >
             <Logo />
           </Link>
+          <Link
+            href={`/${locale}/desain/gerak`}
+            className={buttonStyles({ variant: "ghost", size: "sm" })}
+          >
+            {design.motion} <span aria-hidden="true">→</span>
+          </Link>
           <LanguageSwitcher
             current={locale}
             label={dict.language.label}

@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 import { ScanResults } from "@/components/results/scan-results";
 import { en } from "@/i18n/dictionaries/en";
+import { createScan } from "@/lib/api";
 
 const route = vi.hoisted(() => ({ id: "demo-evening" }));
 vi.mock("next/navigation", () => ({ useParams: () => ({ id: route.id }) }));
@@ -76,4 +77,50 @@ test("an unknown scan id offers a new scan", async () => {
   render(<ScanResults copy={copy} locale="en" />);
   const action = await screen.findByRole("link", { name: "Start a new scan" });
   expect(action.getAttribute("href")).toBe("/en/scan");
+});
+
+test("a photo with no boxes says the results are a demo", async () => {
+  window.history.replaceState(null, "", "/en/scan?mockDelay=0");
+  const scan = await createScan({
+    src: "data:image/jpeg;base64,AAAA",
+    width: 900,
+    height: 1200,
+  });
+  window.history.replaceState(null, "", "/");
+  route.id = scan.id;
+  render(<ScanResults copy={copy} locale="en" />);
+  const note = await screen.findByRole("note");
+  expect(note.textContent).toContain(en.results.demo.label);
+  expect(screen.getByAltText(en.results.photoAltPlain)).toBeDefined();
+  expect(screen.queryByRole("button", { name: "Hide labels" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Zoom in" })).toBeNull();
+  expect(screen.getByText(en.results.piece.emptyList)).toBeDefined();
+  // The inventory still works: a line selects its piece.
+  fireEvent.click(inventoryTile("Brick 2×4"));
+  expect(screen.getByText("94%")).toBeDefined();
+});
+
+test("demo photos with boxes carry no demo note", async () => {
+  render(<ScanResults copy={copy} locale="en" />);
+  await screen.findByText("8 pieces");
+  expect(screen.queryByRole("note")).toBeNull();
+});
+
+test("picking a line far down the inventory brings the piece panel back", async () => {
+  render(<ScanResults copy={copy} locale="en" />);
+  await screen.findByText("8 pieces");
+  const panel = screen.getByRole("region", { name: "Selected piece" });
+  const scrollIntoView = vi.fn();
+  panel.scrollIntoView = scrollIntoView;
+
+  // In view: nothing moves.
+  fireEvent.click(inventoryTile("Plate 2×4"));
+  expect(scrollIntoView).not.toHaveBeenCalled();
+
+  // Scrolled away above the list: it comes back.
+  panel.getBoundingClientRect = () => ({ top: -400 }) as DOMRect;
+  fireEvent.click(inventoryTile("Brick 2×3"));
+  expect(scrollIntoView).toHaveBeenCalledWith(
+    expect.objectContaining({ block: "start" }),
+  );
 });

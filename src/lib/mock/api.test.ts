@@ -22,9 +22,14 @@ beforeEach(() => {
   resetMockData();
 });
 
-test("new visitors start with the two demo scans, newest first", async () => {
+test("new visitors start with the demo scans, newest first", async () => {
   const scans = await listScans(fast);
-  expect(scans.map((scan) => scan.id)).toEqual(["demo-evening", "demo-desk"]);
+  expect(scans.map((scan) => scan.id)).toEqual([
+    "demo-evening",
+    "demo-desk",
+    "demo-pile",
+    "demo-single",
+  ]);
 });
 
 test("a scan reports every stage and is saved", async () => {
@@ -39,11 +44,22 @@ test("a scan reports every stage and is saved", async () => {
   expect(await getScan(scan.id, fast)).toEqual(scan);
 });
 
+test("a photo that isn't a demo gets sample pieces it doesn't mark on the photo", async () => {
+  const own = { src: "data:image/jpeg;base64,AAAA", width: 900, height: 1200 };
+  const scan = await createScan(own, fast);
+  expect(scan.photo).toEqual(own);
+  expect(scan.detections).toHaveLength(6);
+  for (const detection of scan.detections) {
+    expect(detection.box).toBeNull();
+    expect(detection.confidence).toBeGreaterThan(0);
+  }
+});
+
 test("failures reject with their reason and save nothing", async () => {
   await expect(
     createScan(EVENING_PHOTO, { ...fast, fail: "no_pieces" }),
   ).rejects.toEqual(new MockApiError("no_pieces"));
-  expect(await listScans(fast)).toHaveLength(2);
+  expect(await listScans(fast)).toHaveLength(4);
 });
 
 test("corrections persist", async () => {
@@ -58,6 +74,45 @@ test("corrections persist", async () => {
     color: "dark-gray",
     edited: true,
   });
+});
+
+test("a correction that changes the inventory drops the kept ideas", async () => {
+  const [raceCar] = await getIdeas("demo-evening", "vehicles", "en", fast);
+  const scan = await updateDetections(
+    "demo-evening",
+    [{ type: "edit", id: "evening-6", part: "plate-2x2" }],
+    fast,
+  );
+  // They were checked against the pieces as they were; the next ask checks these.
+  expect(scan.ideas).toBeUndefined();
+  expect((await getScan("demo-evening", fast))?.ideas).toBeUndefined();
+  expect(await getIdea("demo-evening", raceCar.id, fast)).toBeNull();
+  // The picker still starts from the theme used last.
+  expect(scan.lastTheme).toBe("vehicles");
+});
+
+test("a correction that leaves the inventory as it was keeps the ideas", async () => {
+  const ideas = await getIdeas("demo-evening", "animals", "en", fast);
+  const flagged = (await getScan("demo-evening", fast))?.detections.find(
+    (d) => d.id === "evening-6",
+  );
+  // Confirming a flagged piece as it is.
+  const scan = await updateDetections(
+    "demo-evening",
+    [
+      {
+        type: "edit",
+        id: "evening-6",
+        part: flagged?.part,
+        color: flagged?.color,
+      },
+    ],
+    fast,
+  );
+  expect(scan.ideas?.items).toEqual(ideas);
+  expect((await getIdea("demo-evening", ideas[0].id, fast))?.idea).toEqual(
+    ideas[0],
+  );
 });
 
 test("deleted scans are gone", async () => {
@@ -222,5 +277,27 @@ test("a cancelled scan rejects and saves nothing", async () => {
     },
   });
   await expect(scanning).rejects.toMatchObject({ name: "AbortError" });
-  expect(await listScans(fast)).toHaveLength(2);
+  expect(await listScans(fast)).toHaveLength(4);
+});
+
+test("every demo box lies inside its photo", async () => {
+  for (const scan of await listScans(fast)) {
+    for (const { box } of scan.detections) {
+      if (!box) continue;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.y).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(1);
+      expect(box.y + box.height).toBeLessThanOrEqual(1);
+    }
+  }
+});
+
+test("a demo photo gets its own detections", async () => {
+  const pile = await getScan("demo-pile", fast);
+  if (!pile) throw new Error("no pile demo");
+  const scan = await createScan(pile.photo, fast);
+  expect(scan.detections).toHaveLength(30);
+  expect(scan.detections.map(({ box }) => box)).toEqual(
+    pile.detections.map(({ box }) => box),
+  );
 });

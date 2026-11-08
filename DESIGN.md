@@ -59,6 +59,7 @@ Legoin works like a building-instructions booklet laid on a baseplate: screens a
 
 ### Baseplate layout
 
+- **One baseplate under every page.** The `[lang]` root layout draws `.baseplate` and the pointer glow once, around everything but the footer; pages, layouts and showcases never draw their own (a test checks). `global-error.tsx` replaces the root layout, so it draws the grid itself, without the glow.
 - **The stud is the module.** `--stud` is 16px on phones and 24px from 640px; `p-stud`, `gap-stud`, `mt-stud` and `-ml-stud` use it. The app column is 49 studs wide (`max-w-(--plate-width)`), and `.baseplate` starts its grid at the column's left edge, so plates sit between studs.
 - **Booklet pages, not stacked cards.** Each step is asymmetric: the title and main plate on the left, supporting plates down the right, overlapping by a stud or two. Overlaps cover a plate's padding, never a photo.
 - **Sticker headings** sit a couple of degrees off-axis (`<Sticker className="-rotate-2">`), alternating direction down a page.
@@ -139,7 +140,7 @@ UI primitives live in `src/components/ui`, the logo in `src/components/brand`.
 
 The brick catalogue lives in `src/lib/bricks.ts`. To add a color, add `--brick-<id>` to `tokens.css` and an entry to `BRICK_COLORS`; a test checks that the two match.
 
-The sample scan in `src/lib/sample-scan.ts` and `public/contoh/kepingan.jpg` feeds the home page and `/desain` until the CV pipeline exists. The photo was generated with Codex image generation; replace it with a real scan when one is available.
+The sample scan in `src/lib/sample-scan.ts` and `public/contoh/kepingan.jpg` feeds the home page and `/desain` until the CV pipeline exists. The mock's demo scans (`src/lib/mock/fixtures.ts`) add three more photos in `public/contoh/`. `kepingan.jpg` and `kepingan-2.jpg` were generated with Codex image generation. `kepingan-banyak.jpg` (30 pieces) and `kepingan-satu.jpg` (one piece, portrait) were drawn by a script that placed each brick, so their boxes fit exactly. They cover the detector's range of 1 to 32 bricks a photo. None of them is a real scan; replace them with real ones when there are any.
 
 ## Accessibility
 
