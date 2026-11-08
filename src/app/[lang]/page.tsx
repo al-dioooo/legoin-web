@@ -133,6 +133,7 @@ export default async function Home() {
           words={home.tape}
           tone="primary"
           reverse
+          decorative
           className="-mx-4 -mt-6 rotate-2"
         />
       </section>

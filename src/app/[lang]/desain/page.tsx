@@ -350,6 +350,7 @@ export default async function DesignSystemPage() {
               words={design.stickers.tape}
               tone="highlight"
               reverse
+              decorative
               className="-mt-4 rotate-1"
             />
           </div>

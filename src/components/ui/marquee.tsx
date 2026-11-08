@@ -25,17 +25,21 @@ function Star() {
 
 /**
  * A tape band of words that slides sideways. Two identical copies loop
- * seamlessly; the second is hidden from screen readers. It stops under reduced motion.
+ * seamlessly. Screen readers get the words once, in order, and none of the
+ * moving copies. It stops under reduced motion.
  */
 export function Marquee({
   words,
   tone = "ink",
   reverse = false,
+  decorative = false,
   className,
 }: {
   words: string[];
   tone?: MarqueeTone;
   reverse?: boolean;
+  /** Repeats words read elsewhere, e.g. a second tape: nothing to read. */
+  decorative?: boolean;
   className?: string;
 }) {
   return (
@@ -46,7 +50,9 @@ export function Marquee({
         className,
       )}
     >
+      {!decorative && <p className="sr-only">{words.join(", ")}</p>}
       <div
+        aria-hidden="true"
         className={cx(
           "flex w-max animate-marquee motion-reduce:animate-none",
           reverse && "[animation-direction:reverse]",
@@ -55,7 +61,6 @@ export function Marquee({
         {[0, 1].map((copy) => (
           <p
             key={copy}
-            aria-hidden={copy === 1 ? true : undefined}
             className="shrink-0 pr-[0.4em] font-display text-[clamp(1.5rem,3.5vw,2.75rem)] leading-none whitespace-nowrap uppercase"
           >
             {/* Each copy repeats the words so it is wider than any screen. */}
