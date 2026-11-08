@@ -133,6 +133,15 @@ test("a label that would cover another piece's box goes", () => {
   expect(fitted[0]).toMatchObject({ id: "a", name: "a", label: "" });
 });
 
+test("a label the photo's edge would cut off goes, unless it's selected", () => {
+  const top = at("top", 400, 10);
+  const right = at("right", 980, 400);
+  expect(shown(fitLabels([top, right], photo))).toEqual([]);
+  expect(shown(fitLabels([{ ...top, selected: true }], photo))).toEqual([
+    "top",
+  ]);
+});
+
 test("the selected piece keeps its label, then flagged pieces win", () => {
   // Three narrow pieces in a row, close enough that neighbours' labels overlap.
   const narrow = { width: 0.025, height: 0.05 };

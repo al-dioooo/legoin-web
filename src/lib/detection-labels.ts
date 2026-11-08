@@ -82,8 +82,9 @@ const intersects = (a: Rect, b: Rect) =>
   a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
 
 /**
- * Drops the labels that would cover another label or another piece's box on a
- * photo drawn at `size`, so busy photos stay readable. The selected piece
+ * Drops the labels that would cover another label or another piece's box, or
+ * be cut off by the photo's edge, on a photo drawn at `size`, so busy photos
+ * stay readable. The selected piece
  * always keeps its label; flagged pieces come next, then the biggest. A piece
  * without a label still has its box and its name for screen readers.
  */
@@ -114,6 +115,8 @@ export function fitLabels(boxes: LabeledBox[], size: DrawnSize): LabeledBox[] {
       top: own.top - LABEL_GAP - LABEL_HEIGHT,
     };
     const blocked =
+      tag.top < 0 ||
+      tag.right > size.width ||
       placed.some((other) => intersects(tag, other)) ||
       rects.some((other, at) => at !== index && intersects(tag, other));
     if (selected || !blocked) {
