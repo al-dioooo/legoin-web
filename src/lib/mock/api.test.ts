@@ -39,6 +39,17 @@ test("a scan reports every stage and is saved", async () => {
   expect(await getScan(scan.id, fast)).toEqual(scan);
 });
 
+test("a photo that isn't a demo gets sample pieces it doesn't mark on the photo", async () => {
+  const own = { src: "data:image/jpeg;base64,AAAA", width: 900, height: 1200 };
+  const scan = await createScan(own, fast);
+  expect(scan.photo).toEqual(own);
+  expect(scan.detections).toHaveLength(6);
+  for (const detection of scan.detections) {
+    expect(detection.box).toBeNull();
+    expect(detection.confidence).toBeGreaterThan(0);
+  }
+});
+
 test("failures reject with their reason and save nothing", async () => {
   await expect(
     createScan(EVENING_PHOTO, { ...fast, fail: "no_pieces" }),

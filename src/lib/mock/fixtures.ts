@@ -92,9 +92,16 @@ export const DEMO_SCANS: Scan[] = [
   },
 ];
 
-/** Detections the mock returns for a new photo: the matching demo, else the desk scan. */
+/**
+ * Detections the mock returns for a new photo. A demo photo gets its own. Any
+ * other photo, such as one the person took, gets the desk scan's pieces with no
+ * boxes: the mock can't see where anything is, so it marks nothing on the photo
+ * rather than drawing boxes over empty table.
+ */
 export function detectionsForPhoto(src: string): Detection[] {
-  return src === EVENING_PHOTO.src ? EVENING_DETECTIONS : DESK_DETECTIONS;
+  const demo = DEMO_SCANS.find((scan) => scan.photo.src === src);
+  if (demo) return demo.detections;
+  return DESK_DETECTIONS.map((detection) => ({ ...detection, box: null }));
 }
 
 type Localized<T> = Record<Locale, T>;

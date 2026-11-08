@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Count, OdometerText } from "@/components/motion/odometer";
 import { SharedPhoto } from "@/components/motion/view-transitions";
 import { AddPiece } from "@/components/results/add-piece";
@@ -11,6 +11,7 @@ import { PieceDetail } from "@/components/results/piece-detail";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { DetectedPhoto } from "@/components/ui/detected-photo";
+import { EmptyState, EmptyStateIcon } from "@/components/ui/empty-state";
 import { InventoryList } from "@/components/ui/inventory-list";
 import { Sticker } from "@/components/ui/sticker";
 import type { Dictionary } from "@/i18n/dictionaries/en";
@@ -18,7 +19,7 @@ import { plural } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { getScan, updateDetections } from "@/lib/api";
 import type { BrickColorId, BrickPartId, PartCount } from "@/lib/bricks";
-import { labeledBoxes } from "@/lib/detection-labels";
+import { countUnplaced, labeledBoxes } from "@/lib/detection-labels";
 import { type DetectionChange, needsCheck, type Scan } from "@/lib/domain";
 import { inventoryKey, inverseChanges, toInventory } from "@/lib/inventory";
 import { MAX_STAGGER, readDuration, snapHaptic } from "@/lib/motion";
@@ -75,6 +76,10 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   const [pending, setPending] = useState(false);
   const [status, setStatus] = useState("");
   const [undo, setUndo] = useState<DetectionChange[] | null>(null);
+  const addPart = useRef<HTMLSelectElement>(null);
+  const emptyHeading = useRef<HTMLHeadingElement>(null);
+  /** Set when a change removes the last piece, so focus lands on the empty state. */
+  const focusEmpty = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -103,6 +108,13 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
     return () => clearTimeout(timer);
   }, [ready]);
 
+  // The selected piece's controls are gone with it, so focus would drop to the page.
+  useEffect(() => {
+    if (state.kind !== "ready" || !focusEmpty.current) return;
+    focusEmpty.current = false;
+    emptyHeading.current?.focus();
+  }, [state]);
+
   if (state.kind === "loading") {
     return <ResultsLoading label={copy.results.loading} />;
   }
@@ -120,12 +132,17 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   }
 
   const { scan } = state;
+  const empty = scan.detections.length === 0;
   const selected = scan.detections.find((d) => d.id === selectedId) ?? null;
   const flagged = scan.detections.filter(needsCheck);
   const flaggedKeys = new Set(flagged.map(inventoryKey));
   const editedKeys = new Set(
     scan.detections.filter((d) => d.edited).map(inventoryKey),
   );
+  const boxes = labeledBoxes(scan.detections, locale, selectedId ?? undefined);
+  // Found pieces with nowhere on the photo: the mock's stand-in for a photo it
+  // can't see, so say plainly that the results aren't from this photo.
+  const demo = countUnplaced(scan.detections) > 0;
   const partTypes = new Set(scan.detections.map((d) => d.part)).size;
   const colors = new Set(scan.detections.map((d) => d.color)).size;
 
@@ -165,6 +182,8 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
         updateDetections(scan.id, changes),
         wait(exitMs),
       ]);
+      focusEmpty.current =
+        before.detections.length > 0 && after.detections.length === 0;
       setState({ kind: "ready", scan: after });
       setUndo(
         isUndo ? null : inverseChanges(before.detections, after.detections),
@@ -264,14 +283,26 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
           )}
         </div>
 
-        <div className="mt-stud flex flex-wrap gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowLabels((value) => !value)}
+        {demo && (
+          <div
+            role="note"
+            className="click-in mt-stud max-w-2xl rounded-callout border-2 border-ink bg-card p-3 sm:p-4"
           >
-            {showLabels ? copy.results.labels.hide : copy.results.labels.show}
-          </Button>
+            <Badge tone="warning">{copy.results.demo.label}</Badge>
+            <p className="mt-2 text-sm">{copy.results.demo.body}</p>
+          </div>
+        )}
+
+        <div className="mt-stud flex flex-wrap gap-2">
+          {boxes.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowLabels((value) => !value)}
+            >
+              {showLabels ? copy.results.labels.hide : copy.results.labels.show}
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="sm"
@@ -291,12 +322,12 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
               <SharedPhoto>
                 <DetectedPhoto
                   photo={scan.photo}
-                  alt={copy.results.photoAlt}
-                  detections={labeledBoxes(
-                    scan.detections,
-                    locale,
-                    selectedId ?? undefined,
-                  )}
+                  alt={
+                    boxes.length > 0
+                      ? copy.results.photoAlt
+                      : copy.results.photoAltPlain
+                  }
+                  detections={boxes}
                   labels={showLabels ? "auto" : "none"}
                   onSelect={select}
                   assembling={assembling}
@@ -309,24 +340,30 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
       </section>
 
       <div className="space-y-[calc(var(--stud)*1.5)] lg:relative lg:z-10 lg:col-span-4 lg:col-start-9 lg:pt-[calc(var(--stud)*5)]">
-        <PieceDetail
-          className="lg:-ml-[calc(var(--stud)*2)]"
-          detection={selected}
-          locale={locale}
-          copy={copy.results.piece}
-        >
-          {selected && (
-            <EditPiece
-              key={selected.id}
-              detection={selected}
-              locale={locale}
-              copy={copy.results.edit}
-              pending={pending}
-              onSave={save}
-              onRemove={remove}
-            />
-          )}
-        </PieceDetail>
+        {!empty && (
+          <PieceDetail
+            className="lg:-ml-[calc(var(--stud)*2)]"
+            detection={selected}
+            locale={locale}
+            copy={
+              boxes.length > 0
+                ? copy.results.piece
+                : { ...copy.results.piece, empty: copy.results.piece.emptyList }
+            }
+          >
+            {selected && (
+              <EditPiece
+                key={selected.id}
+                detection={selected}
+                locale={locale}
+                copy={copy.results.edit}
+                pending={pending}
+                onSave={save}
+                onRemove={remove}
+              />
+            )}
+          </PieceDetail>
+        )}
 
         <section aria-labelledby="inventory-title" className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-x-stud gap-y-2">
@@ -335,39 +372,70 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
                 {copy.common.inventory}
               </Sticker>
             </h2>
-            <p className="sr-only">
-              {totals
-                .map(([message, count]) => plural(message, count, locale))
-                .join(" · ")}
-            </p>
-            <p
-              aria-hidden="true"
-              className="font-mono text-xs text-ink-secondary"
-            >
-              {totals.map(([message, count], index) => (
-                <span key={message.other}>
-                  {index > 0 && " · "}
-                  <OdometerText
-                    message={message}
-                    count={count}
-                    locale={locale}
-                  />
-                </span>
-              ))}
-            </p>
+            {!empty && (
+              <>
+                <p className="sr-only">
+                  {totals
+                    .map(([message, count]) => plural(message, count, locale))
+                    .join(" · ")}
+                </p>
+                <p
+                  aria-hidden="true"
+                  className="font-mono text-xs text-ink-secondary"
+                >
+                  {totals.map(([message, count], index) => (
+                    <span key={message.other}>
+                      {index > 0 && " · "}
+                      <OdometerText
+                        message={message}
+                        count={count}
+                        locale={locale}
+                      />
+                    </span>
+                  ))}
+                </p>
+              </>
+            )}
           </div>
-          <InventoryList
-            items={toInventory(scan.detections)}
-            locale={locale}
-            selectedKey={selected ? inventoryKey(selected) : undefined}
-            flaggedKeys={flaggedKeys}
-            flaggedLabel={copy.results.piece.check}
-            editedKeys={editedKeys}
-            editedLabel={copy.results.edit.edited}
-            onSelect={selectLine}
-            assembling={assembling}
-            leavingKey={leavingKey}
-          />
+          {empty ? (
+            <EmptyState
+              as="h3"
+              className="click-in"
+              headingRef={emptyHeading}
+              icon={<EmptyStateIcon />}
+              title={copy.results.empty.title}
+              body={copy.results.empty.body}
+              actions={
+                <>
+                  <Button
+                    variant="secondary"
+                    onClick={() => addPart.current?.focus()}
+                  >
+                    {copy.results.empty.add}
+                  </Button>
+                  <Link
+                    href={`/${locale}/scan`}
+                    className={buttonStyles({ variant: "ghost" })}
+                  >
+                    {copy.results.empty.retake}
+                  </Link>
+                </>
+              }
+            />
+          ) : (
+            <InventoryList
+              items={toInventory(scan.detections)}
+              locale={locale}
+              selectedKey={selected ? inventoryKey(selected) : undefined}
+              flaggedKeys={flaggedKeys}
+              flaggedLabel={copy.results.piece.check}
+              editedKeys={editedKeys}
+              editedLabel={copy.results.edit.edited}
+              onSelect={selectLine}
+              assembling={assembling}
+              leavingKey={leavingKey}
+            />
+          )}
           <div className="flex min-h-10 flex-wrap items-center gap-3">
             <output className="text-sm font-semibold">{status}</output>
             {undo && undo.length > 0 && (
@@ -382,6 +450,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
             )}
           </div>
           <AddPiece
+            partRef={addPart}
             locale={locale}
             copy={copy.results.add}
             pending={pending}
@@ -389,12 +458,29 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
           />
         </section>
 
-        <Link
-          href={`/${locale}/scan/${scan.id}/ideas`}
-          className={`${buttonStyles()} w-full sm:w-auto`}
-        >
-          {copy.results.continue} <span aria-hidden="true">→</span>
-        </Link>
+        {empty ? (
+          // Ideas need pieces to build with, so say what's missing instead of
+          // leading to an empty ideas page.
+          <div className="space-y-2">
+            <Button
+              disabled
+              aria-describedby="continue-hint"
+              className="w-full sm:w-auto"
+            >
+              {copy.results.continue} <span aria-hidden="true">→</span>
+            </Button>
+            <p id="continue-hint" className="text-sm text-ink-secondary">
+              {copy.results.empty.continueHint}
+            </p>
+          </div>
+        ) : (
+          <Link
+            href={`/${locale}/scan/${scan.id}/ideas`}
+            className={`${buttonStyles()} w-full sm:w-auto`}
+          >
+            {copy.results.continue} <span aria-hidden="true">→</span>
+          </Link>
+        )}
       </div>
     </div>
   );
