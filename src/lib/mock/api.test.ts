@@ -22,9 +22,13 @@ beforeEach(() => {
   resetMockData();
 });
 
-test("new visitors start with the two demo scans, newest first", async () => {
+test("new visitors start with the demo scans, newest first", async () => {
   const scans = await listScans(fast);
-  expect(scans.map((scan) => scan.id)).toEqual(["demo-evening", "demo-desk"]);
+  expect(scans.map((scan) => scan.id)).toEqual([
+    "demo-evening",
+    "demo-desk",
+    "demo-single",
+  ]);
 });
 
 test("a scan reports every stage and is saved", async () => {
@@ -54,7 +58,7 @@ test("failures reject with their reason and save nothing", async () => {
   await expect(
     createScan(EVENING_PHOTO, { ...fast, fail: "no_pieces" }),
   ).rejects.toEqual(new MockApiError("no_pieces"));
-  expect(await listScans(fast)).toHaveLength(2);
+  expect(await listScans(fast)).toHaveLength(3);
 });
 
 test("corrections persist", async () => {
@@ -233,5 +237,17 @@ test("a cancelled scan rejects and saves nothing", async () => {
     },
   });
   await expect(scanning).rejects.toMatchObject({ name: "AbortError" });
-  expect(await listScans(fast)).toHaveLength(2);
+  expect(await listScans(fast)).toHaveLength(3);
+});
+
+test("every demo box lies inside its photo", async () => {
+  for (const scan of await listScans(fast)) {
+    for (const { box } of scan.detections) {
+      if (!box) continue;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.y).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(1);
+      expect(box.y + box.height).toBeLessThanOrEqual(1);
+    }
+  }
 });

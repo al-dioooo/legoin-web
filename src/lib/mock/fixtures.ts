@@ -1,11 +1,19 @@
-/* Fixtures for the mock service: two demo scans and 18 idea templates, six per theme.
- * Both photos were generated with Codex image generation, not taken from real scans.
+/* Fixtures for the mock service: three demo scans and 18 idea templates, six per theme.
+ * None of the photos are real scans. The desk and evening photos were generated
+ * with Codex image generation; the single-piece photo was drawn by a script that
+ * placed the brick, so its box matches the brick exactly.
  * Idea copy lives here in both languages, because it stands in for the AI agent's
  * output rather than UI copy.
  */
 import type { Locale } from "@/i18n/locales";
 import type { PartCount } from "@/lib/bricks";
-import type { Detection, Difficulty, IdeaTheme, Scan } from "@/lib/domain";
+import type {
+  Detection,
+  Difficulty,
+  IdeaTheme,
+  Photo,
+  Scan,
+} from "@/lib/domain";
 import {
   EVENING_PHOTO,
   SAMPLE_DETECTIONS,
@@ -76,6 +84,23 @@ const EVENING_DETECTIONS: Detection[] = [
   },
 ];
 
+/** One piece in a portrait phone photo. */
+const SINGLE_PHOTO: Photo = {
+  src: "/contoh/kepingan-satu.jpg",
+  width: 900,
+  height: 1200,
+};
+
+const SINGLE_DETECTIONS: Detection[] = [
+  {
+    id: "single-1",
+    part: "brick-2x4",
+    color: "blue",
+    box: { x: 0.271, y: 0.361, width: 0.47, height: 0.286 },
+    confidence: 0.96,
+  },
+];
+
 /** Scans every new visitor starts with, so history and results have something to show. */
 export const DEMO_SCANS: Scan[] = [
   {
@@ -89,6 +114,12 @@ export const DEMO_SCANS: Scan[] = [
     createdAt: "2026-10-25T02:15:00.000Z",
     photo: SAMPLE_PHOTO,
     detections: DESK_DETECTIONS,
+  },
+  {
+    id: "demo-single",
+    createdAt: "2026-10-23T13:05:00.000Z",
+    photo: SINGLE_PHOTO,
+    detections: SINGLE_DETECTIONS,
   },
 ];
 
