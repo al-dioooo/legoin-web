@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
@@ -53,6 +53,12 @@ export function EditPiece({
     (confirming ? confirmButton : removeButton).current?.focus();
   }, [confirming]);
 
+  function onKeyDown(event: KeyboardEvent) {
+    if (event.key !== "Escape") return;
+    event.stopPropagation();
+    setConfirming(false);
+  }
+
   return (
     <div className="mt-4 border-t-2 border-dashed border-line pt-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -88,25 +94,28 @@ export function EditPiece({
 
       {confirming ? (
         <div className="mt-3 rounded-callout border-2 border-danger bg-danger-subtle p-3">
-          <p className="text-sm font-semibold">{copy.confirm}</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <Button
-              ref={confirmButton}
-              variant="danger"
-              size="sm"
-              disabled={pending}
-              onClick={onRemove}
-            >
-              {copy.confirmRemove}
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setConfirming(false)}
-            >
-              {copy.keep}
-            </Button>
-          </div>
+          {/* Named by the question, like ConfirmDelete; Escape backs out. */}
+          <fieldset onKeyDown={onKeyDown} className="min-w-0">
+            <legend className="text-sm font-semibold">{copy.confirm}</legend>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button
+                ref={confirmButton}
+                variant="danger"
+                size="sm"
+                disabled={pending}
+                onClick={onRemove}
+              >
+                {copy.confirmRemove}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setConfirming(false)}
+              >
+                {copy.keep}
+              </Button>
+            </div>
+          </fieldset>
         </div>
       ) : (
         <div className="mt-3 flex flex-wrap gap-2">

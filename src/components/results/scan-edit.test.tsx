@@ -70,6 +70,21 @@ test("removing asks first, and undo brings the piece back", async () => {
   ).toBeDefined();
 });
 
+test("Escape backs out of removing a piece", async () => {
+  await open();
+  fireEvent.click(screen.getByRole("button", { name: "Remove piece" }));
+  const confirm = screen.getByRole("group", { name: en.results.edit.confirm });
+  fireEvent.keyDown(within(confirm).getByRole("button", { name: "Remove" }), {
+    key: "Escape",
+  });
+  expect(
+    screen.queryByRole("group", { name: en.results.edit.confirm }),
+  ).toBeNull();
+  expect(document.activeElement).toBe(
+    screen.getByRole("button", { name: "Remove piece" }),
+  );
+});
+
 test("missed pieces can be added and are selected", async () => {
   await open();
   const form = addForm();
