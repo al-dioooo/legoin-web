@@ -28,8 +28,8 @@ import {
   MockApiError,
   mockOptionsFromSearch,
 } from "@/lib/mock/api";
-import { EVENING_PHOTO } from "@/lib/mock/fixtures";
 import { readPhoto, validatePhoto } from "@/lib/photo";
+import { EVENING_PHOTO } from "@/lib/sample-scan";
 import { handOffScan } from "@/lib/scan-handoff";
 
 type Copy = Pick<

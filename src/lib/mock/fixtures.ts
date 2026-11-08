@@ -6,13 +6,11 @@
 import type { Locale } from "@/i18n/locales";
 import type { PartCount } from "@/lib/bricks";
 import type { Detection, Difficulty, IdeaTheme, Scan } from "@/lib/domain";
-import { SAMPLE_DETECTIONS, SAMPLE_PHOTO } from "@/lib/sample-scan";
-
-export const EVENING_PHOTO = {
-  src: "/contoh/kepingan-2.jpg",
-  width: 1200,
-  height: 800,
-};
+import {
+  EVENING_PHOTO,
+  SAMPLE_DETECTIONS,
+  SAMPLE_PHOTO,
+} from "@/lib/sample-scan";
 
 const DESK_DETECTIONS: Detection[] = SAMPLE_DETECTIONS.map(
   (detection, index) => ({ ...detection, id: `desk-${index + 1}` }),
