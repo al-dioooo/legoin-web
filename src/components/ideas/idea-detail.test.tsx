@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 import { IdeaDetail } from "@/components/ideas/idea-detail";
 import { IdeasScreen } from "@/components/ideas/ideas-screen";
@@ -136,6 +136,25 @@ test("an idea that needs nothing else says so", async () => {
   expect(screen.getByText("Uses only your pieces")).toBeDefined();
   expect(screen.getByText(en.ideaDetail.summary.none)).toBeDefined();
   expect(screen.queryByRole("region", { name: "Parts missing" })).toBeNull();
+});
+
+test("steps tick off one by one, in this browser only", async () => {
+  await askForIdeas();
+  visit("race-car");
+  render(<IdeaDetail copy={copy} locale="en" />);
+  const first = (await screen.findByRole("checkbox", {
+    name: "Step 1 done",
+  })) as HTMLInputElement;
+  fireEvent.click(first);
+  expect(first.checked).toBe(true);
+  expect(screen.getByText("1 of 3 steps done")).toBeDefined();
+  // The step's text ticks it too.
+  fireEvent.click(screen.getByText(/^Add the green 2×2 slope/));
+  fireEvent.click(screen.getByRole("checkbox", { name: "Step 3 done" }));
+  expect(screen.getByText(en.ideaDetail.allDone)).toBeDefined();
+  fireEvent.click(first);
+  expect(first.checked).toBe(false);
+  expect(screen.getByText("2 of 3 steps done")).toBeDefined();
 });
 
 test("back, previous and next keep the theme and demo options", async () => {

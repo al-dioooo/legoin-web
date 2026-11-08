@@ -224,6 +224,9 @@ export const id: Dictionary = {
     loading: "Memuat ide ini…",
     back: "Semua ide",
     steps: "Langkah",
+    markDone: "Langkah {step} selesai",
+    progress: "{done} dari {total} langkah selesai",
+    allDone: "Semua langkah selesai. Rakitan yang keren!",
     summary: {
       title: "Yang masih kurang",
       needed: "Kepingan dibutuhkan",

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Odometer } from "@/components/motion/odometer";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonStyles } from "@/components/ui/button";
@@ -55,8 +55,8 @@ export function IdeaDetailLoading({ label }: { label: string }) {
 
 /**
  * One build idea in full (PRD F6), from the scan's latest set: the parts it
- * uses, what's missing, and numbered steps. Previous and next walk
- * the set; links keep `?theme` and the demo options.
+ * uses, what's missing, and numbered steps that can be ticked off. Previous and
+ * next walk the set; links keep `?theme` and the demo options.
  */
 export function IdeaDetail({ copy, locale }: { copy: Copy; locale: Locale }) {
   const { id, ideaId } = useParams<{ id: string; ideaId: string }>();
@@ -269,7 +269,9 @@ export function IdeaDetail({ copy, locale }: { copy: Copy; locale: Locale }) {
             {copy.ideaDetail.steps}
           </Sticker>
         </h2>
+        {/* Keyed by idea, so ticks never carry over to the next idea. */}
         <Steps
+          key={idea.id}
           steps={idea.steps}
           lang={written}
           copy={copy}
@@ -366,7 +368,7 @@ function MissingSummary({
   );
 }
 
-/** Numbered steps that click in one by one. */
+/** Numbered steps that click in one by one and can be ticked off, locally. */
 function Steps({
   steps,
   lang,
@@ -378,22 +380,85 @@ function Steps({
   copy: Copy;
   className?: string;
 }) {
+  const [done, setDone] = useState<ReadonlySet<number>>(() => new Set());
+  const idPrefix = useId();
+  const { ideaDetail, common } = copy;
+
+  function toggle(index: number) {
+    setDone((current) => {
+      const next = new Set(current);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  }
+
   return (
-    <ol className={cx("assemble space-y-3", className)}>
-      {steps.map((step, index) => (
-        <li
-          // Steps are plain text and never reorder, so position is identity.
-          // biome-ignore lint/suspicious/noArrayIndexKey: see above
-          key={index}
-          className="flex items-start gap-3 rounded-callout border-2 border-ink bg-card p-4"
-        >
-          <StepNumber value={index + 1} label={copy.common.step} />
-          <span lang={lang} className="flex-1 self-center">
-            {step}
-          </span>
-        </li>
-      ))}
-    </ol>
+    <div className={className}>
+      <ol className="assemble space-y-3">
+        {steps.map((step, index) => {
+          const checked = done.has(index);
+          const inputId = `${idPrefix}-${index + 1}`;
+          return (
+            <li
+              // Steps are plain text and never reorder, so position is identity.
+              // biome-ignore lint/suspicious/noArrayIndexKey: see above
+              key={index}
+              className={cx(
+                "flex items-start gap-3 rounded-callout border-2 border-ink p-4 transition-colors",
+                checked ? "bg-success-subtle" : "bg-card",
+              )}
+            >
+              <StepNumber value={index + 1} label={common.step} />
+              {/* Clicking the text ticks the step too. */}
+              <label
+                htmlFor={inputId}
+                lang={lang}
+                className="flex-1 cursor-pointer self-center"
+              >
+                {step}
+              </label>
+              <span className="relative grid size-8 shrink-0 place-items-center self-center">
+                <input
+                  id={inputId}
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggle(index)}
+                  aria-label={fill(ideaDetail.markDone, { step: index + 1 })}
+                  className="size-8 cursor-pointer appearance-none rounded-control border-[2.5px] border-ink bg-page checked:bg-highlight"
+                />
+                {checked && (
+                  <svg
+                    viewBox="0 0 16 16"
+                    aria-hidden="true"
+                    className="click-in pointer-events-none absolute size-4 text-ink"
+                  >
+                    <path
+                      d="M3 8.5 6.5 12 13 4.5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+      <output className="mt-3 block min-h-6 text-sm font-semibold">
+        {done.size === 0
+          ? ""
+          : done.size === steps.length
+            ? ideaDetail.allDone
+            : fill(ideaDetail.progress, {
+                done: done.size,
+                total: steps.length,
+              })}
+      </output>
+    </div>
   );
 }
 

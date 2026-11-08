@@ -218,6 +218,9 @@ export const en = {
     loading: "Loading this idea…",
     back: "All ideas",
     steps: "Steps",
+    markDone: "Step {step} done",
+    progress: "{done} of {total} steps done",
+    allDone: "All steps done. Nice build!",
     summary: {
       title: "What you're missing",
       needed: "Pieces needed",
