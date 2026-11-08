@@ -74,6 +74,34 @@ test("ideas come in the requested language and remember the theme", async () => 
   expect((await getScan("demo-desk", fast))?.lastTheme).toBe("vehicles");
 });
 
+test("the latest ideas are kept on the scan with their theme and language", async () => {
+  expect((await getScan("demo-desk", fast))?.ideas).toBeUndefined();
+  const ideas = await getIdeas("demo-desk", "surprise", "id", fast);
+  expect((await getScan("demo-desk", fast))?.ideas).toEqual({
+    theme: "surprise",
+    locale: "id",
+    items: ideas,
+  });
+});
+
+test("other ideas replace the kept ones", async () => {
+  const first = await getIdeas("demo-evening", "vehicles", "en", fast);
+  const second = await getIdeas("demo-evening", "vehicles", "en", {
+    ...fast,
+    exclude: ids(first),
+  });
+  const kept = (await getScan("demo-evening", fast))?.ideas;
+  expect(ids(kept?.items ?? [])).toEqual(ids(second));
+});
+
+test("a failed request keeps the ideas from before", async () => {
+  const ideas = await getIdeas("demo-desk", "animals", "en", fast);
+  await expect(
+    getIdeas("demo-desk", "vehicles", "en", { ...fast, fail: "network" }),
+  ).rejects.toEqual(new MockApiError("network"));
+  expect((await getScan("demo-desk", fast))?.ideas?.items).toEqual(ideas);
+});
+
 test("surprise mixes one idea from every theme", async () => {
   const ideas = await getIdeas("demo-desk", "surprise", "en", fast);
   expect(ideas.map((idea) => idea.theme)).toEqual([

@@ -181,7 +181,8 @@ function freshFirst(templates: IdeaTemplate[], exclude: readonly string[]) {
 
 /**
  * Three ideas for a scan, in the requested language, each checked against the
- * scan's inventory. "surprise" picks one idea from every theme.
+ * scan's inventory. "surprise" picks one idea from every theme. The answer is
+ * saved on the scan as its `ideas`, replacing the ones before.
  *
  * For "Try other ideas", `exclude` lists the ids already shown, oldest first.
  * Ideas not shown yet come first; once they run out, the ones shown longest ago.
@@ -199,8 +200,6 @@ export function getIdeas(
     const scans = load();
     const scan = scans.find((candidate) => candidate.id === scanId);
     if (!scan) throw new Error(`No scan with id ${scanId}`);
-    scan.lastTheme = theme;
-    save(scans);
 
     const inventory = toInventory(scan.detections);
     const ofTheme = (ideaTheme: IdeaTheme) =>
@@ -215,7 +214,7 @@ export function getIdeas(
           )
         : ofTheme(theme).slice(0, IDEAS_PER_REQUEST);
 
-    return templates
+    const ideas: Idea[] = templates
       .filter((template) => template !== undefined)
       .map((template) => ({
         id: template.id,
@@ -226,5 +225,10 @@ export function getIdeas(
         steps: template.steps[locale],
         ...checkInventory(template.requires, inventory),
       }));
+
+    scan.lastTheme = theme;
+    scan.ideas = { theme, locale, items: ideas };
+    save(scans);
+    return ideas;
   });
 }

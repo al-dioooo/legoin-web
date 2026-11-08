@@ -2,6 +2,7 @@
  * contract drafted in al-dioooo/legoin-docs#7, so swapping the mock service for
  * the real API needs no screen changes.
  */
+import type { Locale } from "@/i18n/locales";
 import type { BrickColorId, BrickPartId, PartCount } from "@/lib/bricks";
 
 /** A box in fractions of the photo (0 to 1), so it scales with the image. */
@@ -65,6 +66,8 @@ export type Scan = {
   detections: Detection[];
   /** The theme last used for ideas, to preselect it next time. */
   lastTheme?: Theme;
+  /** The latest ideas for this scan; each request for ideas replaces them. */
+  ideas?: IdeaSet;
 };
 
 /** One build idea, already checked against the inventory (the PRD's cek_inventori). */
@@ -79,6 +82,18 @@ export type Idea = {
   used: PartCount[];
   /** Parts the build needs that the person doesn't have. */
   missing: PartCount[];
+};
+
+/**
+ * One answer to a request for ideas, kept with the scan. Ideas are written once,
+ * in the language they were asked in (ADR-0004), and never translated after.
+ */
+export type IdeaSet = {
+  /** The theme asked for; "surprise" mixes themes. */
+  theme: Theme;
+  /** The language the ideas are written in. */
+  locale: Locale;
+  items: Idea[];
 };
 
 /** A correction to a scan's detections. */

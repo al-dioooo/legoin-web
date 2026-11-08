@@ -51,3 +51,12 @@ test("ideas skip the ones already shown", async () => {
     expect(first.map(({ id }) => id)).not.toContain(idea.id);
   }
 });
+
+test("ideas skipped with exclude stay out of the kept set", async () => {
+  visit("mockDelay=0");
+  const first = await getIdeas("demo-desk", "buildings", "id");
+  const next = await getIdeas("demo-desk", "buildings", "id", {
+    exclude: first.map((idea) => idea.id),
+  });
+  expect((await getScan("demo-desk"))?.ideas?.items).toEqual(next);
+});

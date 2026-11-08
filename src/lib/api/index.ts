@@ -58,9 +58,10 @@ export function deleteScan(id: string): Promise<void> {
 
 /**
  * Three ideas for a scan, in the requested language, each checked against the
- * scan's inventory; the theme becomes the scan's `lastTheme`. For "Try other
- * ideas", `exclude` lists the ids already shown, oldest first. A failed request
- * rejects with an ApiError.
+ * scan's inventory. They're kept as the scan's `ideas`, replacing the ones
+ * before, and the theme becomes its `lastTheme`. For "Try other ideas",
+ * `exclude` lists the ids already shown, oldest first. A failed request rejects
+ * with an ApiError.
  */
 export function getIdeas(
   scanId: string,
