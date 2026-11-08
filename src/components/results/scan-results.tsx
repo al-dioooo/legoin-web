@@ -19,7 +19,7 @@ import { plural } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { getScan, updateDetections } from "@/lib/api";
 import type { BrickColorId, BrickPartId, PartCount } from "@/lib/bricks";
-import { countUnplaced, labeledBoxes } from "@/lib/detection-labels";
+import { countUnplaced, fitLabels, labeledBoxes } from "@/lib/detection-labels";
 import { type DetectionChange, needsCheck, type Scan } from "@/lib/domain";
 import { inventoryKey, inverseChanges, toInventory } from "@/lib/inventory";
 import { MAX_STAGGER, readDuration, snapHaptic } from "@/lib/motion";
@@ -80,6 +80,9 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   const emptyHeading = useRef<HTMLHeadingElement>(null);
   /** Set when a change removes the last piece, so focus lands on the empty state. */
   const focusEmpty = useRef(false);
+  const photoFrame = useRef<HTMLDivElement>(null);
+  /** The photo frame's width on screen; 0 until measured. */
+  const [frameWidth, setFrameWidth] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -106,6 +109,17 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
     // Unreadable tokens (no stylesheet) fall back to about a second.
     const timer = setTimeout(() => setAssembling(false), run || 1000);
     return () => clearTimeout(timer);
+  }, [ready]);
+
+  // Labels are thinned to fit the photo as drawn, so follow its width.
+  useEffect(() => {
+    const frame = photoFrame.current;
+    if (!ready || !frame || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(([entry]) =>
+      setFrameWidth(Math.round(entry.contentRect.width)),
+    );
+    observer.observe(frame);
+    return () => observer.disconnect();
   }, [ready]);
 
   // The selected piece's controls are gone with it, so focus would drop to the page.
@@ -139,7 +153,20 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   const editedKeys = new Set(
     scan.detections.filter((d) => d.edited).map(inventoryKey),
   );
-  const boxes = labeledBoxes(scan.detections, locale, selectedId ?? undefined);
+  // The photo is drawn inside a 2.5px border, scaled to its frame.
+  const drawnWidth = Math.max(frameWidth * (zoomed ? 2 : 1) - 5, 0);
+  const allBoxes = labeledBoxes(
+    scan.detections,
+    locale,
+    selectedId ?? undefined,
+  );
+  const boxes =
+    drawnWidth > 0
+      ? fitLabels(allBoxes, {
+          width: drawnWidth,
+          height: (drawnWidth * scan.photo.height) / scan.photo.width,
+        })
+      : allBoxes;
   // Found pieces with nowhere on the photo: the mock's stand-in for a photo it
   // can't see, so say plainly that the results aren't from this photo.
   const demo = countUnplaced(scan.detections) > 0;
@@ -317,7 +344,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
             scale with the photo. On desktop the part callout overlaps the
             plate's right edge, never the photo. */}
         <div className="mt-3 rounded-card border-[2.5px] border-ink bg-card p-2 shadow-card sm:p-3 lg:pr-[calc(var(--stud)+0.75rem)]">
-          <div className="overflow-auto rounded-callout">
+          <div ref={photoFrame} className="overflow-auto rounded-callout">
             <div style={{ width: zoomed ? "200%" : "100%" }}>
               <SharedPhoto>
                 <DetectedPhoto

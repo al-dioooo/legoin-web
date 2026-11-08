@@ -1,6 +1,11 @@
 // @vitest-environment node
 import { expect, test } from "vitest";
-import { countUnplaced, labeledBoxes } from "@/lib/detection-labels";
+import {
+  countUnplaced,
+  fitLabels,
+  type LabeledBox,
+  labeledBoxes,
+} from "@/lib/detection-labels";
 
 const box = { x: 0.1, y: 0.1, width: 0.2, height: 0.2 };
 
@@ -87,4 +92,65 @@ test("only found pieces without a box count as unplaced", () => {
       { box: null, confidence: 0.8 },
     ]),
   ).toBe(1);
+});
+
+/** A labeled box at (x, y) on a 1000 × 1000 px photo, 50 px square. */
+const at = (
+  id: string,
+  x: number,
+  y: number,
+  extra: Partial<LabeledBox> = {},
+): LabeledBox => ({
+  id,
+  box: { x: x / 1000, y: y / 1000, width: 0.05, height: 0.05 },
+  label: "2×4",
+  name: id,
+  selected: false,
+  flagged: false,
+  ...extra,
+});
+const shown = (boxes: LabeledBox[]) =>
+  boxes.filter(({ label }) => label).map(({ id }) => id);
+const photo = { width: 1000, height: 1000 };
+
+test("labels that fit all stay", () => {
+  expect(
+    shown(fitLabels([at("a", 100, 100), at("b", 400, 100)], photo)),
+  ).toEqual(["a", "b"]);
+});
+
+test("a label that would cover another piece's box goes", () => {
+  // b sits just above a, where a's label would go; b is bigger, so it wins.
+  const a = at("a", 100, 200);
+  const b = {
+    ...at("b", 90, 150),
+    box: { x: 0.09, y: 0.15, width: 0.06, height: 0.045 },
+  };
+  const fitted = fitLabels([a, b], photo);
+  expect(shown(fitted)).toEqual(["b"]);
+  // Dropped labels keep their box and name.
+  expect(fitted[0]).toMatchObject({ id: "a", name: "a", label: "" });
+});
+
+test("the selected piece keeps its label, then flagged pieces win", () => {
+  // Three narrow pieces in a row, close enough that neighbours' labels overlap.
+  const narrow = { width: 0.025, height: 0.05 };
+  const row = [
+    at("big", 100, 200, {
+      box: { x: 0.1, y: 0.2, width: 0.025, height: 0.08 },
+    }),
+    at("flagged", 130, 200, {
+      flagged: true,
+      box: { x: 0.13, y: 0.2, ...narrow },
+    }),
+    at("selected", 160, 200, {
+      selected: true,
+      label: "2×4 · 0.94",
+      box: { x: 0.16, y: 0.2, ...narrow },
+    }),
+  ];
+  // The selected label pushes out its neighbour, which no longer blocks "big".
+  expect(shown(fitLabels(row, photo))).toEqual(["big", "selected"]);
+  // Without a selection, the flagged piece beats the bigger one.
+  expect(shown(fitLabels(row.slice(0, 2), photo))).toEqual(["flagged"]);
 });
