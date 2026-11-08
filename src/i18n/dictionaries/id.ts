@@ -219,6 +219,38 @@ export const id: Dictionary = {
       action: "Kembali ke kepinganmu",
     },
   },
+  ideaDetail: {
+    title: "Langkah merakit",
+    loading: "Memuat ide ini…",
+    back: "Semua ide",
+    steps: "Langkah",
+    summary: {
+      title: "Yang masih kurang",
+      needed: "Kepingan dibutuhkan",
+      have: "Kamu punya",
+      missing: "Kurang",
+      // Indonesian has no plural forms; Intl.PluralRules always picks "other".
+      some: {
+        one: "Cari {count} kepingan lagi, atau ganti dengan yang mirip dari punyamu.",
+        other:
+          "Cari {count} kepingan lagi, atau ganti dengan yang mirip dari punyamu.",
+      },
+      none: "Kepinganmu sudah lengkap. Ayo mulai merakit!",
+    },
+    nav: "Ide lainnya",
+    previous: "Ide sebelumnya",
+    next: "Ide berikutnya",
+    missing: {
+      title: "Kami tidak menemukan ide itu",
+      body: "Meminta ide baru menggantikan ide sebelumnya, jadi ide ini mungkin sudah tidak ada.",
+      action: "Lihat idemu",
+    },
+    failed: {
+      title: "Kami tidak bisa memuat ide ini",
+      body: "Periksa koneksimu, lalu coba lagi.",
+      retry: "Coba lagi",
+    },
+  },
   motion: {
     title: { before: "Gerak & ", sticker: "interaksi" },
     intro:

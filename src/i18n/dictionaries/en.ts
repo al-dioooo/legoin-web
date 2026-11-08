@@ -213,6 +213,36 @@ export const en = {
       action: "Back to your pieces",
     },
   },
+  ideaDetail: {
+    title: "Build steps",
+    loading: "Loading this idea…",
+    back: "All ideas",
+    steps: "Steps",
+    summary: {
+      title: "What you're missing",
+      needed: "Pieces needed",
+      have: "You have",
+      missing: "Missing",
+      some: {
+        one: "Find {count} more piece, or swap in a similar one you have.",
+        other: "Find {count} more pieces, or swap in similar ones you have.",
+      },
+      none: "You have every piece. Start building!",
+    },
+    nav: "Other ideas",
+    previous: "Previous idea",
+    next: "Next idea",
+    missing: {
+      title: "We couldn't find that idea",
+      body: "Asking for new ideas replaces the ones before, so this one may be gone.",
+      action: "See your ideas",
+    },
+    failed: {
+      title: "We couldn't load this idea",
+      body: "Check your connection and try again.",
+      retry: "Try again",
+    },
+  },
   motion: {
     title: { before: "Motion & ", sticker: "interaction" },
     intro:
