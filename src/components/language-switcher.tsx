@@ -1,21 +1,65 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { LOCALES, type Locale, localizedPath } from "@/i18n/locales";
 import { cx } from "@/lib/cx";
 
-/** EN / ID pill that keeps you on the same page in the other language. */
-export function LanguageSwitcher({
-  current,
-  label,
-  names,
-  className,
-}: {
+type Props = {
   current: Locale;
   label: string;
   names: Record<Locale, string>;
   className?: string;
+};
+
+/**
+ * EN / ID pill that keeps you on the same page in the other language, with the
+ * same query and hash, e.g. the theme on the ideas page.
+ */
+export function LanguageSwitcher(props: Props) {
+  // A prerendered page doesn't know its query until it reaches the browser, so
+  // the links start as the bare page and pick up the query once it hydrates.
+  return (
+    <Suspense fallback={<Pills {...props} />}>
+      <PillsWithQuery {...props} />
+    </Suspense>
+  );
+}
+
+function PillsWithQuery(props: Props) {
+  const searchParams = useSearchParams();
+  const query = searchParams.toString();
+  const hash = useHash(searchParams);
+  return <Pills {...props} suffix={`${query ? `?${query}` : ""}${hash}`} />;
+}
+
+/**
+ * The URL's #fragment. Next gives `searchParams` a new identity on every
+ * navigation, hash-only ones included, and has written the new URL by the time
+ * effects run; plain `<a href="#…">` links and back/forward fire `hashchange`.
+ */
+function useHash(searchParams: unknown) {
+  const [hash, setHash] = useState("");
+  // biome-ignore lint/correctness/useExhaustiveDependencies: searchParams marks a navigation; see above
+  useEffect(() => {
+    const read = () => setHash(window.location.hash);
+    read();
+    window.addEventListener("hashchange", read);
+    return () => window.removeEventListener("hashchange", read);
+  }, [searchParams]);
+  return hash;
+}
+
+function Pills({
+  current,
+  label,
+  names,
+  className,
+  suffix = "",
+}: Props & {
+  /** Query and hash to keep, e.g. "?theme=animals#idea-2". */
+  suffix?: string;
 }) {
   const pathname = usePathname();
   return (
@@ -29,7 +73,7 @@ export function LanguageSwitcher({
       {LOCALES.map((locale) => (
         <Link
           key={locale}
-          href={localizedPath(pathname, locale)}
+          href={`${localizedPath(pathname, locale)}${suffix}`}
           hrefLang={locale}
           lang={locale}
           aria-current={locale === current ? "true" : undefined}
