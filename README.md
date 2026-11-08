@@ -46,7 +46,11 @@ Without a backend, demo conditions go in the page URL: `?mock=fail-<reason>` (`n
 
 ## Deployment
 
-Not set up yet.
+[Vercel](https://vercel.com) builds the app through its GitHub integration. There's no Vercel config in this repo; Vercel detects Next.js and pnpm by itself.
+
+- **Production:** every push to `main` deploys to <https://legoin-web.vercel.app>, which is public.
+- **Previews:** every pull request gets its own deployment, rebuilt on each push. The Vercel bot comments its link on the PR, and the commit gets a `Vercel` status. Previews sit behind Vercel's log-in, so open them with an account that has access to the project.
+- **Backend:** both run on the mock backend, so scans live in each visitor's browser and the `?mock=` and `?mockDelay=` conditions work there too. Leave `NEXT_PUBLIC_API_URL` unset in the Vercel project until the API client exists, because any value fails the build.
 
 ## Contributing
 

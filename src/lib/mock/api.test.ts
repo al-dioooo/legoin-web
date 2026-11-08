@@ -76,6 +76,45 @@ test("corrections persist", async () => {
   });
 });
 
+test("a correction that changes the inventory drops the kept ideas", async () => {
+  const [raceCar] = await getIdeas("demo-evening", "vehicles", "en", fast);
+  const scan = await updateDetections(
+    "demo-evening",
+    [{ type: "edit", id: "evening-6", part: "plate-2x2" }],
+    fast,
+  );
+  // They were checked against the pieces as they were; the next ask checks these.
+  expect(scan.ideas).toBeUndefined();
+  expect((await getScan("demo-evening", fast))?.ideas).toBeUndefined();
+  expect(await getIdea("demo-evening", raceCar.id, fast)).toBeNull();
+  // The picker still starts from the theme used last.
+  expect(scan.lastTheme).toBe("vehicles");
+});
+
+test("a correction that leaves the inventory as it was keeps the ideas", async () => {
+  const ideas = await getIdeas("demo-evening", "animals", "en", fast);
+  const flagged = (await getScan("demo-evening", fast))?.detections.find(
+    (d) => d.id === "evening-6",
+  );
+  // Confirming a flagged piece as it is.
+  const scan = await updateDetections(
+    "demo-evening",
+    [
+      {
+        type: "edit",
+        id: "evening-6",
+        part: flagged?.part,
+        color: flagged?.color,
+      },
+    ],
+    fast,
+  );
+  expect(scan.ideas?.items).toEqual(ideas);
+  expect((await getIdea("demo-evening", ideas[0].id, fast))?.idea).toEqual(
+    ideas[0],
+  );
+});
+
 test("deleted scans are gone", async () => {
   await deleteScan("demo-desk", fast);
   expect(await getScan("demo-desk", fast)).toBeNull();
