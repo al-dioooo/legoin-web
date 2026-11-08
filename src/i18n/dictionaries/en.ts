@@ -31,7 +31,8 @@ export const en = {
     },
     notes: {
       title: "Good to know",
-      photos: "The sample photos are AI-generated, not real scans.",
+      photos:
+        "The sample photos are AI-generated or drawn by a script, not real scans.",
       trademark:
         "LEGO® is a trademark of the LEGO Group. Legoin is a student project and isn't affiliated with or endorsed by the LEGO Group.",
     },

@@ -60,7 +60,7 @@ export function AddPiece({
       <h3 id="add-title" className="font-display text-lg">
         {copy.title}
       </h3>
-      <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_6rem] lg:grid-cols-1 xl:grid-cols-[1fr_1fr_6rem]">
+      <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_6rem] lg:grid-cols-1">
         <Select
           ref={partRef}
           label={copy.part}

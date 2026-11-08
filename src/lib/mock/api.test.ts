@@ -22,9 +22,14 @@ beforeEach(() => {
   resetMockData();
 });
 
-test("new visitors start with the two demo scans, newest first", async () => {
+test("new visitors start with the demo scans, newest first", async () => {
   const scans = await listScans(fast);
-  expect(scans.map((scan) => scan.id)).toEqual(["demo-evening", "demo-desk"]);
+  expect(scans.map((scan) => scan.id)).toEqual([
+    "demo-evening",
+    "demo-desk",
+    "demo-pile",
+    "demo-single",
+  ]);
 });
 
 test("a scan reports every stage and is saved", async () => {
@@ -54,7 +59,7 @@ test("failures reject with their reason and save nothing", async () => {
   await expect(
     createScan(EVENING_PHOTO, { ...fast, fail: "no_pieces" }),
   ).rejects.toEqual(new MockApiError("no_pieces"));
-  expect(await listScans(fast)).toHaveLength(2);
+  expect(await listScans(fast)).toHaveLength(4);
 });
 
 test("corrections persist", async () => {
@@ -272,5 +277,27 @@ test("a cancelled scan rejects and saves nothing", async () => {
     },
   });
   await expect(scanning).rejects.toMatchObject({ name: "AbortError" });
-  expect(await listScans(fast)).toHaveLength(2);
+  expect(await listScans(fast)).toHaveLength(4);
+});
+
+test("every demo box lies inside its photo", async () => {
+  for (const scan of await listScans(fast)) {
+    for (const { box } of scan.detections) {
+      if (!box) continue;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.y).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(1);
+      expect(box.y + box.height).toBeLessThanOrEqual(1);
+    }
+  }
+});
+
+test("a demo photo gets its own detections", async () => {
+  const pile = await getScan("demo-pile", fast);
+  if (!pile) throw new Error("no pile demo");
+  const scan = await createScan(pile.photo, fast);
+  expect(scan.detections).toHaveLength(30);
+  expect(scan.detections.map(({ box }) => box)).toEqual(
+    pile.detections.map(({ box }) => box),
+  );
 });

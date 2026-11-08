@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { Count, OdometerText } from "@/components/motion/odometer";
 import { SharedPhoto } from "@/components/motion/view-transitions";
 import { AddPiece } from "@/components/results/add-piece";
@@ -19,10 +19,21 @@ import { plural } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { getScan, updateDetections } from "@/lib/api";
 import type { BrickColorId, BrickPartId, PartCount } from "@/lib/bricks";
-import { countUnplaced, labeledBoxes } from "@/lib/detection-labels";
+import { cx } from "@/lib/cx";
+import {
+  countUnplaced,
+  fitLabels,
+  labeledBoxes,
+  zoomFor,
+} from "@/lib/detection-labels";
 import { type DetectionChange, needsCheck, type Scan } from "@/lib/domain";
 import { inventoryKey, inverseChanges, toInventory } from "@/lib/inventory";
-import { MAX_STAGGER, readDuration, snapHaptic } from "@/lib/motion";
+import {
+  MAX_STAGGER,
+  prefersReducedMotion,
+  readDuration,
+  snapHaptic,
+} from "@/lib/motion";
 import { forgetHandedOffScan, handedOffScan } from "@/lib/scan-handoff";
 
 type Copy = { results: Dictionary["results"]; common: Dictionary["common"] };
@@ -80,6 +91,10 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   const emptyHeading = useRef<HTMLHeadingElement>(null);
   /** Set when a change removes the last piece, so focus lands on the empty state. */
   const focusEmpty = useRef(false);
+  const photoFrame = useRef<HTMLDivElement>(null);
+  const piecePanel = useRef<HTMLElement>(null);
+  /** The photo frame's width on screen; 0 until measured. */
+  const [frameWidth, setFrameWidth] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -107,6 +122,35 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
     const timer = setTimeout(() => setAssembling(false), run || 1000);
     return () => clearTimeout(timer);
   }, [ready]);
+
+  // Labels are thinned to fit the photo as drawn, so follow its width.
+  useEffect(() => {
+    const frame = photoFrame.current;
+    if (!ready || !frame || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(([entry]) =>
+      setFrameWidth(Math.round(entry.contentRect.width)),
+    );
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, [ready]);
+
+  // Zoomed in, the selected piece may be off to the side: bring it into view.
+  useEffect(() => {
+    const frame = photoFrame.current;
+    const box =
+      state.kind === "ready"
+        ? state.scan.detections.find((d) => d.id === selectedId)?.box
+        : null;
+    if (!zoomed || !frame || !box) return;
+    const left = box.x * frame.scrollWidth;
+    const right = (box.x + box.width) * frame.scrollWidth;
+    const view = frame.scrollLeft;
+    if (left >= view && right <= view + frame.clientWidth) return;
+    frame.scrollTo?.({
+      left: (left + right - frame.clientWidth) / 2,
+      behavior: prefersReducedMotion() ? "auto" : "smooth",
+    });
+  }, [zoomed, selectedId, state]);
 
   // The selected piece's controls are gone with it, so focus would drop to the page.
   useEffect(() => {
@@ -139,7 +183,29 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   const editedKeys = new Set(
     scan.detections.filter((d) => d.edited).map(inventoryKey),
   );
-  const boxes = labeledBoxes(scan.detections, locale, selectedId ?? undefined);
+  const allBoxes = labeledBoxes(
+    scan.detections,
+    locale,
+    selectedId ?? undefined,
+  );
+  // The photo is drawn inside a 2.5px border, scaled to its frame. Zooming in
+  // goes far enough for the smallest box to be a usable tap target.
+  const ratio = scan.photo.height / scan.photo.width;
+  const fullWidth = Math.max(frameWidth - 5, 0);
+  const zoom = zoomFor(allBoxes, {
+    width: fullWidth,
+    height: fullWidth * ratio,
+  });
+  // Without boxes there's nothing to tap, so no zoom (even if it was on).
+  const zoomedIn = zoomed && allBoxes.length > 0;
+  const drawnWidth = Math.max(frameWidth * (zoomedIn ? zoom : 1) - 5, 0);
+  const boxes =
+    drawnWidth > 0
+      ? fitLabels(allBoxes, {
+          width: drawnWidth,
+          height: drawnWidth * ratio,
+        })
+      : allBoxes;
   // Found pieces with nowhere on the photo: the mock's stand-in for a photo it
   // can't see, so say plainly that the results aren't from this photo.
   const demo = countUnplaced(scan.detections) > 0;
@@ -158,6 +224,15 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
     );
     const index = group.findIndex((d) => d.id === selectedId);
     select(group[(index + 1) % group.length]?.id ?? null);
+    // Far down a long inventory the piece panel has scrolled away; bring it
+    // back so the pick shows, with its controls.
+    const panel = piecePanel.current;
+    if (panel && panel.getBoundingClientRect().top < 0) {
+      panel.scrollIntoView?.({
+        block: "start",
+        behavior: prefersReducedMotion() ? "auto" : "smooth",
+      });
+    }
   }
 
   /** Saves changes, remembers how to undo them, and says what happened. */
@@ -293,8 +368,8 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
           </div>
         )}
 
-        <div className="mt-stud flex flex-wrap gap-2">
-          {boxes.length > 0 && (
+        {boxes.length > 0 && (
+          <div className="mt-stud flex flex-wrap gap-2">
             <Button
               variant="ghost"
               size="sm"
@@ -302,23 +377,37 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
             >
               {showLabels ? copy.results.labels.hide : copy.results.labels.show}
             </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
-            onClick={() => setZoomed((value) => !value)}
-          >
-            {zoomed ? copy.results.zoom.out : copy.results.zoom.in}
-          </Button>
-        </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden"
+              onClick={() => setZoomed((value) => !value)}
+            >
+              {zoomedIn ? copy.results.zoom.out : copy.results.zoom.in}
+            </Button>
+          </div>
+        )}
 
         {/* The photo plate. Zoomed photos scroll sideways on phones; boxes
             scale with the photo. On desktop the part callout overlaps the
-            plate's right edge, never the photo. */}
+            plate's right edge, never the photo, and a tall photo narrows so
+            all of it stays in view beside the inventory. */}
         <div className="mt-3 rounded-card border-[2.5px] border-ink bg-card p-2 shadow-card sm:p-3 lg:pr-[calc(var(--stud)+0.75rem)]">
-          <div className="overflow-auto rounded-callout">
-            <div style={{ width: zoomed ? "200%" : "100%" }}>
+          <div
+            ref={photoFrame}
+            className={cx(
+              "overflow-auto rounded-callout lg:mx-auto",
+              demo
+                ? "lg:max-w-[max(18rem,calc((100svh-22rem)*var(--photo-ratio)))]"
+                : "lg:max-w-[max(18rem,calc((100svh-15rem)*var(--photo-ratio)))]",
+            )}
+            style={
+              {
+                "--photo-ratio": scan.photo.width / scan.photo.height,
+              } as CSSProperties
+            }
+          >
+            <div style={{ width: zoomedIn ? `${zoom * 100}%` : "100%" }}>
               <SharedPhoto>
                 <DetectedPhoto
                   photo={scan.photo}
@@ -342,7 +431,8 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
       <div className="space-y-[calc(var(--stud)*1.5)] lg:relative lg:z-10 lg:col-span-4 lg:col-start-9 lg:pt-[calc(var(--stud)*5)]">
         {!empty && (
           <PieceDetail
-            className="lg:-ml-[calc(var(--stud)*2)]"
+            ref={piecePanel}
+            className="scroll-mt-stud lg:-ml-[calc(var(--stud)*2)]"
             detection={selected}
             locale={locale}
             copy={

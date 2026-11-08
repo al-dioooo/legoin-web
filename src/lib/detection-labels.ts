@@ -65,3 +65,82 @@ export function labeledBoxes(
     return [{ id, box, label, name, selected, flagged }];
   });
 }
+
+/** A photo as drawn on screen, in CSS pixels. */
+export type DrawnSize = { width: number; height: number };
+
+// A label as `DetectionBox` draws it: 12px mono text (about 7.2px a character)
+// with 6px padding each side, 20px tall, 4px above its box and 2px to the left.
+const LABEL_CHAR = 7.2;
+const LABEL_PADDING = 12;
+const LABEL_HEIGHT = 20;
+const LABEL_GAP = 4;
+
+type Rect = { left: number; top: number; right: number; bottom: number };
+
+const intersects = (a: Rect, b: Rect) =>
+  a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+
+/**
+ * Drops the labels that would cover another label or another piece's box, or
+ * be cut off by the photo's edge, on a photo drawn at `size`, so busy photos
+ * stay readable. The selected piece
+ * always keeps its label; flagged pieces come next, then the biggest. A piece
+ * without a label still has its box and its name for screen readers.
+ */
+export function fitLabels(boxes: LabeledBox[], size: DrawnSize): LabeledBox[] {
+  const rects = boxes.map(({ box }) => ({
+    left: box.x * size.width,
+    top: box.y * size.height,
+    right: (box.x + box.width) * size.width,
+    bottom: (box.y + box.height) * size.height,
+  }));
+  const area = (index: number) =>
+    boxes[index].box.width * boxes[index].box.height;
+  const rank = (index: number) =>
+    boxes[index].selected ? 0 : boxes[index].flagged ? 1 : 2;
+  const order = boxes
+    .map((_, index) => index)
+    .sort((a, b) => rank(a) - rank(b) || area(b) - area(a));
+
+  const placed: Rect[] = [];
+  const keep = new Set<number>();
+  for (const index of order) {
+    const { label, selected } = boxes[index];
+    const own = rects[index];
+    const tag = {
+      left: own.left - 2,
+      right: own.left - 2 + label.length * LABEL_CHAR + LABEL_PADDING,
+      bottom: own.top - LABEL_GAP,
+      top: own.top - LABEL_GAP - LABEL_HEIGHT,
+    };
+    const blocked =
+      tag.top < 0 ||
+      tag.right > size.width ||
+      placed.some((other) => intersects(tag, other)) ||
+      rects.some((other, at) => at !== index && intersects(tag, other));
+    if (selected || !blocked) {
+      keep.add(index);
+      placed.push(tag);
+    }
+  }
+  return boxes.map((box, index) =>
+    keep.has(index) ? box : { ...box, label: "" },
+  );
+}
+
+/** The smallest box worth tapping, in CSS pixels (WCAG 2.2 target size). */
+export const MIN_TARGET = 24;
+
+/**
+ * How far to zoom a photo drawn at `size` so its smallest box is at least
+ * `MIN_TARGET` across: twice at least, four times at most.
+ */
+export function zoomFor(boxes: Pick<LabeledBox, "box">[], size: DrawnSize) {
+  const sides = boxes.map(({ box }) =>
+    Math.min(box.width * size.width, box.height * size.height),
+  );
+  const smallest = Math.min(...sides);
+  if (!(smallest > 0)) return 2;
+  return Math.min(4, Math.max(2, Math.ceil(MIN_TARGET / smallest)));
+}
