@@ -138,6 +138,12 @@ export const en = {
     },
     labels: { hide: "Hide labels", show: "Show labels" },
     zoom: { in: "Zoom in", out: "Zoom out" },
+    // Small boxes are hard to tap; the inventory picks the same pieces.
+    pick: {
+      before: "Pick a piece by its box, or in the ",
+      link: "inventory",
+      after: ".",
+    },
     piece: {
       title: "Selected piece",
       empty: "Select a piece on the photo or in the inventory to see it here.",

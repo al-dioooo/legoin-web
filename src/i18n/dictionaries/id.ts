@@ -140,6 +140,11 @@ export const id: Dictionary = {
     },
     labels: { hide: "Sembunyikan label", show: "Tampilkan label" },
     zoom: { in: "Perbesar", out: "Perkecil" },
+    pick: {
+      before: "Pilih kepingan lewat kotaknya, atau di ",
+      link: "inventori",
+      after: ".",
+    },
     piece: {
       title: "Kepingan terpilih",
       empty:

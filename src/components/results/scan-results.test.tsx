@@ -63,6 +63,25 @@ test("selecting an inventory line selects its box", async () => {
   ).toBe("true");
 });
 
+// Boxes on a busy photo can be smaller than a fingertip; the inventory picks
+// the same pieces, and the hint says so before the boxes start.
+test("says pieces can be picked in the inventory, and links there", async () => {
+  render(<ScanResults copy={copy} locale="en" />);
+  const link = await screen.findByRole("link", {
+    name: en.results.pick.link,
+  });
+  const target = document.getElementById(
+    link.getAttribute("href")?.slice(1) ?? "",
+  );
+  expect(target).toBe(screen.getByRole("heading", { name: "Inventory" }));
+  // Focusable, so following the link moves focus past the boxes.
+  expect(target?.tabIndex).toBe(-1);
+  const boxes = screen.getAllByRole("button", { pressed: false });
+  expect(
+    link.compareDocumentPosition(boxes[0]) & Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy();
+});
+
 test("labels can be hidden for busy photos", async () => {
   render(<ScanResults copy={copy} locale="en" />);
   await screen.findByText("8 pieces");

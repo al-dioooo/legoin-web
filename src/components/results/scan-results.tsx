@@ -395,7 +395,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
         )}
 
         {boxes.length > 0 && (
-          <div className="mt-stud flex flex-wrap gap-2">
+          <div className="mt-stud flex flex-wrap items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
@@ -411,6 +411,18 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
             >
               {zoomedIn ? copy.results.zoom.out : copy.results.zoom.in}
             </Button>
+            {/* The inventory selects the same pieces, so it stands in for
+                boxes too small to tap; the link also skips past the boxes. */}
+            <p className="text-sm text-ink-secondary sm:ml-2">
+              {copy.results.pick.before}
+              <a
+                href="#inventory-title"
+                className="rounded-sm font-semibold text-ink underline decoration-2 underline-offset-4 hover:bg-highlight"
+              >
+                {copy.results.pick.link}
+              </a>
+              {copy.results.pick.after}
+            </p>
           </div>
         )}
 
