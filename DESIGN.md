@@ -139,7 +139,7 @@ UI primitives live in `src/components/ui`, the logo in `src/components/brand`.
 
 The brick catalogue lives in `src/lib/bricks.ts`. To add a color, add `--brick-<id>` to `tokens.css` and an entry to `BRICK_COLORS`; a test checks that the two match.
 
-The sample scan in `src/lib/sample-scan.ts` and `public/contoh/kepingan.jpg` feeds the home page and `/desain` until the CV pipeline exists. The photo was generated with Codex image generation; replace it with a real scan when one is available.
+The sample scan in `src/lib/sample-scan.ts` and `public/contoh/kepingan.jpg` feeds the home page and `/desain` until the CV pipeline exists. The mock's demo scans (`src/lib/mock/fixtures.ts`) add three more photos in `public/contoh/`. `kepingan.jpg` and `kepingan-2.jpg` were generated with Codex image generation. `kepingan-banyak.jpg` (30 pieces) and `kepingan-satu.jpg` (one piece, portrait) were drawn by a script that placed each brick, so their boxes fit exactly. They cover the detector's range of 1 to 32 bricks a photo. None of them is a real scan; replace them with real ones when there are any.
 
 ## Accessibility
 

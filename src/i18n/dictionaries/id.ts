@@ -33,7 +33,8 @@ export const id: Dictionary = {
     },
     notes: {
       title: "Perlu diketahui",
-      photos: "Foto contoh dibuat dengan AI, bukan hasil pindai sungguhan.",
+      photos:
+        "Foto contoh dibuat dengan AI atau digambar oleh skrip, bukan hasil pindai sungguhan.",
       trademark:
         "LEGO® adalah merek dagang LEGO Group. Legoin adalah proyek mahasiswa dan tidak berafiliasi dengan maupun didukung oleh LEGO Group.",
     },
