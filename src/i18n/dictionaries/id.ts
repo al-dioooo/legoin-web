@@ -132,12 +132,17 @@ export const id: Dictionary = {
       one: "{count} kepingan perlu dicek",
       other: "{count} kepingan perlu dicek",
     },
+    demo: {
+      label: "Hasil demo",
+      body: "Detektor belum tersambung, jadi tidak ada yang ditandai di fotomu dan inventori ini hanya contoh. Ubah agar sesuai dengan kepinganmu.",
+    },
     labels: { hide: "Sembunyikan label", show: "Tampilkan label" },
     zoom: { in: "Perbesar", out: "Perkecil" },
     piece: {
       title: "Kepingan terpilih",
       empty:
         "Pilih kepingan di foto atau di inventori untuk melihatnya di sini.",
+      emptyList: "Pilih kepingan di inventori untuk melihatnya di sini.",
       confidence: "Keyakinan",
       added: "Ditambahkan olehmu",
       check: "Perlu dicek",

@@ -130,11 +130,16 @@ export const en = {
       one: "{count} piece to check",
       other: "{count} pieces to check",
     },
+    demo: {
+      label: "Demo results",
+      body: "The detector isn't connected yet, so nothing is marked on your photo and this inventory is a sample. Edit it to match your pieces.",
+    },
     labels: { hide: "Hide labels", show: "Show labels" },
     zoom: { in: "Zoom in", out: "Zoom out" },
     piece: {
       title: "Selected piece",
       empty: "Select a piece on the photo or in the inventory to see it here.",
+      emptyList: "Select a piece in the inventory to see it here.",
       confidence: "Confidence",
       added: "Added by you",
       check: "Check this",

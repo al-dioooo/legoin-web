@@ -19,7 +19,7 @@ import { plural } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { getScan, updateDetections } from "@/lib/api";
 import type { BrickColorId, BrickPartId, PartCount } from "@/lib/bricks";
-import { labeledBoxes } from "@/lib/detection-labels";
+import { countUnplaced, labeledBoxes } from "@/lib/detection-labels";
 import { type DetectionChange, needsCheck, type Scan } from "@/lib/domain";
 import { inventoryKey, inverseChanges, toInventory } from "@/lib/inventory";
 import { MAX_STAGGER, readDuration, snapHaptic } from "@/lib/motion";
@@ -140,6 +140,9 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
     scan.detections.filter((d) => d.edited).map(inventoryKey),
   );
   const boxes = labeledBoxes(scan.detections, locale, selectedId ?? undefined);
+  // Found pieces with nowhere on the photo: the mock's stand-in for a photo it
+  // can't see, so say plainly that the results aren't from this photo.
+  const demo = countUnplaced(scan.detections) > 0;
   const partTypes = new Set(scan.detections.map((d) => d.part)).size;
   const colors = new Set(scan.detections.map((d) => d.color)).size;
 
@@ -280,6 +283,16 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
           )}
         </div>
 
+        {demo && (
+          <div
+            role="note"
+            className="click-in mt-stud max-w-2xl rounded-callout border-2 border-ink bg-card p-3 sm:p-4"
+          >
+            <Badge tone="warning">{copy.results.demo.label}</Badge>
+            <p className="mt-2 text-sm">{copy.results.demo.body}</p>
+          </div>
+        )}
+
         <div className="mt-stud flex flex-wrap gap-2">
           {boxes.length > 0 && (
             <Button
@@ -332,7 +345,11 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
             className="lg:-ml-[calc(var(--stud)*2)]"
             detection={selected}
             locale={locale}
-            copy={copy.results.piece}
+            copy={
+              boxes.length > 0
+                ? copy.results.piece
+                : { ...copy.results.piece, empty: copy.results.piece.emptyList }
+            }
           >
             {selected && (
               <EditPiece

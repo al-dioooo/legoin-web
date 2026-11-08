@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { expect, test } from "vitest";
-import { labeledBoxes } from "@/lib/detection-labels";
+import { countUnplaced, labeledBoxes } from "@/lib/detection-labels";
 
 const box = { x: 0.1, y: 0.1, width: 0.2, height: 0.2 };
 
@@ -77,4 +77,14 @@ test("a corrected low-confidence piece is no longer flagged", () => {
     "en",
   );
   expect(corrected.flagged).toBe(false);
+});
+
+test("only found pieces without a box count as unplaced", () => {
+  expect(
+    countUnplaced([
+      { box, confidence: 0.9 },
+      { box: null, confidence: null },
+      { box: null, confidence: 0.8 },
+    ]),
+  ).toBe(1);
 });

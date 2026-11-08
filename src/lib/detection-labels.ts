@@ -21,6 +21,20 @@ export type LabeledBox = {
 };
 
 /**
+ * Pieces the pipeline reported without a place on the photo. The detector boxes
+ * everything it finds, so only the mock does this: for a photo it has no
+ * detections for, it returns sample pieces it can't place. Pieces added by hand
+ * have no box either, but no confidence, and don't count.
+ */
+export function countUnplaced(
+  detections: Pick<Detection, "box" | "confidence">[],
+) {
+  return detections.filter(
+    ({ box, confidence }) => box === null && confidence !== null,
+  ).length;
+}
+
+/**
  * Boxes with labels for `DetectedPhoto`. Pieces added by hand have no box and
  * are skipped. Only the selected piece shows its confidence on the photo, so
  * labels stay short.

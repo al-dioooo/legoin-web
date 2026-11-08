@@ -3,8 +3,8 @@
  * so history and corrections survive reloads, and can fake slowness and failures.
  * Browser only: call it from Client Components.
  *
- * Until real detection exists, a new photo gets a demo scan's detections, so the
- * boxes only line up on the demo photos.
+ * Until real detection exists, a demo photo gets its demo scan's detections and
+ * any other photo gets sample pieces with no boxes (see `detectionsForPhoto`).
  */
 import type { Locale } from "@/i18n/locales";
 import {
