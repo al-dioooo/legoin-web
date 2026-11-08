@@ -3,6 +3,7 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { IdeaDetail } from "@/components/ideas/idea-detail";
 import { IdeasScreen } from "@/components/ideas/ideas-screen";
 import { en } from "@/i18n/dictionaries/en";
+import { id } from "@/i18n/dictionaries/id";
 import { getIdea, getIdeas } from "@/lib/api";
 
 const route = vi.hoisted(() => ({
@@ -195,6 +196,34 @@ test("without ?theme, as after a language switch, links use the set's theme", as
   await screen.findByRole("heading", { level: 1, name: "Little boat" });
   expect(href(/All ideas/)).toBe("/en/scan/demo-evening/ideas?theme=vehicles");
   expect(screen.queryByRole("link", { name: /Next idea/ })).toBeNull();
+});
+
+test("an idea from the other language shows as written, with a way to new ones", async () => {
+  await askForIdeas("en");
+  visit("race-car");
+  render(<IdeaDetail copy={copyFor(id)} locale="id" />);
+  const title = await screen.findByRole("heading", {
+    level: 1,
+    name: "Little race car",
+  });
+  expect(title.getAttribute("lang")).toBe("en");
+  expect(
+    screen.getByText(/^Ide ini ditulis dalam bahasa Inggris\./),
+  ).toBeDefined();
+  // The UI around it is Indonesian.
+  expect(screen.getByText("IDE 1/3 · Kendaraan")).toBeDefined();
+  expect(screen.getByRole("region", { name: "Part dipakai" })).toBeDefined();
+  expect(href("Minta ide dalam bahasa Indonesia")).toBe(
+    "/id/scan/demo-evening/ideas?theme=vehicles&mockDelay=0",
+  );
+});
+
+test("an idea in the page's language has no language note", async () => {
+  await askForIdeas("id");
+  visit("race-car");
+  render(<IdeaDetail copy={copyFor(id)} locale="id" />);
+  await screen.findByRole("heading", { level: 1, name: "Mobil balap kecil" });
+  expect(screen.queryByText(/^Ide ini ditulis/)).toBeNull();
 });
 
 test("an unknown or replaced idea leads back to the ideas", async () => {

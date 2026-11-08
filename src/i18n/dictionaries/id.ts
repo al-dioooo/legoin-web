@@ -243,6 +243,11 @@ export const id: Dictionary = {
     nav: "Ide lainnya",
     previous: "Ide sebelumnya",
     next: "Ide berikutnya",
+    language: {
+      note: "Ide ini ditulis dalam {language}. Ide tidak diterjemahkan, tapi kamu bisa minta ide baru dalam bahasa Indonesia.",
+      names: { en: "bahasa Inggris", id: "bahasa Indonesia" },
+      action: "Minta ide dalam bahasa Indonesia",
+    },
     missing: {
       title: "Kami tidak menemukan ide itu",
       body: "Meminta ide baru menggantikan ide sebelumnya, jadi ide ini mungkin sudah tidak ada.",

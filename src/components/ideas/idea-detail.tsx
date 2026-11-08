@@ -57,6 +57,10 @@ export function IdeaDetailLoading({ label }: { label: string }) {
  * One build idea in full (PRD F6), from the scan's latest set: the parts it
  * uses, what's missing, and numbered steps that can be ticked off. Previous and
  * next walk the set; links keep `?theme` and the demo options.
+ *
+ * The idea is shown in the language it was written in. Real ideas are
+ * generated once, in one language (ADR-0004), so on the other language's page
+ * a note says so and offers new ideas instead of translating these.
  */
 export function IdeaDetail({ copy, locale }: { copy: Copy; locale: Locale }) {
   const { id, ideaId } = useParams<{ id: string; ideaId: string }>();
@@ -227,6 +231,21 @@ export function IdeaDetail({ copy, locale }: { copy: Copy; locale: Locale }) {
         <p lang={written} className="mt-3 max-w-prose text-lg">
           {idea.summary}
         </p>
+        {written !== locale && (
+          <div className="mt-stud flex max-w-prose flex-wrap items-center gap-3 rounded-callout border-2 border-ink bg-highlight-subtle p-4">
+            <p className="flex-1 basis-60">
+              {fill(copy.ideaDetail.language.note, {
+                language: copy.ideaDetail.language.names[written],
+              })}
+            </p>
+            <Link
+              href={listHref(set.theme)}
+              className={buttonStyles({ variant: "secondary", size: "sm" })}
+            >
+              {copy.ideaDetail.language.action}
+            </Link>
+          </div>
+        )}
       </header>
 
       {/* Parts first on phones, so you gather them before building; down the

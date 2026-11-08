@@ -235,6 +235,11 @@ export const en = {
     nav: "Other ideas",
     previous: "Previous idea",
     next: "Next idea",
+    language: {
+      note: "This idea was written in {language}. Ideas aren't translated, but you can get new ones in English.",
+      names: { en: "English", id: "Indonesian" },
+      action: "Get ideas in English",
+    },
     missing: {
       title: "We couldn't find that idea",
       body: "Asking for new ideas replaces the ones before, so this one may be gone.",
