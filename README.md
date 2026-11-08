@@ -36,7 +36,13 @@ Open <http://localhost:3000>. It redirects to the English site at `/en`; the Ind
 
 ## Environment variables
 
-None yet. When you add one, put it in `.env.example` and list it here with whether it is required and what it does.
+Put every variable in `.env.example` too.
+
+| Variable | Required | What it does |
+| --- | --- | --- |
+| `NEXT_PUBLIC_API_URL` | No | Base URL of the Legoin API. Leave it empty to use the mock backend, which keeps scans in the browser's `localStorage`. There is no HTTP client yet, so any value fails `pnpm build`, and the data screens in `pnpm dev`, with an error naming the variable. Next.js inlines it into the browser bundle at build time. |
+
+Without a backend, demo conditions go in the page URL: `?mock=fail-<reason>` (`no_pieces`, `too_dark`, `too_blurry` or `network`) makes scanning or ideas fail, and `?mockDelay=<ms>` sets their pace (`0` skips the wait).
 
 ## Deployment
 

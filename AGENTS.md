@@ -32,10 +32,11 @@ Follow [DESIGN.md](DESIGN.md) and check `/en/desain` before building a screen. T
 
 ## Data
 
-Until the Python backend exists, screens read and write data only through `src/lib/mock/api.ts`, typed by `src/lib/domain.ts`. Those types follow the API contract in [legoin-docs#7](https://github.com/al-dioooo/legoin-docs/issues/7), so swapping in the real API changes no screen.
+Screens read and write data only through the data layer, `@/lib/api`, typed by `src/lib/domain.ts`. Those types follow the API contract in [legoin-docs#7](https://github.com/al-dioooo/legoin-docs/issues/7), so swapping in the real API changes only `src/lib/api`. Nothing under `src/app` or `src/components` may import `@/lib/mock`; a test checks this.
 
-- **Storage:** the mock keeps scans in `localStorage`, so it's browser only. Call it from Client Components.
-- **Demo conditions:** add `?mock=fail-<reason>` (`no_pieces`, `too_dark`, `too_blurry`, `network`) or `?mockDelay=0` to a URL. Read them with `mockOptionsFromSearch`.
+- **Backend:** `NEXT_PUBLIC_API_URL` picks it in `src/lib/api/backend.ts`. Unset, it's the mock in `src/lib/mock`. There is no HTTP client yet, so setting it stops the app with an error.
+- **Storage:** the mock keeps scans in `localStorage`, so it's browser only. Call the data layer from Client Components.
+- **Demo conditions:** add `?mock=fail-<reason>` (`no_pieces`, `too_dark`, `too_blurry`, `network`) or `?mockDelay=0` to a URL. The data layer reads them for scanning and ideas; screens never handle them.
 - **Inventory logic:** grouping, corrections and the used/missing split live in `src/lib/inventory.ts`. Keep that logic there, pure and tested, not in components.
 
 ## Commits
