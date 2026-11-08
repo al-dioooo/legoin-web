@@ -3,7 +3,10 @@ import { Suspense } from "react";
 import { IdeasLoading, IdeasScreen } from "@/components/ideas/ideas-screen";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
 import { languageAlternates } from "@/i18n/locales";
+import { UrlMetadataMarker } from "@/i18n/url-metadata";
 
+// Reads `params` so hreflang points at this scan; the page renders
+// `UrlMetadataMarker` to say so.
 export async function generateMetadata({
   params,
 }: PageProps<"/[lang]/scan/[id]/ideas">): Promise<Metadata> {
@@ -28,8 +31,11 @@ export default async function IdeasPage() {
     common: { ideaOf: common.ideaOf, missingCount: common.missingCount },
   };
   return (
-    <Suspense fallback={<IdeasLoading label={results.loading} />}>
-      <IdeasScreen copy={copy} locale={locale} />
-    </Suspense>
+    <>
+      <Suspense fallback={<IdeasLoading label={results.loading} />}>
+        <IdeasScreen copy={copy} locale={locale} />
+      </Suspense>
+      <UrlMetadataMarker />
+    </>
   );
 }

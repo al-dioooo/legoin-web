@@ -49,3 +49,21 @@ test("every page sets its own hreflang alternates", () => {
     expect(readFileSync(page, "utf8"), page).toContain("languageAlternates(");
   }
 });
+
+// A route param such as a scan id is only known at request time, so metadata
+// that reads it has to be marked as intended; see `url-metadata.tsx`.
+test("pages whose metadata reads params render the marker", () => {
+  const pages = globSync("src/app/**/page.tsx");
+  let checked = 0;
+  for (const page of pages) {
+    const source = readFileSync(page, "utf8");
+    const start = source.indexOf("export async function generateMetadata");
+    if (start === -1) continue;
+    const metadata = source.slice(start, source.indexOf("\n}\n", start));
+    if (!metadata.includes("params")) continue;
+    checked++;
+    const body = source.slice(source.indexOf("export default"));
+    expect(body, page).toContain("<UrlMetadataMarker />");
+  }
+  expect(checked).toBeGreaterThan(0);
+});
