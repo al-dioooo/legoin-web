@@ -122,6 +122,7 @@ export const id: Dictionary = {
     title: "Kepinganmu",
     loading: "Memuat hasil pindai…",
     photoAlt: "Fotomu dengan kotak di setiap kepingan yang ditemukan",
+    photoAltPlain: "Fotomu",
     missing: {
       title: "Kami tidak menemukan hasil pindai itu",
       body: "Mungkin sudah dihapus dari peramban ini.",
@@ -178,6 +179,13 @@ export const id: Dictionary = {
       failed: "Kami tidak bisa menyimpannya. Coba lagi.",
     },
     continue: "Lihat ide rakitan",
+    empty: {
+      title: "Belum ada kepingan",
+      body: "Tambahkan kepingan yang terlewat, atau foto ulang dengan kepingan disebar berjauhan.",
+      retake: "Foto ulang",
+      continueHint:
+        "Tambahkan minimal satu kepingan untuk melihat ide rakitan.",
+    },
   },
   ideas: {
     title: "Ide rakitan",

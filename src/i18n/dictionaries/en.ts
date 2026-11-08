@@ -120,6 +120,7 @@ export const en = {
     title: "Your pieces",
     loading: "Loading your scan…",
     photoAlt: "Your photo with a box around each piece found",
+    photoAltPlain: "Your photo",
     missing: {
       title: "We couldn't find that scan",
       body: "It may have been deleted from this browser.",
@@ -172,6 +173,12 @@ export const en = {
       failed: "We couldn't save that. Try again.",
     },
     continue: "Get build ideas",
+    empty: {
+      title: "No pieces here",
+      body: "Add the pieces the scan missed, or retake the photo with your pieces spread apart.",
+      retake: "Retake photo",
+      continueHint: "Add at least one piece to get build ideas.",
+    },
   },
   ideas: {
     title: "Build ideas",
