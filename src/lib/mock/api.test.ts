@@ -27,6 +27,7 @@ test("new visitors start with the demo scans, newest first", async () => {
   expect(scans.map((scan) => scan.id)).toEqual([
     "demo-evening",
     "demo-desk",
+    "demo-pile",
     "demo-single",
   ]);
 });
@@ -58,7 +59,7 @@ test("failures reject with their reason and save nothing", async () => {
   await expect(
     createScan(EVENING_PHOTO, { ...fast, fail: "no_pieces" }),
   ).rejects.toEqual(new MockApiError("no_pieces"));
-  expect(await listScans(fast)).toHaveLength(3);
+  expect(await listScans(fast)).toHaveLength(4);
 });
 
 test("corrections persist", async () => {
@@ -237,7 +238,7 @@ test("a cancelled scan rejects and saves nothing", async () => {
     },
   });
   await expect(scanning).rejects.toMatchObject({ name: "AbortError" });
-  expect(await listScans(fast)).toHaveLength(3);
+  expect(await listScans(fast)).toHaveLength(4);
 });
 
 test("every demo box lies inside its photo", async () => {
@@ -250,4 +251,14 @@ test("every demo box lies inside its photo", async () => {
       expect(box.y + box.height).toBeLessThanOrEqual(1);
     }
   }
+});
+
+test("a demo photo gets its own detections", async () => {
+  const pile = await getScan("demo-pile", fast);
+  if (!pile) throw new Error("no pile demo");
+  const scan = await createScan(pile.photo, fast);
+  expect(scan.detections).toHaveLength(30);
+  expect(scan.detections.map(({ box }) => box)).toEqual(
+    pile.detections.map(({ box }) => box),
+  );
 });

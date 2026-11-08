@@ -1,7 +1,7 @@
-/* Fixtures for the mock service: three demo scans and 18 idea templates, six per theme.
+/* Fixtures for the mock service: four demo scans and 18 idea templates, six per theme.
  * None of the photos are real scans. The desk and evening photos were generated
- * with Codex image generation; the single-piece photo was drawn by a script that
- * placed the brick, so its box matches the brick exactly.
+ * with Codex image generation; the pile and single-piece photos were drawn by a
+ * script that placed each brick, so their boxes match the bricks exactly.
  * Idea copy lives here in both languages, because it stands in for the AI agent's
  * output rather than UI copy.
  */
@@ -84,6 +84,229 @@ const EVENING_DETECTIONS: Detection[] = [
   },
 ];
 
+/** Thirty pieces, as many as the detector's busiest training photos hold. */
+const PILE_PHOTO: Photo = {
+  src: "/contoh/kepingan-banyak.jpg",
+  width: 1200,
+  height: 800,
+};
+
+/** Three pieces to check: an orange round, and two misreads to correct. */
+const PILE_DETECTIONS: Detection[] = [
+  {
+    id: "pile-1",
+    part: "plate-1x2",
+    color: "yellow",
+    box: { x: 0.148, y: 0.085, width: 0.062, height: 0.058 },
+    confidence: 0.72,
+  },
+  {
+    id: "pile-2",
+    part: "plate-2x2",
+    color: "blue",
+    box: { x: 0.316, y: 0.037, width: 0.077, height: 0.125 },
+    confidence: 0.88,
+  },
+  {
+    id: "pile-3",
+    part: "brick-1x4",
+    color: "light-gray",
+    box: { x: 0.819, y: 0.097, width: 0.124, height: 0.121 },
+    confidence: 0.91,
+  },
+  {
+    id: "pile-4",
+    part: "brick-1x2",
+    color: "orange",
+    box: { x: 0.083, y: 0.166, width: 0.068, height: 0.119 },
+    confidence: 0.79,
+  },
+  {
+    id: "pile-5",
+    part: "plate-2x4",
+    color: "green",
+    box: { x: 0.211, y: 0.234, width: 0.062, height: 0.19 },
+    confidence: 0.89,
+  },
+  {
+    id: "pile-6",
+    part: "brick-2x2",
+    color: "green",
+    box: { x: 0.323, y: 0.197, width: 0.062, height: 0.12 },
+    confidence: 0.74,
+  },
+  {
+    id: "pile-7",
+    part: "plate-2x2",
+    color: "blue",
+    box: { x: 0.444, y: 0.327, width: 0.08, height: 0.13 },
+    confidence: 0.78,
+  },
+  {
+    id: "pile-8",
+    part: "brick-2x3",
+    color: "dark-gray",
+    box: { x: 0.453, y: 0.168, width: 0.108, height: 0.172 },
+    confidence: 0.82,
+  },
+  {
+    id: "pile-9",
+    part: "brick-1x3",
+    color: "black",
+    box: { x: 0.636, y: 0.177, width: 0.096, height: 0.114 },
+    confidence: 0.82,
+  },
+  {
+    id: "pile-10",
+    part: "brick-2x2",
+    color: "white",
+    box: { x: 0.782, y: 0.317, width: 0.083, height: 0.151 },
+    confidence: 0.89,
+  },
+  {
+    id: "pile-11",
+    part: "round-1x1",
+    color: "yellow",
+    box: { x: 0.887, y: 0.269, width: 0.031, height: 0.074 },
+    confidence: 0.95,
+  },
+  {
+    id: "pile-12",
+    part: "brick-1x1",
+    color: "red",
+    box: { x: 0.053, y: 0.368, width: 0.044, height: 0.094 },
+    confidence: 0.87,
+  },
+  {
+    id: "pile-13",
+    part: "brick-2x2",
+    color: "yellow",
+    box: { x: 0.096, y: 0.404, width: 0.084, height: 0.153 },
+    confidence: 0.76,
+  },
+  {
+    id: "pile-14",
+    part: "brick-2x2",
+    color: "yellow",
+    box: { x: 0.399, y: 0.49, width: 0.084, height: 0.153 },
+    confidence: 0.9,
+  },
+  {
+    id: "pile-15",
+    part: "brick-2x4",
+    color: "blue",
+    box: { x: 0.49, y: 0.522, width: 0.12, height: 0.12 },
+    confidence: 0.79,
+  },
+  {
+    id: "pile-16",
+    part: "round-1x1",
+    color: "orange",
+    box: { x: 0.651, y: 0.509, width: 0.031, height: 0.074 },
+    confidence: 0.55,
+  },
+  {
+    id: "pile-17",
+    part: "round-1x1",
+    color: "yellow",
+    box: { x: 0.781, y: 0.495, width: 0.031, height: 0.074 },
+    confidence: 0.81,
+  },
+  {
+    id: "pile-18",
+    part: "brick-1x4",
+    color: "light-gray",
+    box: { x: 0.06, y: 0.573, width: 0.123, height: 0.124 },
+    confidence: 0.73,
+  },
+  // A black tile, read as a plate.
+  {
+    id: "pile-19",
+    part: "plate-1x2",
+    color: "black",
+    box: { x: 0.195, y: 0.587, width: 0.068, height: 0.089 },
+    confidence: 0.52,
+  },
+  {
+    id: "pile-20",
+    part: "brick-2x4",
+    color: "red",
+    box: { x: 0.267, y: 0.502, width: 0.062, height: 0.207 },
+    confidence: 0.8,
+  },
+  // A white brick, read as light gray.
+  {
+    id: "pile-21",
+    part: "brick-1x2",
+    color: "light-gray",
+    box: { x: 0.507, y: 0.725, width: 0.033, height: 0.12 },
+    confidence: 0.57,
+  },
+  {
+    id: "pile-22",
+    part: "slope-2x2",
+    color: "red",
+    box: { x: 0.652, y: 0.615, width: 0.062, height: 0.12 },
+    confidence: 0.83,
+  },
+  {
+    id: "pile-23",
+    part: "brick-2x4",
+    color: "red",
+    box: { x: 0.752, y: 0.577, width: 0.124, height: 0.132 },
+    confidence: 0.96,
+  },
+  {
+    id: "pile-24",
+    part: "brick-1x2",
+    color: "white",
+    box: { x: 0.789, y: 0.749, width: 0.062, height: 0.077 },
+    confidence: 0.88,
+  },
+  {
+    id: "pile-25",
+    part: "brick-1x1",
+    color: "red",
+    box: { x: 0.893, y: 0.664, width: 0.044, height: 0.093 },
+    confidence: 0.78,
+  },
+  {
+    id: "pile-26",
+    part: "tile-1x2",
+    color: "white",
+    box: { x: 0.1, y: 0.751, width: 0.033, height: 0.102 },
+    confidence: 0.88,
+  },
+  {
+    id: "pile-27",
+    part: "brick-2x4",
+    color: "red",
+    box: { x: 0.216, y: 0.757, width: 0.122, height: 0.126 },
+    confidence: 0.83,
+  },
+  {
+    id: "pile-28",
+    part: "plate-1x2",
+    color: "yellow",
+    box: { x: 0.42, y: 0.771, width: 0.066, height: 0.075 },
+    confidence: 0.79,
+  },
+  {
+    id: "pile-29",
+    part: "slope-2x2",
+    color: "red",
+    box: { x: 0.59, y: 0.755, width: 0.062, height: 0.12 },
+    confidence: 0.74,
+  },
+  {
+    id: "pile-30",
+    part: "brick-1x2",
+    color: "brown",
+    box: { x: 0.699, y: 0.863, width: 0.067, height: 0.096 },
+    confidence: 0.85,
+  },
+];
+
 /** One piece in a portrait phone photo. */
 const SINGLE_PHOTO: Photo = {
   src: "/contoh/kepingan-satu.jpg",
@@ -114,6 +337,12 @@ export const DEMO_SCANS: Scan[] = [
     createdAt: "2026-10-25T02:15:00.000Z",
     photo: SAMPLE_PHOTO,
     detections: DESK_DETECTIONS,
+  },
+  {
+    id: "demo-pile",
+    createdAt: "2026-10-24T08:40:00.000Z",
+    photo: PILE_PHOTO,
+    detections: PILE_DETECTIONS,
   },
   {
     id: "demo-single",
