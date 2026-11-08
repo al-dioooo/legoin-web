@@ -2,22 +2,15 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 import { CaptureFlow } from "@/components/scan/capture-flow";
 import { en } from "@/i18n/dictionaries/en";
+import { ApiError } from "@/lib/api";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 
-const api = vi.hoisted(() => {
-  class MockApiError extends Error {
-    constructor(readonly reason: string) {
-      super(reason);
-    }
-  }
-  return { createScan: vi.fn(), MockApiError };
-});
-vi.mock("@/lib/mock/api", () => ({
+const api = vi.hoisted(() => ({ createScan: vi.fn() }));
+vi.mock("@/lib/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/api")>()),
   createScan: api.createScan,
-  MockApiError: api.MockApiError,
-  mockOptionsFromSearch: () => ({}),
 }));
 
 // jsdom can't decode images; reading a valid file yields a fixed photo.
@@ -112,7 +105,7 @@ test("progress follows the stages, and cancel returns to the preview", async () 
 });
 
 test("a photo problem asks for a new photo", async () => {
-  api.createScan.mockRejectedValue(new api.MockApiError("too_dark"));
+  api.createScan.mockRejectedValue(new ApiError("too_dark"));
   scanSample();
   expect(
     await screen.findByRole("heading", {
@@ -126,7 +119,7 @@ test("a photo problem asks for a new photo", async () => {
 
 test("a dropped connection can be retried with the same photo", async () => {
   api.createScan
-    .mockRejectedValueOnce(new api.MockApiError("network"))
+    .mockRejectedValueOnce(new ApiError("network"))
     .mockResolvedValueOnce({ id: "retried" });
   scanSample();
   fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
