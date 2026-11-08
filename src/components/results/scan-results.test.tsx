@@ -2,7 +2,6 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 import { ScanResults } from "@/components/results/scan-results";
 import { en } from "@/i18n/dictionaries/en";
-import { resetMockData } from "@/lib/mock/api";
 
 const route = vi.hoisted(() => ({ id: "demo-evening" }));
 vi.mock("next/navigation", () => ({ useParams: () => ({ id: route.id }) }));
@@ -19,7 +18,8 @@ function inventoryTile(part: string) {
 }
 
 beforeEach(() => {
-  resetMockData();
+  // The mock keeps scans in localStorage; empty, it starts from the demo scans.
+  localStorage.clear();
   route.id = "demo-evening";
 });
 

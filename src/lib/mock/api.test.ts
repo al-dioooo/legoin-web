@@ -11,7 +11,8 @@ import {
   resetMockData,
   updateDetections,
 } from "@/lib/mock/api";
-import { EVENING_PHOTO, IDEA_TEMPLATES } from "@/lib/mock/fixtures";
+import { IDEA_TEMPLATES } from "@/lib/mock/fixtures";
+import { EVENING_PHOTO } from "@/lib/sample-scan";
 
 const fast = { delayMs: 0 };
 const ids = (ideas: { id: string }[]) => ideas.map((idea) => idea.id);

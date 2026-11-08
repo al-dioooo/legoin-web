@@ -21,15 +21,11 @@ import { ScanProgress } from "@/components/scan/scan-progress";
 import { Button } from "@/components/ui/button";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import type { Locale } from "@/i18n/locales";
+import { ApiError, createScan } from "@/lib/api";
 import { cx } from "@/lib/cx";
 import type { Photo, ScanFailure, ScanStage } from "@/lib/domain";
-import {
-  createScan,
-  MockApiError,
-  mockOptionsFromSearch,
-} from "@/lib/mock/api";
-import { EVENING_PHOTO } from "@/lib/mock/fixtures";
 import { readPhoto, validatePhoto } from "@/lib/photo";
+import { EVENING_PHOTO } from "@/lib/sample-scan";
 import { handOffScan } from "@/lib/scan-handoff";
 
 type Copy = Pick<
@@ -152,7 +148,6 @@ export function CaptureFlow({ copy, locale }: { copy: Copy; locale: Locale }) {
     showStage("detecting");
     try {
       const result = await createScan(chosen.photo, {
-        ...mockOptionsFromSearch(window.location.search),
         signal: controller.signal,
         onStage: showStage,
       });
@@ -163,7 +158,7 @@ export function CaptureFlow({ copy, locale }: { copy: Copy; locale: Locale }) {
     } catch (caught) {
       // Cancelled: the preview is already back.
       if (controller.signal.aborted) return;
-      if (caught instanceof MockApiError) {
+      if (caught instanceof ApiError) {
         setStatus({ kind: "failed", reason: caught.reason });
       } else {
         setStatus({ kind: "idle" });

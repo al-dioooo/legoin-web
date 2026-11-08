@@ -16,11 +16,11 @@ import { Sticker } from "@/components/ui/sticker";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { plural } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
+import { getScan, updateDetections } from "@/lib/api";
 import type { BrickColorId, BrickPartId, PartCount } from "@/lib/bricks";
 import { labeledBoxes } from "@/lib/detection-labels";
 import { type DetectionChange, needsCheck, type Scan } from "@/lib/domain";
 import { inventoryKey, inverseChanges, toInventory } from "@/lib/inventory";
-import { getScan, updateDetections } from "@/lib/mock/api";
 import { MAX_STAGGER, readDuration, snapHaptic } from "@/lib/motion";
 import { forgetHandedOffScan, handedOffScan } from "@/lib/scan-handoff";
 
@@ -79,7 +79,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   useEffect(() => {
     let active = true;
     const handedOff = handedOffScan(id);
-    void getScan(id, { delayMs: handedOff ? 0 : 150 }).then((scan) => {
+    void getScan(id).then((scan) => {
       if (!active) return;
       forgetHandedOffScan(id);
       setState(scan ? { kind: "ready", scan } : { kind: "missing" });
@@ -162,7 +162,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
     try {
       const before = scan;
       const [after] = await Promise.all([
-        updateDetections(scan.id, changes, { delayMs: 150 }),
+        updateDetections(scan.id, changes),
         wait(exitMs),
       ]);
       setState({ kind: "ready", scan: after });

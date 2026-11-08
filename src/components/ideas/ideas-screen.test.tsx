@@ -3,12 +3,7 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { IdeasScreen } from "@/components/ideas/ideas-screen";
 import { en } from "@/i18n/dictionaries/en";
 import { id } from "@/i18n/dictionaries/id";
-import {
-  getIdeas,
-  getScan,
-  resetMockData,
-  updateDetections,
-} from "@/lib/mock/api";
+import { getIdeas, getScan, updateDetections } from "@/lib/api";
 
 const route = vi.hoisted(() => ({ id: "demo-evening", search: "" }));
 const push = vi.fn();
@@ -32,10 +27,20 @@ const copy = copyFor(en);
 const radio = (name: RegExp) =>
   screen.getByRole("radio", { name }) as HTMLInputElement;
 
+/**
+ * Opens the page at this query. The screen reads it through Next; the data
+ * layer reads the demo options from the browser's URL.
+ */
+function visit(search: string) {
+  route.search = search;
+  window.history.replaceState(null, "", `/en/scan/${route.id}/ideas?${search}`);
+}
+
 beforeEach(() => {
-  resetMockData();
+  // The mock keeps scans in localStorage; empty, it starts from the demo scans.
+  localStorage.clear();
   route.id = "demo-evening";
-  route.search = "";
+  visit("");
   push.mockClear();
   replace.mockClear();
 });
@@ -51,14 +56,15 @@ test("asks for a theme, with Surprise me selected by default", async () => {
 });
 
 test("preselects the theme used last", async () => {
-  await getIdeas("demo-evening", "animals", "en", { delayMs: 0 });
+  visit("mockDelay=0");
+  await getIdeas("demo-evening", "animals", "en");
   render(<IdeasScreen copy={copy} locale="en" />);
   await screen.findByRole("heading", { name: en.ideas.picker.title });
   expect(radio(/^Animals/).checked).toBe(true);
 });
 
 test("the chosen theme goes into the URL", async () => {
-  route.search = "mockDelay=0";
+  visit("mockDelay=0");
   render(<IdeasScreen copy={copy} locale="en" />);
   await screen.findByRole("heading", { name: en.ideas.picker.title });
   fireEvent.click(radio(/^Vehicles/));
@@ -69,16 +75,16 @@ test("the chosen theme goes into the URL", async () => {
 });
 
 test("with a theme, it asks for ideas in that theme and language", async () => {
-  route.search = "theme=buildings&mockDelay=0";
+  visit("theme=buildings&mockDelay=0");
   render(<IdeasScreen copy={copyFor(id)} locale="id" />);
   expect(await screen.findByText("Rumah kecil")).toBeDefined();
   expect(radio(/^Bangunan/).checked).toBe(true);
-  const scan = await getScan("demo-evening", { delayMs: 0 });
+  const scan = await getScan("demo-evening");
   expect(scan?.lastTheme).toBe("buildings");
 });
 
 test("switching theme replaces the URL in place", async () => {
-  route.search = "theme=animals&mockDelay=0";
+  visit("theme=animals&mockDelay=0");
   render(<IdeasScreen copy={copy} locale="en" />);
   await screen.findByText("Turtle");
   fireEvent.click(radio(/^Buildings/));
@@ -89,7 +95,7 @@ test("switching theme replaces the URL in place", async () => {
 });
 
 test("an unknown theme in the URL asks for one", async () => {
-  route.search = "theme=dinosaurs";
+  visit("theme=dinosaurs");
   render(<IdeasScreen copy={copy} locale="en" />);
   expect(
     await screen.findByRole("heading", { name: en.ideas.picker.title }),
@@ -104,7 +110,7 @@ test("an unknown scan id offers a new scan", async () => {
 });
 
 test("shows three ideas with difficulty, counts and a link to the steps", async () => {
-  route.search = "theme=vehicles&mockDelay=0";
+  visit("theme=vehicles&mockDelay=0");
   render(<IdeasScreen copy={copy} locale="en" />);
   expect(await screen.findByText("3 ideas ready.")).toBeDefined();
   const cards = screen.getAllByRole("article");
@@ -123,7 +129,7 @@ test("shows three ideas with difficulty, counts and a link to the steps", async 
 });
 
 test("other ideas replace the shown ones, and full matches say so", async () => {
-  route.search = "theme=vehicles&mockDelay=0";
+  visit("theme=vehicles&mockDelay=0");
   render(<IdeasScreen copy={copy} locale="en" />);
   await screen.findByRole("article", { name: "Little race car" });
   fireEvent.click(screen.getByRole("button", { name: "Try other ideas" }));
@@ -136,7 +142,7 @@ test("other ideas replace the shown ones, and full matches say so", async () => 
 });
 
 test("shows placeholders while ideas load", async () => {
-  route.search = "theme=animals&mockDelay=300";
+  visit("theme=animals&mockDelay=300");
   render(<IdeasScreen copy={copy} locale="en" />);
   expect(await screen.findByText(en.ideas.finding)).toBeDefined();
   expect(screen.queryAllByRole("article")).toHaveLength(0);
@@ -146,13 +152,13 @@ test("shows placeholders while ideas load", async () => {
 });
 
 test("a failed request can be retried", async () => {
-  route.search = "theme=animals&mockDelay=0&mock=fail-network";
+  visit("theme=animals&mockDelay=0&mock=fail-network");
   render(<IdeasScreen copy={copy} locale="en" />);
   const alert = await screen.findByRole("alert");
   expect(
     within(alert).getByRole("heading", { name: en.ideas.failed.title }),
   ).toBeDefined();
-  route.search = "theme=animals&mockDelay=0";
+  visit("theme=animals&mockDelay=0");
   fireEvent.click(within(alert).getByRole("button", { name: "Try again" }));
   expect(
     await screen.findByRole("article", { name: "Rubber duck" }),
@@ -166,9 +172,8 @@ test("a scan with no pieces sends people back to add some", async () => {
       type: "remove" as const,
       id: `evening-${index + 1}`,
     })),
-    { delayMs: 0 },
   );
-  route.search = "theme=animals&mockDelay=0";
+  visit("theme=animals&mockDelay=0");
   render(<IdeasScreen copy={copy} locale="en" />);
   expect(
     await screen.findByRole("heading", {

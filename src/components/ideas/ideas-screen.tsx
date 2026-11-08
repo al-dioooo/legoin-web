@@ -10,8 +10,8 @@ import { EmptyState, EmptyStateIcon } from "@/components/ui/empty-state";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { plural } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
+import { getIdeas, getScan } from "@/lib/api";
 import { type Idea, isTheme, type Scan, type Theme } from "@/lib/domain";
-import { getIdeas, getScan, mockOptionsFromSearch } from "@/lib/mock/api";
 
 type Copy = {
   ideas: Dictionary["ideas"];
@@ -75,7 +75,7 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
 
   useEffect(() => {
     let active = true;
-    void getScan(id, { delayMs: 150 }).then((scan) => {
+    void getScan(id).then((scan) => {
       if (active)
         setScanState(scan ? { kind: "ready", scan } : { kind: "missing" });
     });
@@ -88,7 +88,7 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
     if (!theme) return;
     let active = true;
     const asked = `${theme}:${attempt}`;
-    getIdeas(id, theme, locale, { ...mockOptionsFromSearch(query), exclude })
+    getIdeas(id, theme, locale, { exclude })
       .then((ideas) => {
         if (active) setResult({ key: asked, ideas });
       })
@@ -98,7 +98,7 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
     return () => {
       active = false;
     };
-  }, [id, theme, locale, query, exclude, attempt]);
+  }, [id, theme, locale, exclude, attempt]);
 
   /** The same page with another theme, keeping the demo options. */
   function themeHref(next: Theme) {

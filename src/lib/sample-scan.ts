@@ -1,6 +1,7 @@
-/* A sample scan for the home page and /desain until the CV pipeline exists.
- * The photo was generated with Codex image generation, not taken from a real scan;
- * replace it with a real one once the pipeline returns results.
+/* A sample scan for the home page and /desain until the CV pipeline exists, and
+ * the sample photo the scan screen offers. Both photos were generated with Codex
+ * image generation, not taken from real scans; replace them with real ones once
+ * the pipeline returns results.
  * Words (alt text, the idea's title and steps) live in the dictionaries.
  */
 
@@ -11,6 +12,13 @@ import type { Box } from "@/lib/domain";
 
 export const SAMPLE_PHOTO = {
   src: "/contoh/kepingan.jpg",
+  width: 1200,
+  height: 800,
+};
+
+/** The scan screen's "Try the sample photo". The mock knows its pieces. */
+export const EVENING_PHOTO = {
+  src: "/contoh/kepingan-2.jpg",
   width: 1200,
   height: 800,
 };
