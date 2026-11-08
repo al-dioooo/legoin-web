@@ -59,6 +59,7 @@ Legoin works like a building-instructions booklet laid on a baseplate: screens a
 
 ### Baseplate layout
 
+- **One baseplate under every page.** The `[lang]` root layout draws `.baseplate` and the pointer glow once, around everything but the footer; pages, layouts and showcases never draw their own (a test checks). `global-error.tsx` replaces the root layout, so it draws the grid itself, without the glow.
 - **The stud is the module.** `--stud` is 16px on phones and 24px from 640px; `p-stud`, `gap-stud`, `mt-stud` and `-ml-stud` use it. The app column is 49 studs wide (`max-w-(--plate-width)`), and `.baseplate` starts its grid at the column's left edge, so plates sit between studs.
 - **Booklet pages, not stacked cards.** Each step is asymmetric: the title and main plate on the left, supporting plates down the right, overlapping by a stud or two. Overlaps cover a plate's padding, never a photo.
 - **Sticker headings** sit a couple of degrees off-axis (`<Sticker className="-rotate-2">`), alternating direction down a page.

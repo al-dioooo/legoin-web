@@ -20,7 +20,8 @@ const SYSTEM_FONTS = {
 /**
  * Last resort, for errors in the root layout itself. It replaces the whole
  * document, so it brings its own html, body and styles; metadata exports don't
- * work here, so it sets the title itself.
+ * work here, so it sets the title itself. It draws the same baseplate as the
+ * root layout, minus the pointer glow, so it depends on as little as possible.
  */
 export default function GlobalError({ retry }: { retry: () => void }) {
   const locale = useRouteLocale();
@@ -28,7 +29,9 @@ export default function GlobalError({ retry }: { retry: () => void }) {
     <html lang={locale} style={SYSTEM_FONTS} className="h-full antialiased">
       <body className="flex min-h-full flex-col bg-page font-sans text-ink">
         <title>{`${errorCopy(locale).title} · Legoin`}</title>
-        <ErrorScreen retry={retry} />
+        <div className="baseplate flex flex-1 flex-col overflow-x-clip">
+          <ErrorScreen retry={retry} />
+        </div>
       </body>
     </html>
   );

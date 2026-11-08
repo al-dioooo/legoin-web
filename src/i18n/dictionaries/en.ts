@@ -438,6 +438,7 @@ export const en = {
     title: { before: "Design ", sticker: "system" },
     intro:
       "The ballers-addict style in LEGO colors: paper, ink outlines, hard shadows and stickers. Red for actions, yellow for highlights, brick colors for bricks only.",
+    motion: "Motion & interaction",
     colors: {
       title: "Colors",
       description:
