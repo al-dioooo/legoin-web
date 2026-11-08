@@ -36,7 +36,7 @@ export default async function AppLayout({ children }: LayoutProps<"/[lang]">) {
         >
           <StepProgress
             labels={dict.app.steps}
-            className="order-last w-full overflow-x-auto pb-1 md:order-none md:flex md:w-auto md:flex-1 md:justify-center"
+            className="order-last w-full md:order-none md:flex md:w-auto md:flex-1 md:justify-center"
           />
         </Suspense>
         <div className="ml-auto flex items-center gap-2">

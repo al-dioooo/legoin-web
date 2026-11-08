@@ -26,7 +26,9 @@ export function StepProgress({
 
   return (
     <nav aria-label={labels.label} className={className}>
-      <ol className="inline-flex items-center gap-1 rounded-full border-[2.5px] border-ink bg-page p-1 shadow-sticker">
+      {/* Wraps rather than scrolls when it can't fit, e.g. with wider text
+          spacing; the radius matches rounded-full on one line. */}
+      <ol className="inline-flex flex-wrap items-center gap-1 rounded-[1.625rem] border-[2.5px] border-ink bg-page p-1 shadow-sticker">
         {FLOW_STEPS.map((step, index) => {
           const href = hrefs[step];
           // Named for view transitions, so the labels stay above the marker
@@ -46,7 +48,7 @@ export function StepProgress({
             </span>
           );
           const base =
-            "relative isolate inline-flex min-h-10 items-center gap-2 rounded-full px-3 text-sm font-semibold";
+            "relative isolate inline-flex min-h-10 items-center gap-2 rounded-full px-2 text-sm font-semibold min-[22.5rem]:px-3";
           return (
             <li key={step}>
               {index < currentIndex && href ? (
@@ -71,9 +73,11 @@ export function StepProgress({
                       share="step-morph"
                       default="none"
                     >
+                      {/* Outlined, so the current step doesn't rest on
+                          yellow alone, which forced colors drop. */}
                       <span
                         aria-hidden="true"
-                        className="absolute inset-0 -z-10 rounded-full bg-highlight"
+                        className="absolute inset-0 -z-10 rounded-full border-2 border-ink bg-highlight"
                       />
                     </ViewTransition>
                   )}
