@@ -242,7 +242,7 @@ export const en = {
     },
     missing: {
       title: "We couldn't find that idea",
-      body: "Asking for new ideas replaces the ones before, so this one may be gone.",
+      body: "New ideas replace the ones before, and fixing your pieces clears them, so this one may be gone.",
       action: "See your ideas",
     },
     failed: {
