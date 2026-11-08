@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 import { ScanResults } from "@/components/results/scan-results";
 import { en } from "@/i18n/dictionaries/en";
-import { getScan, resetMockData } from "@/lib/mock/api";
+import { getScan } from "@/lib/api";
 
 vi.mock("next/navigation", () => ({
   useParams: () => ({ id: "demo-evening" }),
@@ -19,7 +19,8 @@ const piecePanel = () => screen.getByRole("region", { name: "Selected piece" });
 const addForm = () => screen.getByRole("form", { name: "Add a missed piece" });
 
 beforeEach(() => {
-  resetMockData();
+  // The mock keeps scans in localStorage; empty, it starts from the demo scans.
+  localStorage.clear();
 });
 
 test("fixing the flagged piece saves it and clears the flag", async () => {
@@ -32,7 +33,7 @@ test("fixing the flagged piece saves it and clears the flag", async () => {
   expect(await screen.findByText("Piece updated.")).toBeDefined();
   expect(screen.queryByText("1 piece to check")).toBeNull();
   expect(within(panel).getByText("Edited")).toBeDefined();
-  const saved = await getScan("demo-evening", { delayMs: 0 });
+  const saved = await getScan("demo-evening");
   expect(saved?.detections.find((d) => d.id === "evening-6")).toMatchObject({
     part: "plate-2x2",
     edited: true,

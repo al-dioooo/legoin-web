@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 import { ScanResults } from "@/components/results/scan-results";
 import { en } from "@/i18n/dictionaries/en";
-import { getScan, resetMockData } from "@/lib/mock/api";
+import { getScan } from "@/lib/api";
 import { forgetHandedOffScan, handOffScan } from "@/lib/scan-handoff";
 
 vi.mock("next/navigation", () => ({
@@ -19,7 +19,8 @@ function boxes() {
 }
 
 beforeEach(() => {
-  resetMockData();
+  // The mock keeps scans in localStorage; empty, it starts from the demo scans.
+  localStorage.clear();
   forgetHandedOffScan("demo-evening");
 });
 
@@ -51,7 +52,7 @@ test("a removed piece pops off while the change saves", async () => {
 });
 
 test("a scan handed off by the scanner shows without a loading state", async () => {
-  const scan = await getScan("demo-evening", { delayMs: 0 });
+  const scan = await getScan("demo-evening");
   if (!scan) throw new Error("demo scan missing");
   handOffScan(scan);
   render(<ScanResults copy={copy} locale="en" />);
