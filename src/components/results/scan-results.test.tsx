@@ -93,6 +93,7 @@ test("a photo with no boxes says the results are a demo", async () => {
   expect(note.textContent).toContain(en.results.demo.label);
   expect(screen.getByAltText(en.results.photoAltPlain)).toBeDefined();
   expect(screen.queryByRole("button", { name: "Hide labels" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Zoom in" })).toBeNull();
   expect(screen.getByText(en.results.piece.emptyList)).toBeDefined();
   // The inventory still works: a line selects its piece.
   fireEvent.click(inventoryTile("Brick 2×4"));

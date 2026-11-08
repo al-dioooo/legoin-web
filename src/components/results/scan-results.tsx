@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { Count, OdometerText } from "@/components/motion/odometer";
 import { SharedPhoto } from "@/components/motion/view-transitions";
 import { AddPiece } from "@/components/results/add-piece";
@@ -19,6 +19,7 @@ import { plural } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { getScan, updateDetections } from "@/lib/api";
 import type { BrickColorId, BrickPartId, PartCount } from "@/lib/bricks";
+import { cx } from "@/lib/cx";
 import {
   countUnplaced,
   fitLabels,
@@ -195,7 +196,9 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
     width: fullWidth,
     height: fullWidth * ratio,
   });
-  const drawnWidth = Math.max(frameWidth * (zoomed ? zoom : 1) - 5, 0);
+  // Without boxes there's nothing to tap, so no zoom (even if it was on).
+  const zoomedIn = zoomed && allBoxes.length > 0;
+  const drawnWidth = Math.max(frameWidth * (zoomedIn ? zoom : 1) - 5, 0);
   const boxes =
     drawnWidth > 0
       ? fitLabels(allBoxes, {
@@ -365,8 +368,8 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
           </div>
         )}
 
-        <div className="mt-stud flex flex-wrap gap-2">
-          {boxes.length > 0 && (
+        {boxes.length > 0 && (
+          <div className="mt-stud flex flex-wrap gap-2">
             <Button
               variant="ghost"
               size="sm"
@@ -374,23 +377,37 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
             >
               {showLabels ? copy.results.labels.hide : copy.results.labels.show}
             </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
-            onClick={() => setZoomed((value) => !value)}
-          >
-            {zoomed ? copy.results.zoom.out : copy.results.zoom.in}
-          </Button>
-        </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden"
+              onClick={() => setZoomed((value) => !value)}
+            >
+              {zoomedIn ? copy.results.zoom.out : copy.results.zoom.in}
+            </Button>
+          </div>
+        )}
 
         {/* The photo plate. Zoomed photos scroll sideways on phones; boxes
             scale with the photo. On desktop the part callout overlaps the
-            plate's right edge, never the photo. */}
+            plate's right edge, never the photo, and a tall photo narrows so
+            all of it stays in view beside the inventory. */}
         <div className="mt-3 rounded-card border-[2.5px] border-ink bg-card p-2 shadow-card sm:p-3 lg:pr-[calc(var(--stud)+0.75rem)]">
-          <div ref={photoFrame} className="overflow-auto rounded-callout">
-            <div style={{ width: zoomed ? `${zoom * 100}%` : "100%" }}>
+          <div
+            ref={photoFrame}
+            className={cx(
+              "overflow-auto rounded-callout lg:mx-auto",
+              demo
+                ? "lg:max-w-[max(18rem,calc((100svh-22rem)*var(--photo-ratio)))]"
+                : "lg:max-w-[max(18rem,calc((100svh-15rem)*var(--photo-ratio)))]",
+            )}
+            style={
+              {
+                "--photo-ratio": scan.photo.width / scan.photo.height,
+              } as CSSProperties
+            }
+          >
+            <div style={{ width: zoomedIn ? `${zoom * 100}%` : "100%" }}>
               <SharedPhoto>
                 <DetectedPhoto
                   photo={scan.photo}
