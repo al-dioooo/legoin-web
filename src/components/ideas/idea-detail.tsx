@@ -358,9 +358,9 @@ function MissingSummary({
         {counts.map(([label, count]) => (
           <div
             key={label}
-            className="rounded-control border-2 border-ink bg-page px-3 py-2"
+            className="rounded-control border-2 border-ink bg-page px-2 py-2 sm:px-3"
           >
-            <dt className="text-xs font-semibold text-ink-secondary">
+            <dt className="text-xs font-semibold text-ink-secondary hyphens-auto">
               {label}
             </dt>
             <dd className="font-mono text-2xl font-bold">
