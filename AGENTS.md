@@ -14,15 +14,18 @@ Rules for anyone changing this repository, people and coding agents alike. They 
 
 ## Stack and commands
 
-Next.js 16 App Router under `src/app`, TypeScript, Tailwind CSS 4, with Cache Components and the React Compiler enabled. Biome lints and formats; Vitest with Testing Library runs the tests. Use pnpm only.
+Next.js 16 App Router under `src/app`, TypeScript, Tailwind CSS 4, with Cache Components and the React Compiler enabled. Biome lints and formats; Vitest with Testing Library runs the tests, and Playwright runs a smoke suite end to end. Use pnpm only.
 
 - `pnpm dev` starts the dev server.
 - `pnpm lint` runs Biome; `pnpm format` writes formatting fixes.
 - `pnpm typecheck` generates route types, then runs `tsc --noEmit`.
 - `pnpm test` runs Vitest once; `pnpm test:watch` keeps it running.
+- `pnpm test:e2e` builds, serves on port 3100 and runs the Playwright specs in `e2e/`.
 - `pnpm build` makes a production build.
 
 Vitest cannot render `async` Server Components, so test them end to end or test the logic they call.
+
+**End-to-end tests** ([ADR-0007](https://github.com/al-dioooo/legoin-docs/blob/main/decisions/0007-end-to-end-smoke-tests.md)) are a smoke suite on Chromium, at 360px and 1280px, against a production build. Vitest stays the main safety net: add a spec only for what needs a real browser and build, such as several pages, storage across navigations, layouts or status codes. Find elements by role, name and label, with names from the dictionaries (`e2e/support.ts`), never by CSS or test id; if an element has no usable role and name, fix the markup. Open scan and ideas pages with `?mockDelay=0`, and wait with assertions, never fixed timeouts. Each test starts from empty storage. In CI a test that passes only on its retry fails the run, so fix a flaky test or mark it `test.fixme()` with an issue.
 
 ## UI
 
@@ -43,7 +46,7 @@ Screens read and write data only through the data layer, `@/lib/api`, typed by `
 
 Small and focused: one logical change, roughly 5 to 100 lines, explainable in one sentence and easy to revert. Commit when a function, a fix or a logical step is done; if you pause work, you should be able to commit. Never mix a refactor with a feature, or a fix with formatting. No 1000+ line commits, no WIP commits on shared branches, and no vague messages like "update code" or "fix bugs".
 
-**Before committing.** `pnpm lint`, `pnpm typecheck` and `pnpm test` pass, new features come with tests, and the change works locally.
+**Before committing.** `pnpm lint`, `pnpm typecheck` and `pnpm test` pass, plus `pnpm test:e2e` when the change touches pages, navigation or the data layer. New features come with tests, and the change works locally.
 
 **Messages.** [Conventional Commits](https://www.conventionalcommits.org/): `type(scope): description`, scope optional, e.g. `feat(auth): add JWT refresh token`. Types: `feat`, `fix`, `refactor`, `docs`, `chore`, `test`. Mark breaking changes with `!`, e.g. `feat(api)!: change response format`.
 

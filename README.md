@@ -9,6 +9,7 @@ The Legoin web frontend. Product docs, team guidelines and decisions live in [le
 - Tailwind CSS 4
 - [Biome](https://biomejs.dev) for linting and formatting
 - [Vitest](https://vitest.dev) and Testing Library for tests
+- [Playwright](https://playwright.dev) for end-to-end smoke tests, on Chromium
 - English (default) and Indonesian UI, served under `/en` and `/id`
 - pnpm
 
@@ -24,6 +25,8 @@ pnpm dev
 
 Open <http://localhost:3000>. It redirects to the English site at `/en`; the Indonesian one is at `/id`.
 
+The end-to-end tests need Chromium once: `pnpm exec playwright install chromium` (add `--with-deps` on a fresh Linux machine).
+
 | Command | What it does |
 | --- | --- |
 | `pnpm dev` | Start the dev server |
@@ -33,6 +36,7 @@ Open <http://localhost:3000>. It redirects to the English site at `/en`; the Ind
 | `pnpm format` | Apply Biome formatting |
 | `pnpm typecheck` | Generate route types and run `tsc --noEmit` |
 | `pnpm test` | Run Vitest once (`pnpm test:watch` to watch) |
+| `pnpm test:e2e` | Build, serve on port 3100 and run the Playwright smoke tests in `e2e/` |
 
 ## Environment variables
 
@@ -54,4 +58,4 @@ Without a backend, demo conditions go in the page URL: `?mock=fail-<reason>` (`n
 
 ## Contributing
 
-Read [AGENTS.md](AGENTS.md) before opening a pull request. CI runs `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` on every pull request to `main`, and the PR merges only when they pass.
+Read [AGENTS.md](AGENTS.md) before opening a pull request. CI runs `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` on every pull request to `main`, and `pnpm test:e2e` in a second job. The PR merges only when both pass.
