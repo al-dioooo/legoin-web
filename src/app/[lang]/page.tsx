@@ -12,6 +12,7 @@ import { Grain } from "@/components/ui/grain";
 import { InventoryList } from "@/components/ui/inventory-list";
 import { Marquee } from "@/components/ui/marquee";
 import { Sticker } from "@/components/ui/sticker";
+import { TapeBand } from "@/components/ui/tape-band";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
 import { plural } from "@/i18n/format";
 import { languageAlternates } from "@/i18n/locales";
@@ -128,14 +129,16 @@ export default async function Home() {
       />
 
       <section aria-label="Legoin" className="py-10">
-        <Marquee words={home.tape} tone="ink" className="-mx-4 -rotate-3" />
-        <Marquee
-          words={home.tape}
-          tone="primary"
-          reverse
-          decorative
-          className="-mx-4 -mt-6 rotate-2"
-        />
+        <TapeBand copy={common.tape}>
+          <Marquee words={home.tape} tone="ink" className="-mx-4 -rotate-3" />
+          <Marquee
+            words={home.tape}
+            tone="primary"
+            reverse
+            decorative
+            className="-mx-4 -mt-6 rotate-2"
+          />
+        </TapeBand>
       </section>
     </main>
   );

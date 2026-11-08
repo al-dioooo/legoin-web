@@ -19,6 +19,7 @@ import { PartCallout } from "@/components/ui/part-callout";
 import { Select } from "@/components/ui/select";
 import { StepNumber } from "@/components/ui/step-number";
 import { Sticker } from "@/components/ui/sticker";
+import { TapeBand } from "@/components/ui/tape-band";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
 import { fill, plural } from "@/i18n/format";
 import { languageAlternates } from "@/i18n/locales";
@@ -340,7 +341,10 @@ export default async function DesignSystemPage() {
             <Grain />
             <p className="font-display text-2xl">{design.stickers.grain}</p>
           </div>
-          <div className="-mx-4 overflow-x-clip py-6 sm:-mx-6">
+          <TapeBand
+            copy={common.tape}
+            className="-mx-4 overflow-x-clip py-6 sm:-mx-6"
+          >
             <Marquee
               words={design.stickers.tape}
               tone="ink"
@@ -353,7 +357,7 @@ export default async function DesignSystemPage() {
               decorative
               className="-mt-4 rotate-1"
             />
-          </div>
+          </TapeBand>
         </div>
       </Section>
 

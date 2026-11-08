@@ -412,6 +412,7 @@ export const en = {
     },
     pieces: { one: "{count} piece", other: "{count} pieces" },
     ideaOf: "IDEA {index}/{total}",
+    tape: { pause: "Pause scrolling text", play: "Play scrolling text" },
   },
   sample: {
     title: "Sample scan",

@@ -26,7 +26,8 @@ function Star() {
 /**
  * A tape band of words that slides sideways. Two identical copies loop
  * seamlessly. Screen readers get the words once, in order, and none of the
- * moving copies. It stops under reduced motion.
+ * moving copies. It stops under reduced motion, and pauses inside a paused
+ * `TapeBand`.
  */
 export function Marquee({
   words,
@@ -54,7 +55,7 @@ export function Marquee({
       <div
         aria-hidden="true"
         className={cx(
-          "flex w-max animate-marquee motion-reduce:animate-none",
+          "flex w-max animate-marquee motion-reduce:animate-none in-data-paused:[animation-play-state:paused]",
           reverse && "[animation-direction:reverse]",
         )}
       >
