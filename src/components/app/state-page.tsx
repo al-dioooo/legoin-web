@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { MAIN_ID } from "@/components/app/skip-link";
 import { Logo } from "@/components/brand/logo";
 import type { Locale } from "@/i18n/locales";
 
@@ -32,7 +33,11 @@ export function StatePage({
         </a>
         {corner && <div className="ml-auto">{corner}</div>}
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 sm:py-16">
+      <main
+        id={MAIN_ID}
+        tabIndex={-1}
+        className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 sm:py-16 outline-none"
+      >
         {children}
       </main>
     </div>

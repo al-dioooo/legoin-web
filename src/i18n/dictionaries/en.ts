@@ -12,6 +12,7 @@ export const en = {
   app: {
     home: "Legoin home",
     history: "History",
+    skip: "Skip to content",
     steps: {
       label: "Scan progress",
       photo: "Photo",

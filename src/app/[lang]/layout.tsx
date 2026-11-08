@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Dela_Gothic_One, DM_Sans, JetBrains_Mono } from "next/font/google";
+import { SkipLink } from "@/components/app/skip-link";
 import { StudGlow } from "@/components/motion/stud-glow";
 import { SiteFooter } from "@/components/site-footer";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
@@ -52,6 +53,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
       className={`${delaGothic.variable} ${dmSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-page font-sans text-ink">
+        <SkipLink label={dict.app.skip} />
         {/* Every page sits on one baseplate (ADR-0006), drawn here and nowhere
             else. The footer stays off it, so the glow stops at its edge. The
             clip catches what hangs off the sides, such as step numerals and

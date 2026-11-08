@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { MAIN_ID } from "@/components/app/skip-link";
 import { StepNumeral } from "@/components/app/step-numeral";
 import { StepProgress } from "@/components/app/step-progress";
 import { Logo } from "@/components/brand/logo";
@@ -54,7 +55,11 @@ export default async function AppLayout({ children }: LayoutProps<"/[lang]">) {
           </Suspense>
         </div>
       </header>
-      <main className="relative mx-auto w-full max-w-(--plate-width) flex-1 px-stud pt-[calc(var(--stud)*2)] pb-[calc(var(--stud)*3)]">
+      <main
+        id={MAIN_ID}
+        tabIndex={-1}
+        className="relative mx-auto w-full max-w-(--plate-width) flex-1 px-stud pt-[calc(var(--stud)*2)] pb-[calc(var(--stud)*3)] outline-none"
+      >
         <Suspense>
           <StepNumeral />
         </Suspense>

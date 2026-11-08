@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { MAIN_ID } from "@/components/app/skip-link";
 import { Logo, LogoMark } from "@/components/brand/logo";
 import { TokenSwatch } from "@/components/desain/token-swatch";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -100,7 +101,11 @@ export default async function DesignSystemPage() {
   const { design, common, sample, states } = dict;
 
   return (
-    <main className="mx-auto w-full max-w-5xl overflow-x-clip px-4 pb-16 sm:px-6">
+    <main
+      id={MAIN_ID}
+      tabIndex={-1}
+      className="mx-auto w-full max-w-5xl overflow-x-clip px-4 pb-16 sm:px-6 outline-none"
+    >
       <header className="relative py-10">
         <Grain />
         <div className="flex flex-wrap items-center gap-3">

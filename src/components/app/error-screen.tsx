@@ -12,8 +12,8 @@ import { DEFAULT_LOCALE, hasLocale, type Locale } from "@/i18n/locales";
 // Error boundaries are Client Components that get no props from the server, so
 // unlike pages they read their copy straight from the dictionaries.
 const COPY = {
-  en: { homeLabel: en.app.home, ...en.states.error },
-  id: { homeLabel: id.app.home, ...id.states.error },
+  en: { homeLabel: en.app.home, skip: en.app.skip, ...en.states.error },
+  id: { homeLabel: id.app.home, skip: id.app.skip, ...id.states.error },
 } satisfies Record<Locale, unknown>;
 
 /** The language in the URL; English when there is none to read. */

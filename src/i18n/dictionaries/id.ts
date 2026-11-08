@@ -14,6 +14,7 @@ export const id: Dictionary = {
   app: {
     home: "Beranda Legoin",
     history: "Riwayat",
+    skip: "Langsung ke konten",
     steps: {
       label: "Progres pindai",
       photo: "Foto",

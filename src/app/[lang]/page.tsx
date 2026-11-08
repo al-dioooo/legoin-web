@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { MAIN_ID } from "@/components/app/skip-link";
 import { Logo } from "@/components/brand/logo";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { SampleIdea } from "@/components/home/sample-idea";
@@ -31,7 +32,11 @@ export default async function Home() {
   const { home, sample, common } = dict;
 
   return (
-    <main className="flex flex-1 flex-col overflow-x-clip">
+    <main
+      id={MAIN_ID}
+      tabIndex={-1}
+      className="flex flex-1 flex-col overflow-x-clip outline-none"
+    >
       <div className="mx-auto grid w-full max-w-6xl gap-12 px-4 pt-6 pb-12 sm:px-6 lg:grid-cols-[1fr_26rem] lg:items-start">
         <section className="relative">
           <Grain />
