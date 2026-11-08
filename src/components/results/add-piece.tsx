@@ -20,6 +20,7 @@ export const MAX_ADD_QUANTITY = 20;
 /** Adds pieces the detector missed, by part, color and quantity (PRD F5). */
 export function AddPiece({
   partRef,
+  submitRef,
   locale,
   copy,
   pending,
@@ -27,6 +28,8 @@ export function AddPiece({
 }: {
   /** The part field, for actions elsewhere that lead here. */
   partRef?: Ref<HTMLSelectElement>;
+  /** The submit button, to give focus back once a piece is added. */
+  submitRef?: Ref<HTMLButtonElement>;
   locale: Locale;
   copy: Copy;
   pending: boolean;
@@ -112,6 +115,7 @@ export function AddPiece({
         </p>
       )}
       <Button
+        ref={submitRef}
         type="submit"
         variant="secondary"
         size="sm"

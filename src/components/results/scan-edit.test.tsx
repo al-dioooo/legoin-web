@@ -31,6 +31,7 @@ async function keepOnly(keep: number) {
 }
 
 const piecePanel = () => screen.getByRole("region", { name: "Selected piece" });
+const undoButton = () => screen.getByRole("button", { name: en.results.undo });
 const addForm = () => screen.getByRole("form", { name: "Add a missed piece" });
 
 beforeEach(() => {
@@ -46,6 +47,8 @@ test("fixing the flagged piece saves it and clears the flag", async () => {
   });
   fireEvent.click(within(panel).getByRole("button", { name: "Save changes" }));
   expect(await screen.findByText("Piece updated.")).toBeDefined();
+  // Save is disabled again once saved, so focus moves on to Undo.
+  await waitFor(() => expect(document.activeElement).toBe(undoButton()));
   expect(screen.queryByText("1 piece to check")).toBeNull();
   expect(within(panel).getByText("Edited")).toBeDefined();
   const saved = await getScan("demo-evening");
@@ -63,8 +66,16 @@ test("removing asks first, and undo brings the piece back", async () => {
   fireEvent.click(screen.getByRole("button", { name: "Remove" }));
   expect(await screen.findByText("Piece removed.")).toBeDefined();
   expect(screen.getByText("7 pieces", { selector: "p" })).toBeDefined();
-  fireEvent.click(screen.getByRole("button", { name: "Undo last change" }));
+  // The piece's controls went with it, so focus lands on Undo, not the page.
+  await waitFor(() => expect(document.activeElement).toBe(undoButton()));
+  fireEvent.click(undoButton());
   expect(await screen.findByText("Change undone.")).toBeDefined();
+  // Undo goes away once used; focus waits at the top of the inventory.
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      screen.getByRole("heading", { name: en.common.inventory }),
+    ),
+  );
   expect(
     screen.getByRole("button", { name: "Brick 2×3, blue, 93%" }),
   ).toBeDefined();
@@ -98,6 +109,12 @@ test("missed pieces can be added and are selected", async () => {
     within(form).getByRole("button", { name: "Add to inventory" }),
   );
   expect(await screen.findByText("2 pieces added.")).toBeDefined();
+  // Disabled while saving, Add gets focus back for the next piece.
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      within(form).getByRole("button", { name: "Add to inventory" }),
+    ),
+  );
   expect(screen.getByText("10 pieces", { selector: "p" })).toBeDefined();
   expect(within(piecePanel()).getByText(en.results.piece.added)).toBeDefined();
 });
