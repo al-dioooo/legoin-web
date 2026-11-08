@@ -296,6 +296,15 @@ export const en = {
       done: "Scan deleted.",
       failed: "We couldn't delete that scan. Try again.",
     },
+    clear: {
+      action: "Clear my scans",
+      question:
+        "Delete all {count} scans from this browser? You can't get them back.",
+      confirm: "Delete all",
+      keep: "Keep my scans",
+      done: "Your scans are cleared.",
+      failed: "We couldn't clear your scans. Try again.",
+    },
     empty: {
       title: "No scans yet",
       body: "Photograph your pieces and the scan is saved here, in this browser.",

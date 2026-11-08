@@ -8,11 +8,13 @@ import {
   useRef,
   useState,
 } from "react";
+import { ConfirmDelete } from "@/components/history/confirm-delete";
 import { ScanRow, type ScanRowCopy } from "@/components/history/scan-row";
 import { Count } from "@/components/motion/odometer";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { EmptyState, EmptyStateIcon } from "@/components/ui/empty-state";
 import type { Dictionary } from "@/i18n/dictionaries/en";
+import { fill } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { deleteScan, listScans } from "@/lib/api";
 import type { Scan } from "@/lib/domain";
@@ -58,7 +60,8 @@ export function HistoryLoading({ label }: { label: string }) {
  * Past scans, newest first (PRD F8). Each card opens its scan, jumps back to
  * its ideas when it has a last theme, and deletes after asking. Cards click
  * in one after another; a deleted card pops off like a removed piece, and
- * focus moves to the card that takes its place.
+ * focus moves to the card that takes its place. With two or more scans,
+ * "Clear my scans" deletes them all, after asking too.
  */
 export function ScanHistory({ copy, locale }: { copy: Copy; locale: Locale }) {
   const [state, setState] = useState<State>({ kind: "loading" });
@@ -134,6 +137,35 @@ export function ScanHistory({ copy, locale }: { copy: Copy; locale: Locale }) {
     return true;
   }
 
+  /** Deletes every scan once confirmed. Any that fail to delete stay listed. */
+  async function clear(scans: Scan[]) {
+    const ids = scans.map((scan) => scan.id);
+    markLeaving(ids, true);
+    const [results] = await Promise.all([
+      Promise.allSettled(ids.map((id) => deleteScan(id))),
+      wait(readDuration("--duration-exit")),
+    ]);
+    markLeaving(ids, false);
+    const gone = new Set(
+      ids.filter((_, index) => results[index].status === "fulfilled"),
+    );
+    const left = ids.filter((id) => !gone.has(id));
+    const cleared = left.length === 0;
+    if (cleared) focusNext.current = "empty";
+    // With one scan left this control goes away, so focus moves to that scan.
+    else if (left.length === 1) focusNext.current = { scanId: left[0] };
+    setState((current) =>
+      current.kind === "ready"
+        ? {
+            kind: "ready",
+            scans: current.scans.filter((scan) => !gone.has(scan.id)),
+          }
+        : current,
+    );
+    setStatus(cleared ? copy.history.clear.done : copy.history.clear.failed);
+    return cleared;
+  }
+
   let body: ReactNode;
   if (state.kind === "loading") {
     body = <HistoryLoading label={copy.history.loading} />;
@@ -199,6 +231,18 @@ export function ScanHistory({ copy, locale }: { copy: Copy; locale: Locale }) {
             </li>
           ))}
         </ol>
+        {scans.length > 1 && (
+          <ConfirmDelete
+            className="mt-[calc(var(--stud)*2)] w-fit"
+            copy={{
+              ...copy.history.clear,
+              question: fill(copy.history.clear.question, {
+                count: scans.length,
+              }),
+            }}
+            onConfirm={() => clear(scans)}
+          />
+        )}
       </>
     );
   }

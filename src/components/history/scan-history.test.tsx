@@ -177,6 +177,47 @@ test("deleting the last scan leaves the empty state, focused", async () => {
   expect(screen.getByRole("status").textContent).toBe("Scan deleted.");
 });
 
+test("Clear my scans deletes them all after asking", async () => {
+  showHistory([evening, desk]);
+  await screen.findAllByRole("article");
+
+  fireEvent.click(screen.getByRole("button", { name: "Clear my scans" }));
+  screen.getByRole("group", {
+    name: "Delete all 2 scans from this browser? You can't get them back.",
+  });
+  expect(deleteScan).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Delete all" }));
+
+  const heading = await screen.findByRole("heading", {
+    name: en.history.empty.title,
+  });
+  expect(deleteScan).toHaveBeenCalledWith("evening");
+  expect(deleteScan).toHaveBeenCalledWith("desk");
+  expect(document.activeElement).toBe(heading);
+  expect(screen.getByRole("status").textContent).toBe(en.history.clear.done);
+});
+
+test("Clear my scans keeps the ones it couldn't delete", async () => {
+  vi.mocked(deleteScan).mockImplementation(async (scanId) => {
+    if (scanId === "desk") throw new Error("offline");
+  });
+  showHistory([evening, desk]);
+  await screen.findAllByRole("article");
+
+  fireEvent.click(screen.getByRole("button", { name: "Clear my scans" }));
+  fireEvent.click(screen.getByRole("button", { name: "Delete all" }));
+
+  await waitFor(() =>
+    expect(screen.getByRole("status").textContent).toBe(
+      en.history.clear.failed,
+    ),
+  );
+  expect(screen.getAllByRole("article")).toHaveLength(1);
+  expect(document.activeElement).toBe(opens(desk));
+  // With one scan left, its own Delete is enough.
+  expect(screen.queryByRole("button", { name: "Clear my scans" })).toBeNull();
+});
+
 test("with no scans, the empty state leads to a first scan", async () => {
   showHistory([]);
   const empty = await screen.findByRole("region", {

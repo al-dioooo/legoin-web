@@ -303,6 +303,15 @@ export const id: Dictionary = {
       done: "Hasil pindai dihapus.",
       failed: "Kami tidak bisa menghapusnya. Coba lagi.",
     },
+    clear: {
+      action: "Hapus semua hasil pindai",
+      question:
+        "Hapus semua {count} hasil pindai dari peramban ini? Yang sudah dihapus tidak bisa kembali.",
+      confirm: "Hapus semua",
+      keep: "Batal",
+      done: "Semua hasil pindai sudah dihapus.",
+      failed: "Kami tidak bisa menghapus semuanya. Coba lagi.",
+    },
     empty: {
       title: "Belum ada hasil pindai",
       body: "Potret kepinganmu, dan hasil pindainya tersimpan di sini, di peramban ini.",
