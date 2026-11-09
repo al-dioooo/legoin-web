@@ -41,6 +41,7 @@ type Copy = { results: Dictionary["results"]; common: Dictionary["common"] };
 type State =
   | { kind: "loading" }
   | { kind: "missing" }
+  | { kind: "failed" }
   | { kind: "ready"; scan: Scan };
 
 /**
@@ -87,6 +88,8 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   const [selectedId, setSelectedId] = useState<string | null>(() =>
     firstToCheck(handedOffScan(id)),
   );
+  /** Counts retries of a failed load, so each one loads the scan again. */
+  const [attempt, setAttempt] = useState(0);
   const [assembling, setAssembling] = useState(true);
   const [leavingId, setLeavingId] = useState<string | null>(null);
   const [showLabels, setShowLabels] = useState(true);
@@ -98,6 +101,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   const addButton = useRef<HTMLButtonElement>(null);
   const undoButton = useRef<HTMLButtonElement>(null);
   const emptyHeading = useRef<HTMLHeadingElement>(null);
+  const failedHeading = useRef<HTMLHeadingElement>(null);
   const inventoryHeading = useRef<HTMLHeadingElement>(null);
   /** Set by a change that saved, for the render that shows it. */
   const focusAfter = useRef<FocusAfter | null>(null);
@@ -106,19 +110,36 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   /** The photo frame's width on screen; 0 until measured. */
   const [frameWidth, setFrameWidth] = useState(0);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a retry bumps attempt to load the scan again
   useEffect(() => {
     let active = true;
     const handedOff = handedOffScan(id);
-    void getScan(id).then((scan) => {
-      if (!active) return;
-      forgetHandedOffScan(id);
-      setState(scan ? { kind: "ready", scan } : { kind: "missing" });
-      if (!handedOff) setSelectedId(firstToCheck(scan));
-    });
+    void getScan(id).then(
+      (scan) => {
+        if (!active) return;
+        forgetHandedOffScan(id);
+        setState(scan ? { kind: "ready", scan } : { kind: "missing" });
+        if (!handedOff) setSelectedId(firstToCheck(scan));
+      },
+      () => {
+        if (!active) return;
+        forgetHandedOffScan(id);
+        // A scan handed off by the scanner is already on screen; a failed
+        // refresh keeps it rather than trading it for an error.
+        setState((current) =>
+          current.kind === "ready" ? current : { kind: "failed" },
+        );
+      },
+    );
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, attempt]);
+
+  // The error replaces the loading view, so focus its heading for it to be heard.
+  useEffect(() => {
+    if (state.kind === "failed") failedHeading.current?.focus();
+  }, [state.kind]);
 
   // Once the first run of boxes and tiles has clicked in, later ones (an undo,
   // an added piece) arrive at once instead of waiting their turn.
@@ -179,6 +200,29 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
 
   if (state.kind === "loading") {
     return <ResultsLoading label={copy.results.loading} />;
+  }
+
+  if (state.kind === "failed") {
+    return (
+      <EmptyState
+        as="h1"
+        tone="danger"
+        headingRef={failedHeading}
+        icon={<EmptyStateIcon variant="error" />}
+        title={copy.results.failed.title}
+        body={copy.results.failed.body}
+        actions={
+          <Button
+            onClick={() => {
+              setState({ kind: "loading" });
+              setAttempt((count) => count + 1);
+            }}
+          >
+            {copy.results.failed.retry}
+          </Button>
+        }
+      />
+    );
   }
 
   if (state.kind === "missing") {
