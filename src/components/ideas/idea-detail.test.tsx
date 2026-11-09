@@ -282,7 +282,11 @@ test("See steps on an idea card lands on that idea", async () => {
     <IdeasScreen
       copy={{
         ideas: en.ideas,
-        results: { loading: en.results.loading, missing: en.results.missing },
+        results: {
+          loading: en.results.loading,
+          missing: en.results.missing,
+          failed: en.results.failed,
+        },
         common: {
           ideaOf: en.common.ideaOf,
           missingCount: en.common.missingCount,

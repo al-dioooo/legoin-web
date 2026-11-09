@@ -15,13 +15,14 @@ import { type Idea, isTheme, type Scan, type Theme } from "@/lib/domain";
 
 type Copy = {
   ideas: Dictionary["ideas"];
-  results: Pick<Dictionary["results"], "loading" | "missing">;
+  results: Pick<Dictionary["results"], "loading" | "missing" | "failed">;
   common: Pick<Dictionary["common"], "ideaOf" | "missingCount">;
 };
 
 type ScanState =
   | { kind: "loading" }
   | { kind: "missing" }
+  | { kind: "failed" }
   | { kind: "ready"; scan: Scan };
 
 /** Another ask for the same theme: other ideas or a retry. */
@@ -69,12 +70,15 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
   // Demo options such as `?mockDelay=0` ride along in the same query.
   const query = searchParams.toString();
   const [scanState, setScanState] = useState<ScanState>({ kind: "loading" });
+  /** Counts retries of a failed scan load, so each one loads it again. */
+  const [scanAttempt, setScanAttempt] = useState(0);
   const [choice, setChoice] = useState<Theme | null>(null);
   const [ask, setAsk] = useState<Ask | null>(null);
   const [answer, setAnswer] = useState<Answer | null>(null);
   // An ask on its way, so showing the page again waits for it instead of
   // sending it twice.
   const pending = useRef<{ key: string; ideas: Promise<Idea[]> } | null>(null);
+  const failedHeading = useRef<HTMLHeadingElement>(null);
   // A new theme starts over; asks for an earlier theme no longer apply.
   const current = ask && ask.theme === theme ? ask : null;
   const exclude = current?.exclude ?? NONE;
@@ -99,20 +103,31 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
     !failed &&
     ideas === null;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a retry bumps scanAttempt to load the scan again
   useEffect(() => {
     let active = true;
     // Runs again when Next shows this page again, so a dropped or replaced
     // set doesn't linger.
-    void getScan(id).then((found) => {
-      if (active)
-        setScanState(
-          found ? { kind: "ready", scan: found } : { kind: "missing" },
-        );
-    });
+    void getScan(id).then(
+      (found) => {
+        if (active)
+          setScanState(
+            found ? { kind: "ready", scan: found } : { kind: "missing" },
+          );
+      },
+      () => {
+        if (active) setScanState({ kind: "failed" });
+      },
+    );
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, scanAttempt]);
+
+  // The error replaces the loading view, so focus its heading for it to be heard.
+  useEffect(() => {
+    if (scanState.kind === "failed") failedHeading.current?.focus();
+  }, [scanState.kind]);
 
   useEffect(() => {
     if (!shouldAsk || !theme) return;
@@ -169,6 +184,29 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
 
   if (scanState.kind === "loading") {
     return <IdeasLoading label={copy.results.loading} />;
+  }
+
+  if (scanState.kind === "failed") {
+    return (
+      <EmptyState
+        as="h1"
+        tone="danger"
+        headingRef={failedHeading}
+        icon={<EmptyStateIcon variant="error" />}
+        title={copy.results.failed.title}
+        body={copy.results.failed.body}
+        actions={
+          <Button
+            onClick={() => {
+              setScanState({ kind: "loading" });
+              setScanAttempt((count) => count + 1);
+            }}
+          >
+            {copy.results.failed.retry}
+          </Button>
+        }
+      />
+    );
   }
 
   if (scanState.kind === "missing") {

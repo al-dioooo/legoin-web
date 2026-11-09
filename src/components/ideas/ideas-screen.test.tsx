@@ -33,7 +33,11 @@ vi.mock("@/lib/api", async (importOriginal) => {
 
 const copyFor = (dict: typeof en) => ({
   ideas: dict.ideas,
-  results: { loading: dict.results.loading, missing: dict.results.missing },
+  results: {
+    loading: dict.results.loading,
+    missing: dict.results.missing,
+    failed: dict.results.failed,
+  },
   common: {
     ideaOf: dict.common.ideaOf,
     missingCount: dict.common.missingCount,
@@ -201,6 +205,29 @@ test("a failed request can be retried", async () => {
   expect(
     await screen.findByRole("article", { name: "Rubber duck" }),
   ).toBeDefined();
+});
+
+// A real API fails on a network error; the screen says so instead of loading forever.
+test.each([
+  ["en", en],
+  ["id", id],
+] as const)("a scan that fails to load can be retried (%s)", async (locale, dict) => {
+  vi.mocked(getScan).mockRejectedValueOnce(new Error("offline"));
+  visit("theme=animals&mockDelay=0");
+  render(<IdeasScreen copy={copyFor(dict)} locale={locale} />);
+  const heading = await screen.findByRole("heading", {
+    level: 1,
+    name: dict.results.failed.title,
+  });
+  expect(document.activeElement).toBe(heading);
+  expect(getIdeas).not.toHaveBeenCalled();
+  fireEvent.click(
+    screen.getByRole("button", { name: dict.results.failed.retry }),
+  );
+  expect(
+    await screen.findByRole("heading", { level: 1, name: dict.ideas.title }),
+  ).toBeDefined();
+  expect(screen.queryByText(dict.results.failed.title)).toBeNull();
 });
 
 test("a scan with no pieces sends people back to add some", async () => {
