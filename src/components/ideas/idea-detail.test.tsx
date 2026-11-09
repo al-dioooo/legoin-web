@@ -4,7 +4,7 @@ import { IdeaDetail } from "@/components/ideas/idea-detail";
 import { IdeasScreen } from "@/components/ideas/ideas-screen";
 import { en } from "@/i18n/dictionaries/en";
 import { id } from "@/i18n/dictionaries/id";
-import { getIdea, getIdeas, updateDetections } from "@/lib/api";
+import { getIdea, getIdeas, getScan, updateDetections } from "@/lib/api";
 
 const route = vi.hoisted(() => ({
   id: "demo-evening",
@@ -16,6 +16,11 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(route.search),
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }));
+// The real data layer, watched, so a test can make one load fail.
+vi.mock("@/lib/api", async (importOriginal) => {
+  const api = await importOriginal<typeof import("@/lib/api")>();
+  return { ...api, getIdea: vi.fn(api.getIdea), getScan: vi.fn(api.getScan) };
+});
 
 const copyFor = (dict: typeof en) => ({
   ideaDetail: dict.ideaDetail,
@@ -269,6 +274,45 @@ test("an unknown scan offers a new scan", async () => {
     }),
   ).toBeDefined();
   expect(href("Start a new scan")).toBe("/en/scan");
+});
+
+// A real API fails on a network error; the screen says so instead of loading forever.
+test.each([
+  ["en", en],
+  ["id", id],
+] as const)("an idea that fails to load can be retried (%s)", async (locale, dict) => {
+  await askForIdeas();
+  visit("race-car");
+  vi.mocked(getIdea).mockRejectedValueOnce(new Error("offline"));
+  render(<IdeaDetail copy={copyFor(dict)} locale={locale} />);
+  const heading = await screen.findByRole("heading", {
+    level: 1,
+    name: dict.ideaDetail.failed.title,
+  });
+  expect(document.activeElement).toBe(heading);
+  expect(screen.getByText(dict.ideaDetail.failed.body)).toBeDefined();
+  fireEvent.click(
+    screen.getByRole("button", { name: dict.ideaDetail.failed.retry }),
+  );
+  expect(
+    await screen.findByRole("heading", { level: 1, name: "Little race car" }),
+  ).toBeDefined();
+  expect(screen.queryByText(dict.ideaDetail.failed.title)).toBeNull();
+});
+
+// Without the idea, the scan is read to tell a replaced idea from a deleted
+// scan; that read failing is a load error too, not a missing scan.
+test("a failed scan check after a missing idea is a load error", async () => {
+  visit("nope");
+  vi.mocked(getScan).mockRejectedValueOnce(new Error("offline"));
+  render(<IdeaDetail copy={copy} locale="en" />);
+  expect(
+    await screen.findByRole("heading", {
+      level: 1,
+      name: en.ideaDetail.failed.title,
+    }),
+  ).toBeDefined();
+  expect(screen.queryByText(en.results.missing.title)).toBeNull();
 });
 
 test("See steps on an idea card lands on that idea", async () => {
