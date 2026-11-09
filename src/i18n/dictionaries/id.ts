@@ -130,6 +130,11 @@ export const id: Dictionary = {
       body: "Mungkin sudah dihapus dari peramban ini.",
       action: "Mulai pindai baru",
     },
+    failed: {
+      title: "Kami tidak bisa memuat hasil pindai ini",
+      body: "Periksa koneksimu, lalu coba lagi.",
+      retry: "Coba lagi",
+    },
     toCheck: {
       one: "{count} kepingan perlu dicek",
       other: "{count} kepingan perlu dicek",

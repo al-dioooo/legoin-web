@@ -1,11 +1,18 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 import { ScanResults } from "@/components/results/scan-results";
 import { en } from "@/i18n/dictionaries/en";
-import { createScan } from "@/lib/api";
+import { id } from "@/i18n/dictionaries/id";
+import { createScan, getScan } from "@/lib/api";
+import { forgetHandedOffScan, handOffScan } from "@/lib/scan-handoff";
 
 const route = vi.hoisted(() => ({ id: "demo-evening" }));
 vi.mock("next/navigation", () => ({ useParams: () => ({ id: route.id }) }));
+// The real data layer, watched, so a test can make one load fail.
+vi.mock("@/lib/api", async (importOriginal) => {
+  const api = await importOriginal<typeof import("@/lib/api")>();
+  return { ...api, getScan: vi.fn(api.getScan) };
+});
 
 const copy = { results: en.results, common: en.common };
 
@@ -22,6 +29,7 @@ beforeEach(() => {
   // The mock keeps scans in localStorage; empty, it starts from the demo scans.
   localStorage.clear();
   route.id = "demo-evening";
+  forgetHandedOffScan("demo-evening");
 });
 
 test("shows the photo, piece count and inventory", async () => {
@@ -109,6 +117,50 @@ test("an unknown scan id offers a new scan", async () => {
   render(<ScanResults copy={copy} locale="en" />);
   const action = await screen.findByRole("link", { name: "Start a new scan" });
   expect(action.getAttribute("href")).toBe("/en/scan");
+});
+
+// A real API fails on a network error; the screen says so instead of loading forever.
+test.each([
+  ["en", en],
+  ["id", id],
+] as const)("a scan that fails to load can be retried (%s)", async (locale, dict) => {
+  vi.mocked(getScan).mockRejectedValueOnce(new Error("offline"));
+  render(
+    <ScanResults
+      copy={{ results: dict.results, common: dict.common }}
+      locale={locale}
+    />,
+  );
+  const heading = await screen.findByRole("heading", {
+    level: 1,
+    name: dict.results.failed.title,
+  });
+  expect(document.activeElement).toBe(heading);
+  expect(screen.getByText(dict.results.failed.body)).toBeDefined();
+  expect(screen.queryByText(dict.results.loading)).toBeNull();
+  fireEvent.click(
+    screen.getByRole("button", { name: dict.results.failed.retry }),
+  );
+  expect(
+    await screen.findByRole("heading", { level: 1, name: dict.results.title }),
+  ).toBeDefined();
+  expect(screen.queryByText(dict.results.failed.title)).toBeNull();
+});
+
+test("a handed-off scan stays on screen when its refresh fails", async () => {
+  const scan = await getScan("demo-evening");
+  if (!scan) throw new Error("demo scan missing");
+  handOffScan(scan);
+  let fail: (reason: Error) => void = () => {};
+  vi.mocked(getScan).mockReturnValueOnce(
+    new Promise((_, reject) => {
+      fail = reject;
+    }),
+  );
+  render(<ScanResults copy={copy} locale="en" />);
+  await act(async () => fail(new Error("offline")));
+  expect(screen.queryByText(en.results.failed.title)).toBeNull();
+  expect(screen.getByText("8 pieces")).toBeDefined();
 });
 
 test("a photo with no boxes says the results are a demo", async () => {

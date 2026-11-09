@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Odometer } from "@/components/motion/odometer";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonStyles } from "@/components/ui/button";
@@ -69,6 +69,7 @@ export function IdeaDetail({ copy, locale }: { copy: Copy; locale: Locale }) {
   const [result, setResult] = useState<{ key: string; view: View } | null>(
     null,
   );
+  const failedHeading = useRef<HTMLHeadingElement>(null);
   // Previous and next may reuse this screen, so a result counts only for the
   // idea it was loaded for.
   const key = `${id}/${ideaId}/${attempt}`;
@@ -110,6 +111,12 @@ export function IdeaDetail({ copy, locale }: { copy: Copy; locale: Locale }) {
     `/${locale}/scan/${id}/ideas${queryWith(theme)}`;
 
   const view = result?.key === key ? result.view : null;
+  const failed = view?.kind === "failed";
+
+  // The error replaces the loading view, so focus its heading for it to be heard.
+  useEffect(() => {
+    if (failed) failedHeading.current?.focus();
+  }, [failed]);
 
   if (!view) {
     return <IdeaDetailLoading label={copy.ideaDetail.loading} />;
@@ -156,6 +163,7 @@ export function IdeaDetail({ copy, locale }: { copy: Copy; locale: Locale }) {
       <EmptyState
         as="h1"
         tone="danger"
+        headingRef={failedHeading}
         icon={<EmptyStateIcon variant="error" />}
         title={copy.ideaDetail.failed.title}
         body={copy.ideaDetail.failed.body}

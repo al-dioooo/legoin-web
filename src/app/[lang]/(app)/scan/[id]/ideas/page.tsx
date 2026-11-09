@@ -27,7 +27,11 @@ export default async function IdeasPage() {
   const { ideas, results, common } = await getDictionary();
   const copy = {
     ideas,
-    results: { loading: results.loading, missing: results.missing },
+    results: {
+      loading: results.loading,
+      missing: results.missing,
+      failed: results.failed,
+    },
     common: { ideaOf: common.ideaOf, missingCount: common.missingCount },
   };
   return (

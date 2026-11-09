@@ -128,6 +128,11 @@ export const en = {
       body: "It may have been deleted from this browser.",
       action: "Start a new scan",
     },
+    failed: {
+      title: "We couldn't load your scan",
+      body: "Check your connection and try again.",
+      retry: "Try again",
+    },
     toCheck: {
       one: "{count} piece to check",
       other: "{count} pieces to check",
