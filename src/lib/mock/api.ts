@@ -46,6 +46,11 @@ export type MockOptions = {
   fail?: ScanFailure;
   /** Whose scans: each account has its own, and starts with the demo scans. */
   account?: string;
+  /**
+   * Builds previews of ideas as the API does with `LEGOIN_IDEA_PREVIEWS=all`:
+   * ideas come `pending`, and their picture is ready this many ms later.
+   */
+  previews?: number;
 };
 
 /** A failed call, with the reason the screens turn into a message. */
@@ -79,6 +84,14 @@ export function mockOptionsFromSearch(search: string): MockOptions {
   if (params.has("mockDelay") && Number.isFinite(delay) && delay >= 0) {
     options.delayMs = delay;
   }
+  const previews = Number(params.get("mockPreviews"));
+  if (
+    params.has("mockPreviews") &&
+    Number.isFinite(previews) &&
+    previews >= 0
+  ) {
+    options.previews = previews;
+  }
   return options;
 }
 
@@ -95,10 +108,45 @@ const storageKey = (account?: string) =>
 
 function load(account?: string): Scan[] {
   const stored = localStorage.getItem(storageKey(account));
-  if (stored) return JSON.parse(stored) as Scan[];
+  if (stored) return settlePreviews(JSON.parse(stored) as Scan[], account);
   const seeded = structuredClone(DEMO_SCANS);
   save(seeded, account);
   return seeded;
+}
+
+/**
+ * When each pending preview settles, and the library build it becomes; an
+ * idea with no build becomes `unavailable`, as a failed preview does.
+ */
+type PendingPreviews = Record<string, { readyAt: number; buildId?: string }>;
+
+const previewsKey = (account?: string) =>
+  `${STORAGE_KEY}.previews${account ? `.${account}` : ""}`;
+
+function pendingPreviews(account?: string): PendingPreviews {
+  return JSON.parse(localStorage.getItem(previewsKey(account)) ?? "{}");
+}
+
+/** Pending previews whose time has come become ready, as the API's do. */
+function settlePreviews(scans: Scan[], account?: string): Scan[] {
+  const pending = pendingPreviews(account);
+  const now = Date.now();
+  let changed = false;
+  for (const scan of scans) {
+    for (const [index, idea] of (scan.ideas?.items ?? []).entries()) {
+      const due = pending[`${scan.id}:${idea.id}`];
+      if (idea.previewStatus !== "pending" || !due || due.readyAt > now) {
+        continue;
+      }
+      // biome-ignore lint/style/noNonNullAssertion: the loop walks this set's items
+      scan.ideas!.items[index] = due.buildId
+        ? { ...idea, previewStatus: "ready", ...buildOf(due.buildId) }
+        : { ...idea, previewStatus: "unavailable" };
+      changed = true;
+    }
+  }
+  if (changed) save(scans, account);
+  return scans;
 }
 
 function save(scans: Scan[], account?: string) {
@@ -117,6 +165,7 @@ async function respond<T>(
 /** Back to the demo scans only. For tests and demos. */
 export function resetMockData(account?: string) {
   localStorage.removeItem(storageKey(account));
+  localStorage.removeItem(previewsKey(account));
 }
 
 /**
@@ -277,10 +326,34 @@ export function getIdeas(
       }));
 
     scan.lastTheme = theme;
-    scan.ideas = { theme, locale, items: ideas };
+    scan.ideas = {
+      theme,
+      locale,
+      items:
+        options.previews === undefined
+          ? ideas
+          : awaitPreviews(scan.id, ideas, options.previews, options.account),
+    };
     save(scans, options.account);
-    return ideas;
+    return scan.ideas.items;
   });
+}
+
+/** The ideas as `pending`, their pictures due `ms` from now. */
+function awaitPreviews(
+  scanId: string,
+  ideas: Idea[],
+  ms: number,
+  account?: string,
+): Idea[] {
+  const pending = pendingPreviews(account);
+  const readyAt = Date.now() + ms;
+  const waiting = ideas.map(({ buildId, preview, ...idea }) => {
+    pending[`${scanId}:${idea.id}`] = { readyAt, buildId };
+    return { ...idea, previewStatus: "pending" as const };
+  });
+  localStorage.setItem(previewsKey(account), JSON.stringify(pending));
+  return waiting;
 }
 
 /**

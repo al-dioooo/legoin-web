@@ -275,6 +275,8 @@ export const en = {
     preview: {
       alt: "The finished {title}",
       model: "Download 3D model (.ldr)",
+      pending: "Building the preview…",
+      updated: "These steps and parts are the preview's build.",
     },
     none: "No ideas for this theme yet. Try another theme.",
     failed: {

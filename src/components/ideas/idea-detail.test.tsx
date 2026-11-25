@@ -22,10 +22,16 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(route.search),
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }));
-// The real data layer, watched, so a test can make one load fail.
+// The real data layer, watched, so a test can make one load fail; previews
+// are read again every 20 ms rather than every few seconds.
 vi.mock("@/lib/api", async (importOriginal) => {
   const api = await importOriginal<typeof import("@/lib/api")>();
-  return { ...api, getIdea: vi.fn(api.getIdea), getScan: vi.fn(api.getScan) };
+  return {
+    ...api,
+    getIdea: vi.fn(api.getIdea),
+    getScan: vi.fn(api.getScan),
+    PREVIEW_POLL_MS: 20,
+  };
 });
 
 const copyFor = (dict: typeof en) => ({
@@ -62,9 +68,13 @@ function visit(ideaId: string, search = "theme=vehicles&mockDelay=0") {
   );
 }
 
-/** Ideas the list would have asked for, so there's a set to read. */
-async function askForIdeas(locale: "en" | "id" = "en") {
-  window.history.replaceState(null, "", "/en/scan?mockDelay=0");
+/**
+ * Ideas the list would have asked for, so there's a set to read; with
+ * `previews`, their previews are ready that many ms later.
+ */
+async function askForIdeas(locale: "en" | "id" = "en", previews?: number) {
+  const demo = previews === undefined ? "" : `&mockPreviews=${previews}`;
+  window.history.replaceState(null, "", `/en/scan?mockDelay=0${demo}`);
   return getIdeas(route.id, "vehicles", locale);
 }
 
@@ -131,6 +141,43 @@ test("a checked build shows its picture and a download of its model", async () =
     /^\/builds\/race-car\/model\.ldr\?v=[0-9a-f]{12}$/,
   );
   expect(model.getAttribute("download")).toBe("race-car.ldr");
+});
+
+test("a preview being built holds its place, then clicks in with a note", async () => {
+  await askForIdeas("en", 400);
+  visit("race-car", "theme=vehicles&mockDelay=0");
+  render(<IdeaDetail copy={copy} locale="en" />);
+  await screen.findByRole("heading", { level: 1, name: "Little race car" });
+  expect(screen.getByText(en.ideas.preview.pending)).toBeDefined();
+  expect(screen.queryByRole("img")).toBeNull();
+  expect(screen.queryByText(en.ideas.preview.updated)).toBeNull();
+
+  const picture = await screen.findByRole(
+    "img",
+    { name: "The finished Little race car" },
+    { timeout: 2000 },
+  );
+  expect(picture.closest(".click-in")).not.toBeNull();
+  expect(screen.queryByText(en.ideas.preview.pending)).toBeNull();
+  expect(screen.getByText(en.ideas.preview.updated)).toBeDefined();
+  // Read in place: the page never went back to loading.
+  expect(screen.getByRole("region", { name: "Steps" })).toBeDefined();
+});
+
+test("a preview that won't come leaves the idea as written", async () => {
+  await askForIdeas();
+  const stored = await getIdea("demo-evening", "race-car");
+  const { buildId, preview, ...written } = stored?.idea ?? ({} as never);
+  vi.mocked(getIdea).mockResolvedValueOnce({
+    set: stored?.set ?? ({} as never),
+    idea: { ...written, previewStatus: "unavailable" },
+  });
+  visit("race-car");
+  render(<IdeaDetail copy={copy} locale="en" />);
+  await screen.findByRole("heading", { level: 1, name: "Little race car" });
+  expect(screen.queryByRole("img")).toBeNull();
+  expect(screen.queryByText(en.ideas.preview.pending)).toBeNull();
+  expect(screen.queryByText(en.ideas.preview.updated)).toBeNull();
 });
 
 test("the summary's counts add up to the idea's parts", async () => {

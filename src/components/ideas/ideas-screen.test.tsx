@@ -23,13 +23,15 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(route.search),
   useRouter: () => ({ push, replace }),
 }));
-// The real data layer, watched, to tell showing kept ideas from asking again.
+// The real data layer, watched, to tell showing kept ideas from asking again;
+// previews are read again every 20 ms rather than every few seconds.
 vi.mock("@/lib/api", async (importOriginal) => {
   const api = await importOriginal<typeof import("@/lib/api")>();
   return {
     ...api,
     getScan: vi.fn(api.getScan),
     getIdeas: vi.fn(api.getIdeas),
+    PREVIEW_POLL_MS: 20,
   };
 });
 
@@ -210,6 +212,80 @@ test("an idea the agent wrote itself has no picture", () => {
   );
   expect(screen.getByRole("article")).toBeDefined();
   expect(screen.queryByRole("img")).toBeNull();
+});
+
+test("a preview being built holds its place; one that won't come leaves none", () => {
+  const written = {
+    id: "idea_l8k3",
+    theme: "vehicles",
+    difficulty: "medium",
+    title: "Locomotive",
+    summary: "A red engine with a black funnel.",
+    steps: ["Lay the red 2×4 brick as the engine."],
+    used: [],
+    missing: [{ part: "brick-2x4", color: "red", quantity: 1 }],
+  } satisfies Idea;
+  const card = (idea: Idea) =>
+    render(
+      <IdeaCard
+        idea={idea}
+        index={1}
+        total={3}
+        href="#"
+        copy={copy}
+        locale="en"
+      />,
+    );
+
+  const { unmount } = card({ ...written, previewStatus: "pending" });
+  expect(screen.getByText(en.ideas.preview.pending)).toBeDefined();
+  expect(screen.queryByRole("img")).toBeNull();
+  unmount();
+  // `on_open` builds when the idea's page opens, so the card shows nothing yet.
+  for (const previewStatus of ["on_open", "unavailable"] as const) {
+    const { unmount } = card({ ...written, previewStatus });
+    expect(screen.queryByText(en.ideas.preview.pending)).toBeNull();
+    expect(screen.queryByRole("img")).toBeNull();
+    unmount();
+  }
+});
+
+test("previews being built click in when they're ready, then reading stops", async () => {
+  visit("theme=vehicles&mockDelay=0&mockPreviews=300");
+  render(<IdeasScreen copy={copy} locale="en" />);
+  await screen.findByText("3 ideas ready.");
+  expect(screen.getAllByText(en.ideas.preview.pending)).toHaveLength(3);
+  expect(screen.queryByRole("img")).toBeNull();
+
+  const picture = await screen.findByRole(
+    "img",
+    { name: "The finished Little race car" },
+    { timeout: 2000 },
+  );
+  expect(picture.closest(".click-in")).not.toBeNull();
+  expect(screen.queryByText(en.ideas.preview.pending)).toBeNull();
+  expect(screen.getAllByRole("img")).toHaveLength(3);
+
+  const reads = vi.mocked(getScan).mock.calls.length;
+  await act(() => new Promise((done) => setTimeout(done, 100)));
+  expect(vi.mocked(getScan).mock.calls.length).toBe(reads);
+});
+
+test("other ideas stop reading the previews of the ones they replace", async () => {
+  visit("theme=vehicles&mockDelay=0&mockPreviews=150");
+  render(<IdeasScreen copy={copy} locale="en" />);
+  await screen.findByRole("article", { name: "Little race car" });
+  fireEvent.click(screen.getByRole("button", { name: "Try other ideas" }));
+  await screen.findByRole("article", { name: "Go-kart" });
+
+  await screen.findByRole(
+    "img",
+    { name: "The finished Go-kart" },
+    { timeout: 2000 },
+  );
+  // The first set's previews never land on the second set's cards.
+  expect(screen.queryByRole("article", { name: "Little race car" })).toBeNull();
+  expect(screen.getAllByRole("article")).toHaveLength(3);
 });
 
 test("other ideas replace the shown ones, and full matches say so", async () => {

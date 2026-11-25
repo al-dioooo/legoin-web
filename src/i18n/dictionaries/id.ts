@@ -284,6 +284,8 @@ export const id: Dictionary = {
     preview: {
       alt: "{title} yang sudah jadi",
       model: "Unduh model 3D (.ldr)",
+      pending: "Menyusun gambar rakitan…",
+      updated: "Langkah dan part ini mengikuti rakitan pada gambar.",
     },
     none: "Belum ada ide untuk tema ini. Coba tema lain.",
     failed: {
