@@ -8,6 +8,7 @@ import { SharedPhoto } from "@/components/motion/view-transitions";
 import { AddPiece } from "@/components/results/add-piece";
 import { EditPiece } from "@/components/results/edit-piece";
 import { PieceDetail } from "@/components/results/piece-detail";
+import { useLoadedPhoto } from "@/components/results/use-loaded-photo";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { DetectedPhoto } from "@/components/ui/detected-photo";
@@ -34,7 +35,11 @@ import {
   readDuration,
   snapHaptic,
 } from "@/lib/motion";
-import { forgetHandedOffScan, handedOffScan } from "@/lib/scan-handoff";
+import {
+  forgetHandedOffScan,
+  handedOffPhoto,
+  handedOffScan,
+} from "@/lib/scan-handoff";
 
 type Copy = { results: Dictionary["results"]; common: Dictionary["common"] };
 
@@ -87,6 +92,12 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
   });
   const [selectedId, setSelectedId] = useState<string | null>(() =>
     firstToCheck(handedOffScan(id)),
+  );
+  // The copy the scanner showed, drawn until the API's copy of the photo loads.
+  const [localPhoto] = useState(() => handedOffPhoto(id));
+  const photo = useLoadedPhoto(
+    state.kind === "ready" ? state.scan.photo : null,
+    localPhoto,
   );
   /** Counts retries of a failed load, so each one loads the scan again. */
   const [attempt, setAttempt] = useState(0);
@@ -492,7 +503,7 @@ export function ScanResults({ copy, locale }: { copy: Copy; locale: Locale }) {
             <div style={{ width: zoomedIn ? `${zoom * 100}%` : "100%" }}>
               <SharedPhoto>
                 <DetectedPhoto
-                  photo={scan.photo}
+                  photo={photo ?? scan.photo}
                   alt={
                     boxes.length > 0
                       ? copy.results.photoAlt

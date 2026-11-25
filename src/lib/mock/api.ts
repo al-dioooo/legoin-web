@@ -1,6 +1,8 @@
-/* Mock backend for the UI until the Python API exists (al-dioooo/legoin-docs#7).
- * It has the async shape the real client will have, keeps scans in localStorage
- * so history and corrections survive reloads, and can fake slowness and failures.
+/* Mock backend for the UI until the Python API exists. It answers like the API
+ * contract, api/contract.md in al-dioooo/legoin-docs
+ * (https://github.com/al-dioooo/legoin-docs/blob/main/api/contract.md), where
+ * it can, with the same async shape. It keeps scans in localStorage so history
+ * and corrections survive reloads, and can fake slowness and failures.
  * Browser only: call it from Client Components.
  *
  * Until real detection exists, a demo photo gets its demo scan's detections and
@@ -204,7 +206,8 @@ function freshFirst(templates: IdeaTemplate[], exclude: readonly string[]) {
 /**
  * Three ideas for a scan, in the requested language, each checked against the
  * scan's inventory. "surprise" picks one idea from every theme. The answer is
- * saved on the scan as its `ideas`, replacing the ones before.
+ * saved on the scan as its `ideas`, replacing the ones before. A scan with no
+ * pieces fails with `no_pieces` and keeps what it had, as the API does.
  *
  * For "Try other ideas", `exclude` lists the ids already shown, oldest first.
  * Ideas not shown yet come first; once they run out, the ones shown longest ago.
@@ -224,6 +227,8 @@ export function getIdeas(
     if (!scan) throw new MockNotFoundError(scanId);
 
     const inventory = toInventory(scan.detections);
+    // The API answers 409 no_pieces rather than ideas with every part missing.
+    if (inventory.length === 0) throw new MockApiError("no_pieces");
     const ofTheme = (ideaTheme: IdeaTheme) =>
       freshFirst(
         IDEA_TEMPLATES.filter((template) => template.theme === ideaTheme),

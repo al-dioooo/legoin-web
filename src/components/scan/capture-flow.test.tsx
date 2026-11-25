@@ -3,6 +3,7 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { CaptureFlow } from "@/components/scan/capture-flow";
 import { en } from "@/i18n/dictionaries/en";
 import { ApiError } from "@/lib/api";
+import { handedOffPhoto } from "@/lib/scan-handoff";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
@@ -67,7 +68,9 @@ test("a chosen photo shows a preview, and retake goes back", async () => {
 });
 
 test("the sample photo scans and opens the results", async () => {
-  api.createScan.mockResolvedValue({ id: "abc" });
+  // The API answers with a photo URL of its own.
+  const photo = { src: "https://photos.legoin.example/abc.jpg" };
+  api.createScan.mockResolvedValue({ id: "abc", photo });
   scanSample();
   await waitFor(() =>
     expect(push).toHaveBeenCalledWith("/en/scan/abc", {
@@ -77,6 +80,8 @@ test("the sample photo scans and opens the results", async () => {
   expect(api.createScan.mock.calls[0][0]).toMatchObject({
     src: "/contoh/kepingan-2.jpg",
   });
+  // The results draw the copy already on screen until the API's has loaded.
+  expect(handedOffPhoto("abc")?.src).toBe("/contoh/kepingan-2.jpg");
 });
 
 test("progress follows the stages, and cancel returns to the preview", async () => {
