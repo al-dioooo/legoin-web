@@ -65,7 +65,7 @@ function visit(ideaId: string, search = "theme=vehicles&mockDelay=0") {
 /** Ideas the list would have asked for, so there's a set to read. */
 async function askForIdeas(locale: "en" | "id" = "en") {
   window.history.replaceState(null, "", "/en/scan?mockDelay=0");
-  return getIdeas(route.id, "vehicles", locale);
+  return (await getIdeas(route.id, "vehicles", locale)).items;
 }
 
 const href = (name: RegExp | string) =>

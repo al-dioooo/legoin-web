@@ -110,6 +110,8 @@ export const en = {
       choose: "Choose a photo",
       sample: "Try the sample photo",
       hint: "JPEG or PNG, up to 10 MB.",
+      privacy:
+        "To build ideas from your pieces, your photo and the pieces found in it are sent to Anthropic's Claude.",
       previewAlt: "Your photo of your pieces",
       sampleAlt:
         "Sample photo: eight pieces on a gray table, including a black 2×4 plate, a yellow round, an orange 1×2 brick and a blue 2×3 brick.",
@@ -274,8 +276,17 @@ export const en = {
     preview: {
       alt: "The finished {title}",
       model: "Download 3D model (.ldr)",
-      pending: "Building the preview…",
-      updated: "These steps and parts are the preview's build.",
+    },
+    building: {
+      card: "Building it from your pieces…",
+      first: {
+        one: "Building {count} idea from your pieces…",
+        other: "Building {count} ideas from your pieces…",
+      },
+      more: {
+        one: "Building {count} more…",
+        other: "Building {count} more…",
+      },
     },
     none: "No ideas for this theme yet. Try another theme.",
     failed: {

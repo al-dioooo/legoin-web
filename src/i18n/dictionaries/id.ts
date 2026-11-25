@@ -115,6 +115,8 @@ export const id: Dictionary = {
       choose: "Pilih foto",
       sample: "Coba foto contoh",
       hint: "JPEG atau PNG, maksimal 10 MB.",
+      privacy:
+        "Untuk merakit ide dari kepinganmu, fotomu dan kepingan yang ditemukan di dalamnya dikirim ke Claude milik Anthropic.",
       previewAlt: "Foto kepinganmu",
       sampleAlt:
         "Foto contoh: delapan kepingan di meja abu-abu, termasuk plate 2×4 hitam, round kuning, brick 1×2 oranye, dan brick 2×3 biru.",
@@ -283,8 +285,17 @@ export const id: Dictionary = {
     preview: {
       alt: "{title} yang sudah jadi",
       model: "Unduh model 3D (.ldr)",
-      pending: "Menyusun gambar rakitan…",
-      updated: "Langkah dan part ini mengikuti rakitan pada gambar.",
+    },
+    building: {
+      card: "Sedang dirakit dari kepinganmu…",
+      first: {
+        one: "Merakit {count} ide dari kepinganmu…",
+        other: "Merakit {count} ide dari kepinganmu…",
+      },
+      more: {
+        one: "Masih merakit {count} lagi…",
+        other: "Masih merakit {count} lagi…",
+      },
     },
     none: "Belum ada ide untuk tema ini. Coba tema lain.",
     failed: {
