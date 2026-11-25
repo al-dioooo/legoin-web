@@ -20,7 +20,7 @@ import type {
 } from "@/lib/domain";
 
 export type { CreateScanOptions, GetIdeasOptions } from "@/lib/api/backend";
-export { ApiError } from "@/lib/api/error";
+export { ApiError, NotFoundError } from "@/lib/api/error";
 
 // Written out in full so Next.js inlines it into the browser bundle.
 const backend = backendFor(process.env.NEXT_PUBLIC_API_URL);
@@ -55,7 +55,8 @@ export function listScans(): Promise<Scan[]> {
  * Applies corrections and returns the updated scan. A correction that changes
  * the inventory drops the scan's `ideas`, since they were checked against the
  * pieces as they were; `lastTheme` stays. One that leaves the inventory as it
- * was, like confirming a flagged piece, keeps them.
+ * was, like confirming a flagged piece, keeps them. A scan that's gone rejects
+ * with a NotFoundError.
  */
 export function updateDetections(
   id: string,
@@ -73,7 +74,8 @@ export function deleteScan(id: string): Promise<void> {
  * against the scan's inventory. They're kept as the scan's `ideas`, replacing
  * the ones before, and the theme becomes its `lastTheme`. For "Try other
  * ideas", `exclude` lists the ids already shown, oldest first. A failed request
- * rejects with an ApiError.
+ * rejects with an ApiError, `no_pieces` for a scan with no pieces, and a scan
+ * that's gone with a NotFoundError.
  *
  * Every call asks again; with a real model that's a wait and different ideas.
  * To show the kept ones, read `ideas` from `getScan` instead.
