@@ -39,7 +39,7 @@ Screens read and write data only through the data layer, `@/lib/api`, typed by `
 
 - **Backend:** `NEXT_PUBLIC_API_URL` picks it in `src/lib/api/backend.ts`. Unset, it's the mock in `src/lib/mock`; set, it's the HTTP client in `src/lib/api/http-backend.ts`. No backend exists yet, so the client is checked by contract tests that feed a fake `fetch` the contract's examples (`contract-examples.ts`); keep both in step with the contract. Vitest and the end-to-end suite otherwise use the mock.
 - **Storage:** the mock keeps scans in `localStorage`, so it's browser only. Call the data layer from Client Components.
-- **Demo conditions:** add `?mock=fail-<reason>` (`no_pieces`, `too_dark`, `too_blurry`, `network`, `timeout`) or `?mockDelay=0` to a URL. The data layer reads them for scanning and ideas. `?mockPreviews=<ms>` has ideas come with previews still being built, ready that many ms later. Screens never handle them.
+- **Demo conditions:** add `?mock=fail-<reason>` (`no_pieces`, `too_dark`, `too_blurry`, `network`, `timeout`) or `?mockDelay=0` to a URL. The data layer reads them for scanning and ideas. `?mockBuilds=<ms>` has ideas come as still being built from the scan, the first done that many ms later. Screens never handle them.
 - **Inventory logic:** grouping, corrections and the used/missing split live in `src/lib/inventory.ts`. Keep that logic there, pure and tested, not in components.
 
 ## Commits

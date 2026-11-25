@@ -54,7 +54,7 @@ Put every variable in `.env.example` too.
 | --- | --- | --- |
 | `NEXT_PUBLIC_API_URL` | No | Base URL of the Legoin API, version included, such as `https://api.legoin.example/v1` (see [the API contract](https://github.com/al-dioooo/legoin-docs/blob/main/api/contract.md)). Leave it empty to use the mock backend, which keeps accounts and scans in the browser's `localStorage`. When it's set, the browser calls the API itself, so the API has to allow the site's origin. A value that isn't an `http(s)` URL fails `pnpm build`, and the data screens in `pnpm dev`, with an error naming the variable. Next.js inlines it into the browser bundle at build time. |
 
-Without a backend, demo conditions go in the page URL: `?mock=fail-<reason>` (`no_pieces`, `too_dark`, `too_blurry`, `network` or `timeout`) makes scanning or ideas fail, and `?mockDelay=<ms>` sets their pace (`0` skips the wait). On the ideas page, `?mockPreviews=<ms>` has the mock build previews as the API does with `LEGOIN_IDEA_PREVIEWS=all`: ideas come with a placeholder, and their pictures click in that many ms later.
+Without a backend, demo conditions go in the page URL: `?mock=fail-<reason>` (`no_pieces`, `too_dark`, `too_blurry`, `network` or `timeout`) makes scanning or ideas fail, and `?mockDelay=<ms>` sets their pace (`0` skips the wait). On the ideas page, `?mockBuilds=<ms>` has the mock build ideas from the scan as the API does with `LEGOIN_SCAN_BUILDS` (ADR-0013): each idea holds its card's place, and the first clicks in that many ms later, the others a quarter of that apart.
 
 ## Deployment
 

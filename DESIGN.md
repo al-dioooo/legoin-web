@@ -134,7 +134,8 @@ UI primitives live in `src/components/ui`, the logo in `src/components/brand`.
 | `SiteFooter` | Footer on every page: team, the CC BY 4.0 dataset credit, the build pictures' credits (ADR-0010), the AI-photo and LEGO trademark notes (`src/components`, credits in `src/lib/credits.ts`) |
 | `ThemePicker` | Theme radio group of native radios: `cards` for the first choice, `compact` pills to switch theme in place (`src/components/ideas`) |
 | `BuildPreview` | A checked build's picture on a paper plate, no grain; `card` or `page` size (`src/components/ideas`) |
-| `BuildPreviewPending` | Where a preview will go while the API builds it: the same plate, dashed, with four pulsing studs and a label; held still under reduced motion. The picture clicks in when it arrives (`src/components/ideas`) |
+| `BuildPreviewPending` | Where a build's picture will go while the API builds it from the scan: the same plate, dashed, with four pulsing studs and a label; held still under reduced motion (`src/components/ideas`) |
+| `BuildingCard` | An idea still being built (ADR-0013): a dashed card with `BuildPreviewPending`, its number and theme, and no link. The idea's card replaces it and clicks in (`src/components/ideas`) |
 | `IdeaCard` | One build idea in a list: the build's picture when it's a checked build, difficulty, pieces used and missing (or "Uses only your pieces"), and a link to its steps (`src/components/ideas`) |
 | `IdeaDetail` | One idea in full, laid out as a booklet page: the build's picture and its `.ldr` download when it's a checked build, parts used, a "What you're missing" summary whose counts add up, numbered steps that click in, and links to the ideas beside it (`src/components/ideas`) |
 | `BuildSteps`, `MissingSummary` | Numbered steps that can be ticked off, and the counts that add up with the parts still to find, on an idea's page (`src/components/ideas`) |
