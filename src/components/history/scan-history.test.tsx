@@ -207,7 +207,7 @@ test("Clear my scans deletes them all after asking", async () => {
 
   fireEvent.click(screen.getByRole("button", { name: "Clear my scans" }));
   screen.getByRole("group", {
-    name: "Delete all 2 scans from this browser? You can't get them back.",
+    name: "Delete all 2 scans? You can't get them back.",
   });
   expect(deleteScan).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "Delete all" }));

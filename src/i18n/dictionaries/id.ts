@@ -175,7 +175,7 @@ export const id: Dictionary = {
     photoAltPlain: "Fotomu",
     missing: {
       title: "Kami tidak menemukan hasil pindai itu",
-      body: "Mungkin sudah dihapus dari peramban ini.",
+      body: "Mungkin sudah dihapus.",
       action: "Mulai pindai baru",
     },
     failed: {
@@ -545,7 +545,7 @@ export const id: Dictionary = {
   },
   history: {
     title: "Riwayat pindai",
-    lead: "Hasil pindai tersimpan di peramban ini. Buka salah satunya untuk melihat lagi kepingan dan idenya.",
+    lead: "Hasil pindaimu. Buka salah satunya untuk melihat lagi kepingan dan idenya.",
     loading: "Memuat hasil pindaimu…",
     count: { one: "{count} hasil pindai", other: "{count} hasil pindai" },
     newScan: "Pindai baru",
@@ -564,7 +564,7 @@ export const id: Dictionary = {
     clear: {
       action: "Hapus semua hasil pindai",
       question:
-        "Hapus semua {count} hasil pindai dari peramban ini? Yang sudah dihapus tidak bisa kembali.",
+        "Hapus semua {count} hasil pindai? Yang sudah dihapus tidak bisa kembali.",
       confirm: "Hapus semua",
       keep: "Batal",
       done: "Semua hasil pindai sudah dihapus.",
@@ -572,25 +572,25 @@ export const id: Dictionary = {
     },
     empty: {
       title: "Belum ada hasil pindai",
-      body: "Potret kepinganmu, dan hasil pindainya tersimpan di sini, di peramban ini.",
+      body: "Potret kepinganmu, dan hasil pindainya muncul di sini.",
       action: "Mulai pindai",
     },
     failed: {
       title: "Kami tidak bisa memuat hasil pindaimu",
-      body: "Coba lagi sebentar lagi. Hasil pindaimu tetap tersimpan di peramban ini.",
+      body: "Coba lagi sebentar lagi. Hasil pindaimu tetap tersimpan.",
       retry: "Coba lagi",
     },
   },
   states: {
     notFound: {
       title: "Kami tidak menemukan halaman itu",
-      body: "Tautannya mungkin rusak, atau halamannya sudah pindah. Hasil pindaimu tetap tersimpan di peramban ini.",
+      body: "Tautannya mungkin rusak, atau halamannya sudah pindah. Hasil pindaimu tetap tersimpan.",
       home: "Kembali ke beranda",
       scan: "Mulai pindai",
     },
     error: {
       title: "Ada yang salah",
-      body: "Halaman ini berhenti bekerja. Coba lagi, atau kembali ke beranda. Hasil pindaimu tetap tersimpan di peramban ini.",
+      body: "Halaman ini berhenti bekerja. Coba lagi, atau kembali ke beranda. Hasil pindaimu tetap tersimpan.",
       retry: "Coba lagi",
       home: "Kembali ke beranda",
     },
