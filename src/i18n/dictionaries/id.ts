@@ -14,12 +14,51 @@ export const id: Dictionary = {
   app: {
     home: "Beranda Legoin",
     history: "Riwayat",
+    account: "Masuk sebagai {email}",
+    logOut: "Keluar",
     skip: "Langsung ke konten",
     steps: {
       label: "Progres pindai",
       photo: "Foto",
       pieces: "Kepingan",
       ideas: "Ide",
+    },
+  },
+  auth: {
+    checking: "Memeriksa sesi masukmu…",
+    email: "Email",
+    password: "Kata sandi",
+    passwordHint: "Minimal 8 karakter.",
+    busy: "Sebentar…",
+    login: {
+      title: "Masuk",
+      lead: "Masuk untuk memindai kepinganmu. Hasil pindai dan idemu ikut ke perangkat mana pun tempat kamu masuk.",
+      submit: "Masuk",
+      switchPrompt: "Belum punya akun?",
+      switchLink: "Buat akun",
+      noReset:
+        "Lupa kata sandi? Belum ada cara untuk mengaturnya ulang, jadi buat akun baru.",
+    },
+    register: {
+      title: "Buat akun",
+      lead: "Akun menyimpan hasil pindai dan idemu, di perangkat mana pun tempat kamu masuk.",
+      submit: "Buat akun",
+      switchPrompt: "Sudah punya akun?",
+      switchLink: "Masuk",
+    },
+    errors: {
+      email: "Tulis email seperti nama@contoh.com.",
+      passwordShort: "Pakai minimal 8 karakter.",
+      passwordLong: "Pakai maksimal 128 karakter.",
+      passwordMissing: "Tulis kata sandimu.",
+      invalid_credentials:
+        "Email dan kata sandi itu tidak cocok dengan akun mana pun.",
+      email_taken: "Email itu sudah punya akun. Masuk saja.",
+      rate_limited:
+        "Terlalu banyak percobaan. Tunggu beberapa menit, lalu coba lagi.",
+      network:
+        "Legoin tidak bisa dihubungi. Periksa koneksimu, lalu coba lagi.",
+      generic: "Ada yang salah. Coba lagi.",
     },
   },
   footer: {
