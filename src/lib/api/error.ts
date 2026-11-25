@@ -1,4 +1,4 @@
-import type { AuthFailure, PictureFailure, ScanFailure } from "@/lib/domain";
+import type { AuthFailure, ScanFailure } from "@/lib/domain";
 
 /** A failed call, with the reason the screens turn into a message. */
 export class ApiError extends Error {
@@ -37,13 +37,5 @@ export class AuthError extends Error {
   constructor(readonly reason: AuthFailure) {
     super(`Log-in failed: ${reason}`);
     this.name = "AuthError";
-  }
-}
-
-/** A picture build that failed or couldn't start, for a reason the page shows. */
-export class PictureError extends Error {
-  constructor(readonly reason: PictureFailure) {
-    super(`Picture build failed: ${reason}`);
-    this.name = "PictureError";
   }
 }
