@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { copyFor } from "./support";
+import { copyFor, signUp } from "./support";
 
 const copy = copyFor("en");
 
@@ -22,6 +22,7 @@ for (const reason of REASONS) {
     page,
   }) => {
     const message = copy.scan.failures[reason];
+    await signUp(page);
     await page.goto(`/en/scan?mock=fail-${reason}&mockDelay=0`);
     await page.getByRole("button", { name: copy.scan.capture.sample }).click();
     await page.getByRole("button", { name: copy.scan.capture.submit }).click();
