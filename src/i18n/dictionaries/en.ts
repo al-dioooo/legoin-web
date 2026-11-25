@@ -113,6 +113,10 @@ export const en = {
         title: "We couldn't reach Legoin",
         body: "Check your connection and try again. Your photo is still here.",
       },
+      timeout: {
+        title: "Scanning took too long",
+        body: "Legoin is slow right now. Wait a moment, then try again. Your photo is still here.",
+      },
       retake: "Retake photo",
       retry: "Try again",
       tips: "See the photo tips",
