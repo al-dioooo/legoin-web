@@ -231,6 +231,10 @@ export const en = {
     complete: "Uses only your pieces",
     seeSteps: "See steps",
     again: "Try other ideas",
+    preview: {
+      alt: "The finished {title}",
+      model: "Download 3D model (.ldr)",
+    },
     none: "No ideas for this theme yet. Try another theme.",
     failed: {
       title: "We couldn't get ideas",

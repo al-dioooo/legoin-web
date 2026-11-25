@@ -237,6 +237,10 @@ export const id: Dictionary = {
     complete: "Cukup dengan kepinganmu",
     seeSteps: "Lihat langkah",
     again: "Coba ide lain",
+    preview: {
+      alt: "{title} yang sudah jadi",
+      model: "Unduh model 3D (.ldr)",
+    },
     none: "Belum ada ide untuk tema ini. Coba tema lain.",
     failed: {
       title: "Kami tidak bisa mengambil ide",
