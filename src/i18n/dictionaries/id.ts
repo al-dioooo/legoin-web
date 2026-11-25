@@ -32,6 +32,10 @@ export const id: Dictionary = {
       body: "Detektor kepingan Legoin belajar dari dataset ini:",
       license: "Berlisensi",
     },
+    builds: {
+      title: "Gambar rakitan",
+      body: "Ide dari templat adalah rakitan yang dibuat dan dicek dengan BrickLayer dan BrickWright, dan gambarnya dirender dari LDraw.org Parts Library.",
+    },
     notes: {
       title: "Perlu diketahui",
       photos:

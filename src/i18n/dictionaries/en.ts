@@ -30,6 +30,10 @@ export const en = {
       body: "Legoin's piece detector learns from this dataset:",
       license: "Licensed under",
     },
+    builds: {
+      title: "Build pictures",
+      body: "Template ideas are builds made and checked with BrickLayer and BrickWright, and their pictures are rendered from the LDraw.org Parts Library.",
+    },
     notes: {
       title: "Good to know",
       photos:
