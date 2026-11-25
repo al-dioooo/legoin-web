@@ -1,0 +1,9 @@
+0 Little boat
+0 Name: little-boat.ldr
+0 Author: Legoin, built with BrickLayer
+0 // Parts: the LDraw parts library, CC BY 4.0, https://library.ldraw.org
+0 // LEGO is a trademark of the LEGO Group, which does not sponsor, authorize or
+0 // endorse this file.
+1 70 10 -24 30 0 0 -1 0 1 0 1 0 0 3622.dat
+1 15 10 -48 50 1 0 0 0 1 0 0 0 1 3005.dat
+1 14 10 -72 50 1 0 0 0 1 0 0 0 1 3062b.dat

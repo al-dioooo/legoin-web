@@ -28,6 +28,7 @@ import {
   sameInventory,
   toInventory,
 } from "@/lib/inventory";
+import { BUILD_PREVIEWS } from "@/lib/mock/builds";
 import {
   DEMO_SCANS,
   detectionsForPhoto,
@@ -194,6 +195,12 @@ export function deleteScan(id: string, options: MockOptions = {}) {
 
 const IDEAS_PER_REQUEST = 3;
 
+/** A template's checked build, as the API sends it: `buildId` and `preview` together, or neither. */
+function buildOf(id: string): Pick<Idea, "buildId" | "preview"> {
+  const preview = BUILD_PREVIEWS[id];
+  return preview ? { buildId: id, preview } : {};
+}
+
 /** Ideas not shown yet first, in template order; then shown ones, longest ago first. */
 function freshFirst(templates: IdeaTemplate[], exclude: readonly string[]) {
   const fresh = templates.filter((template) => !exclude.includes(template.id));
@@ -251,6 +258,7 @@ export function getIdeas(
         summary: template.summary[locale],
         steps: template.steps[locale],
         ...checkInventory(template.requires, inventory),
+        ...buildOf(template.id),
       }));
 
     scan.lastTheme = theme;
