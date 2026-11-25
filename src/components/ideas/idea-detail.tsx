@@ -3,10 +3,7 @@
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import {
-  BuildPreview,
-  BuildPreviewPending,
-} from "@/components/ideas/build-preview";
+import { BuildPreview } from "@/components/ideas/build-preview";
 import { BuildSteps } from "@/components/ideas/build-steps";
 import { MissingSummary } from "@/components/ideas/missing-summary";
 import { Badge } from "@/components/ui/badge";
@@ -17,16 +14,10 @@ import { Sticker } from "@/components/ui/sticker";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { fill, plural } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
-import { getIdea, getScan, PREVIEW_POLL_MS } from "@/lib/api";
+import { getIdea, getScan } from "@/lib/api";
 import type { PartCount } from "@/lib/bricks";
 import { cx } from "@/lib/cx";
-import {
-  type Idea,
-  isTheme,
-  previewComing,
-  type StoredIdea,
-  type Theme,
-} from "@/lib/domain";
+import { type Idea, isTheme, type StoredIdea, type Theme } from "@/lib/domain";
 
 type Copy = {
   ideaDetail: Dictionary["ideaDetail"];
@@ -125,35 +116,6 @@ export function IdeaDetail({ copy, locale }: { copy: Copy; locale: Locale }) {
 
   const view = result?.key === key ? result.view : null;
   const failed = view?.kind === "failed";
-  const waiting =
-    view?.kind === "ready" && previewComing(view.stored.idea)
-      ? view.stored.idea.id
-      : null;
-
-  // A preview on its way (opening an `on_open` idea starts it): read the idea
-  // again every few seconds, without the loading view, until it's settled.
-  // When it's ready, its steps and parts are the build's.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: result changes with each read, which schedules the next
-  useEffect(() => {
-    if (!waiting) return;
-    let active = true;
-    const timer = setTimeout(() => {
-      void getIdea(id, ideaId).then(
-        (stored) => {
-          if (active && stored) {
-            setResult({ key, view: { kind: "ready", stored } });
-          }
-        },
-        () => {
-          if (active) setResult((current) => current && { ...current });
-        },
-      );
-    }, PREVIEW_POLL_MS);
-    return () => {
-      active = false;
-      clearTimeout(timer);
-    };
-  }, [waiting, result]);
 
   // The error replaces the loading view, so focus its heading for it to be heard.
   useEffect(() => {
@@ -304,17 +266,12 @@ export function IdeaDetail({ copy, locale }: { copy: Copy; locale: Locale }) {
       <aside className="assemble space-y-stud lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1 lg:pt-[calc(var(--stud)*4)]">
         {/* A checked build shows what it makes before what it takes, like a
             booklet's cover, with its LDraw model to open in a 3D app. */}
-        {!idea.preview && previewComing(idea) && (
-          <BuildPreviewPending label={copy.ideas.preview.pending} size="page" />
-        )}
         {idea.preview && (
           <div>
             <BuildPreview
-              key={idea.buildId}
               preview={idea.preview}
               alt={fill(copy.ideas.preview.alt, { title: idea.title })}
               size="page"
-              className={cx(idea.previewStatus === "ready" && "click-in")}
             />
             <a
               href={idea.preview.model}
@@ -368,13 +325,8 @@ export function IdeaDetail({ copy, locale }: { copy: Copy; locale: Locale }) {
           </Sticker>
         </h2>
         {/* Keyed by idea, so ticks never carry over to the next idea. */}
-        {idea.previewStatus === "ready" && (
-          <p className="mt-stud max-w-prose text-sm text-ink-secondary">
-            {copy.ideas.preview.updated}
-          </p>
-        )}
         <BuildSteps
-          key={`${idea.id}:${idea.buildId ?? ""}`}
+          key={idea.id}
           steps={idea.steps}
           lang={written}
           copy={{

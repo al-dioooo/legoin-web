@@ -66,8 +66,8 @@ test("?mock=fail-<reason> fails ideas, but not reading the scan", async () => {
 test("ideas skip the ones already shown", async () => {
   await signUp();
   visit("mockDelay=0");
-  const first = await getIdeas("demo-evening", "vehicles", "en");
-  const next = await getIdeas("demo-evening", "vehicles", "en", {
+  const { items: first } = await getIdeas("demo-evening", "vehicles", "en");
+  const { items: next } = await getIdeas("demo-evening", "vehicles", "en", {
     exclude: first.map((idea) => idea.id),
   });
   expect(next).toHaveLength(3);
@@ -79,7 +79,7 @@ test("ideas skip the ones already shown", async () => {
 test("an idea reads back with its set, as written, even in a failure demo", async () => {
   await signUp();
   visit("mockDelay=0");
-  const ideas = await getIdeas("demo-evening", "animals", "en");
+  const { items: ideas } = await getIdeas("demo-evening", "animals", "en");
   // Reading stored ideas is quick and never fails on demand, like reading a scan.
   visit("mock=fail-network");
   expect(await getIdea("demo-evening", ideas[2].id)).toEqual({
@@ -93,8 +93,8 @@ test("an idea reads back with its set, as written, even in a failure demo", asyn
 test("ideas skipped with exclude stay out of the kept set", async () => {
   await signUp();
   visit("mockDelay=0");
-  const first = await getIdeas("demo-desk", "buildings", "id");
-  const next = await getIdeas("demo-desk", "buildings", "id", {
+  const { items: first } = await getIdeas("demo-desk", "buildings", "id");
+  const { items: next } = await getIdeas("demo-desk", "buildings", "id", {
     exclude: first.map((idea) => idea.id),
   });
   expect((await getScan("demo-desk"))?.ideas?.items).toEqual(next);

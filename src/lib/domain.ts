@@ -101,31 +101,20 @@ export type Idea = {
   used: PartCount[];
   /** Parts the build needs that the person doesn't have. */
   missing: PartCount[];
-  /** The checked build this idea is, from the backend's library (ADR-0010). */
+  /**
+   * The checked build this idea is: the library's (ADR-0010), or one the agent
+   * built from the scan's photo and pieces (ADR-0013).
+   */
   buildId?: string;
   /** Pictures of that build; sent with `buildId`, or neither is. */
   preview?: Preview;
-  /**
-   * For an idea the agent wrote, when the backend builds previews (contract,
-   * "Idea previews"): `pending` while it's built, `on_open` until the idea's
-   * page is opened, `ready` with `buildId` and `preview`, `unavailable` when
-   * none will come. Once `ready`, the idea's steps and parts are the build's.
-   */
-  previewStatus?: PreviewStatus;
 };
 
-export const PREVIEW_STATUSES = [
-  "pending",
-  "on_open",
-  "ready",
-  "unavailable",
-] as const;
-export type PreviewStatus = (typeof PREVIEW_STATUSES)[number];
-
-/** Whether a preview is on its way, so the screen polls for it. */
-export function previewComing(idea: Pick<Idea, "previewStatus">) {
-  return idea.previewStatus === "pending" || idea.previewStatus === "on_open";
-}
+/**
+ * An idea the agent is still building from the scan (ADR-0013): it joins the
+ * set's `items` with the same id when it's done, with its picture.
+ */
+export type BuildingIdea = { id: string; theme: IdeaTheme };
 
 /**
  * A checked build's picture and LDraw model, as URLs: an isometric 640 px
@@ -144,6 +133,11 @@ export type IdeaSet = {
   /** The language the ideas are written in. */
   locale: Locale;
   items: Idea[];
+  /**
+   * Ideas still being built, in order; left out when there are none. Each
+   * joins `items` when it's done, so a screen reads the set again until then.
+   */
+  building?: BuildingIdea[];
 };
 
 /** A stored idea and the set it belongs to, as written. */

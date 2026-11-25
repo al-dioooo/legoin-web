@@ -260,6 +260,65 @@ export const IDEA_SET = {
 
 export const STORED_IDEA = { idea: IDEA_SET.items[0], set: IDEA_SET };
 
+/** Contract section 13: a set still building, then one of its finished ideas. */
+export const IDEAS_BUILDING = {
+  theme: "vehicles",
+  locale: "en",
+  items: [],
+  building: [
+    {
+      id: "idea_b7q2",
+      theme: "vehicles",
+    },
+    {
+      id: "idea_c3m8",
+      theme: "vehicles",
+    },
+    {
+      id: "idea_d9x4",
+      theme: "vehicles",
+    },
+  ],
+} as const;
+
+export const IDEA_BUILT = {
+  id: "idea_b7q2",
+  theme: "vehicles",
+  difficulty: "easy",
+  title: "Little red racer",
+  summary: "A red racer with a green hood and a dark gray cab.",
+  steps: [
+    "Put the dark gray 2×2 brick down as the back of the car.",
+    "Put the red 2×4 brick on it, overhanging two studs at the front.",
+    "Put the green 2×2 slope on the front of the red brick as the hood.",
+  ],
+  used: [
+    {
+      part: "brick-2x2",
+      color: "dark-gray",
+      quantity: 1,
+    },
+    {
+      part: "brick-2x4",
+      color: "red",
+      quantity: 1,
+    },
+    {
+      part: "slope-2x2",
+      color: "green",
+      quantity: 1,
+    },
+  ],
+  missing: [],
+  buildId: "gen_Ue3nVb81qQ2wTzKp4mXaLc",
+  preview: {
+    image:
+      "https://api.legoin.example/v1/picture-files/2kD9fQwXr7pL0sZcVb3nMa.webp",
+    model:
+      "https://api.legoin.example/v1/picture-files/8hT4jYuIo1pAsDfGhJkLzx.ldr",
+  },
+} as const;
+
 // 7. Errors
 
 export const INVALID_REQUEST = {

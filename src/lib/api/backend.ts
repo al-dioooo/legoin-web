@@ -10,7 +10,7 @@ import type { Session } from "@/lib/api/session";
 import {
   type Account,
   type DetectionChange,
-  type Idea,
+  type IdeaSet,
   type Photo,
   SCAN_STAGES,
   type Scan,
@@ -56,7 +56,7 @@ export type Backend = {
     theme: Theme,
     locale: Locale,
     options: GetIdeasOptions,
-  ): Promise<Idea[]>;
+  ): Promise<IdeaSet>;
   getIdea(scanId: string, ideaId: string): Promise<StoredIdea | null>;
 };
 

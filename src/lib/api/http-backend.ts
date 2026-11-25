@@ -326,8 +326,8 @@ export function httpBackend(
     },
 
     /**
-     * Asks for ideas and resolves with the set's items. With no answer after
-     * 40 s the request is aborted and rejects as `network`.
+     * Asks for ideas and resolves with the set, `building` included. With no
+     * answer after 40 s the request is aborted and rejects as `network`.
      */
     async getIdeas(scanId, theme, locale, { exclude }) {
       const giveUp = new AbortController();
@@ -341,7 +341,7 @@ export function httpBackend(
           signal: giveUp.signal,
         })) as Partial<IdeaSet>;
         if (!Array.isArray(set.items)) throw new ApiError("network");
-        return set.items;
+        return { theme, locale, ...set, items: set.items };
       } catch (error) {
         if (giveUp.signal.aborted) throw new ApiError("network");
         throw error;

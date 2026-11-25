@@ -9,7 +9,9 @@ import {
   BASE_URL,
   CORRECTED_SCAN,
   CORRECTION,
+  IDEA_BUILT,
   IDEA_SET,
+  IDEAS_BUILDING,
   IDEAS_REQUEST,
   INVALID_REQUEST,
   JOB_ACCEPTED,
@@ -427,16 +429,45 @@ describe("scans", () => {
 });
 
 describe("ideas", () => {
-  test("getIdeas posts the theme, language and ideas shown, and resolves with the set's items", async () => {
+  test("getIdeas posts the theme, language and ideas shown, and resolves with the set", async () => {
     const api = fakeApi(() => json(IDEA_SET));
     const ideas = await api.backend.getIdeas("scn_4kd2p9", "vehicles", "id", {
       exclude: IDEAS_REQUEST.exclude,
     });
-    expect(ideas).toEqual(IDEA_SET.items);
+    expect(ideas).toEqual(IDEA_SET);
     const [post] = api.seen;
     expect(requests(api.seen)).toEqual(["POST /scans/scn_4kd2p9/ideas"]);
     expect(headers(post)["Content-Type"]).toBe("application/json");
     expect(JSON.parse(post.init.body as string)).toEqual(IDEAS_REQUEST);
+  });
+
+  test("a set still building comes with its building ideas", async () => {
+    const api = fakeApi(() => json(IDEAS_BUILDING));
+    const ideas = await api.backend.getIdeas(
+      "scn_4kd2p9",
+      "vehicles",
+      "en",
+      {},
+    );
+    expect(ideas).toEqual(IDEAS_BUILDING);
+    expect(ideas.building?.map((slot) => slot.id)).toEqual([
+      "idea_b7q2",
+      "idea_c3m8",
+      "idea_d9x4",
+    ]);
+  });
+
+  test("reading the scan again brings each built idea, with its picture", async () => {
+    const set = {
+      ...IDEAS_BUILDING,
+      items: [IDEA_BUILT],
+      building: IDEAS_BUILDING.building.slice(1),
+    };
+    const api = fakeApi(() => json({ ...CORRECTED_SCAN, ideas: set }));
+    const scan = await api.backend.getScan("scn_4kd2p9");
+    expect(scan?.ideas?.items).toEqual([IDEA_BUILT]);
+    expect(scan?.ideas?.items[0].missing).toEqual([]);
+    expect(scan?.ideas?.building).toHaveLength(2);
   });
 
   test("exclude is left out when empty, and holds the newest 50 at most", async () => {

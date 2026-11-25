@@ -25,7 +25,7 @@ import {
 import type {
   Account,
   DetectionChange,
-  Idea,
+  IdeaSet,
   Photo,
   Scan,
   StoredIdea,
@@ -41,11 +41,10 @@ export {
 } from "@/lib/api/error";
 
 /**
- * How often a screen reads an idea again while its preview is on its way
- * (contract, "Idea previews"): `getScan` on the ideas list, `getIdea` on the
- * idea's page.
+ * How often the ideas list reads the scan again while ideas are still being
+ * built from it (contract, section 13).
  */
-export const PREVIEW_POLL_MS = 3_000;
+export const BUILD_POLL_MS = 3_000;
 
 // Written out in full so Next.js inlines it into the browser bundle.
 const backend = backendFor(process.env.NEXT_PUBLIC_API_URL);
@@ -180,6 +179,10 @@ export function deleteScan(id: string): Promise<void> {
  * rejects with an ApiError, `no_pieces` for a scan with no pieces, and a scan
  * that's gone with a NotFoundError.
  *
+ * Resolves with the set as kept. When the backend builds the ideas from the
+ * scan (ADR-0013), it answers at once with the ones still being built in
+ * `building`; read the scan again with `getScan` until they're done.
+ *
  * Every call asks again; with a real model that's a wait and different ideas.
  * To show the kept ones, read `ideas` from `getScan` instead.
  */
@@ -188,7 +191,7 @@ export function getIdeas(
   theme: Theme,
   locale: Locale,
   { exclude }: GetIdeasOptions = {},
-): Promise<Idea[]> {
+): Promise<IdeaSet> {
   return signedIn(backend.getIdeas(scanId, theme, locale, { exclude }));
 }
 
