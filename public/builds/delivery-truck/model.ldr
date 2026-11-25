@@ -1,0 +1,15 @@
+0 Delivery truck
+0 Name: delivery-truck.ldr
+0 Author: Legoin, built with BrickLayer
+0 // Parts: the LDraw parts library, CC BY 4.0, https://library.ldraw.org
+0 // LEGO is a trademark of the LEGO Group, which does not sponsor, authorize or
+0 // endorse this file.
+1 0 10 -24 10 1 0 0 0 1 0 0 0 1 3062b.dat
+1 0 30 -24 10 1 0 0 0 1 0 0 0 1 3062b.dat
+1 0 10 -24 90 1 0 0 0 1 0 0 0 1 3062b.dat
+1 0 30 -24 90 1 0 0 0 1 0 0 0 1 3062b.dat
+1 0 20 -32 40 0 0 -1 0 1 0 1 0 0 3020.dat
+1 0 20 -32 100 1 0 0 0 1 0 0 0 1 3022.dat
+1 1 20 -56 20 1 0 0 0 1 0 0 0 1 3003.dat
+1 15 20 -56 80 0 0 -1 0 1 0 1 0 0 3001.dat
+1 15 20 -80 80 0 0 -1 0 1 0 1 0 0 3001.dat

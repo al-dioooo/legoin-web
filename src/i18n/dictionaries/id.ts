@@ -32,6 +32,10 @@ export const id: Dictionary = {
       body: "Detektor kepingan Legoin belajar dari dataset ini:",
       license: "Berlisensi",
     },
+    builds: {
+      title: "Gambar rakitan",
+      body: "Ide dari templat adalah rakitan yang dibuat dan dicek dengan BrickLayer dan BrickWright, dan gambarnya dirender dari LDraw.org Parts Library.",
+    },
     notes: {
       title: "Perlu diketahui",
       photos:
@@ -237,6 +241,10 @@ export const id: Dictionary = {
     complete: "Cukup dengan kepinganmu",
     seeSteps: "Lihat langkah",
     again: "Coba ide lain",
+    preview: {
+      alt: "{title} yang sudah jadi",
+      model: "Unduh model 3D (.ldr)",
+    },
     none: "Belum ada ide untuk tema ini. Coba tema lain.",
     failed: {
       title: "Kami tidak bisa mengambil ide",
@@ -439,9 +447,9 @@ export const id: Dictionary = {
       difficulty: "Mudah",
       summary: "Badan merah, kap hijau, lampu kuning.",
       steps: [
-        "Pasang brick 2×4 merah di atas plate 2×4 hitam sebagai badan.",
-        "Taruh slope 2×2 hijau di depan sebagai kap mesin.",
-        "Tambahkan brick 2×2 hitam di belakang dan dua round 1×1 kuning sebagai lampu.",
+        "Pasang brick 2×4 merah di atas plate 2×4 hitam, mundur satu stud, supaya baris depan plate kelihatan.",
+        "Taruh slope 2×2 hijau di depan brick merah sebagai kap mesin, dan brick 2×2 hitam di belakangnya sebagai kabin.",
+        "Pasang dua round 1×1 kuning di baris depan plate sebagai lampu depan.",
       ],
     },
     seeSteps: "Lihat langkah",

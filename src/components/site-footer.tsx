@@ -3,7 +3,7 @@ import { Logo } from "@/components/brand/logo";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { fill } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
-import { DATASET, TEAM } from "@/lib/credits";
+import { BUILDS, DATASET, TEAM } from "@/lib/credits";
 
 type Copy = Dictionary["footer"] & { designSystem: string };
 
@@ -14,12 +14,13 @@ const link =
 
 /**
  * The footer on every page: who made Legoin, the dataset credit that CC BY 4.0
- * asks for, and the notes on AI-made sample photos and the LEGO trademark.
+ * asks for, the credits for the build pictures (ADR-0010), and the notes on
+ * AI-made sample photos and the LEGO trademark.
  */
 export function SiteFooter({ copy, locale }: { copy: Copy; locale: Locale }) {
   return (
     <footer className="border-t-[2.5px] border-ink bg-card">
-      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 text-sm sm:px-6 md:grid-cols-3">
+      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 text-sm sm:px-6 md:grid-cols-2 lg:grid-cols-4">
         <section aria-labelledby="footer-team">
           <Logo />
           <h2 id="footer-team" className={`${heading} mt-6`}>
@@ -54,6 +55,32 @@ export function SiteFooter({ copy, locale }: { copy: Copy; locale: Locale }) {
             </a>
             .
           </p>
+        </section>
+
+        <section aria-labelledby="footer-builds">
+          <h2 id="footer-builds" className={heading}>
+            {copy.builds.title}
+          </h2>
+          <p className="mt-2">{copy.builds.body}</p>
+          <p className="mt-2 text-ink-secondary">
+            {BUILDS.paper.authors} ({BUILDS.paper.year}).{" "}
+            <cite>{BUILDS.paper.title}</cite>.{" "}
+            <a href={BUILDS.paper.url} className={`${link} text-ink`}>
+              {BUILDS.paper.id}
+            </a>
+          </p>
+          <ul className="mt-2 space-y-1">
+            {BUILDS.sources.map((source) => (
+              <li key={source.name}>
+                <a href={source.url} className={link}>
+                  {source.name}
+                </a>
+                {source.license && (
+                  <span className="text-ink-secondary">, {source.license}</span>
+                )}
+              </li>
+            ))}
+          </ul>
         </section>
 
         <section aria-labelledby="footer-notes">

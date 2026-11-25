@@ -84,7 +84,18 @@ export type Idea = {
   used: PartCount[];
   /** Parts the build needs that the person doesn't have. */
   missing: PartCount[];
+  /** The checked build this idea is, from the backend's library (ADR-0010). */
+  buildId?: string;
+  /** Pictures of that build; sent with `buildId`, or neither is. */
+  preview?: Preview;
 };
+
+/**
+ * A checked build's picture and LDraw model, as URLs: an isometric 640 px
+ * square WebP on a transparent background, and an `.ldr` download. Both are
+ * public and versioned, so they load in a plain `<img>` or link.
+ */
+export type Preview = { image: string; model: string };
 
 /**
  * One answer to a request for ideas, kept with the scan. Ideas are written once,
