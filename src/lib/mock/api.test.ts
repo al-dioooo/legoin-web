@@ -313,6 +313,42 @@ test("demo query options turn into failures and delays", () => {
     delayMs: 0,
   });
   expect(mockOptionsFromSearch("?mock=fail-everything")).toEqual({});
+  expect(mockOptionsFromSearch("?mockPreviews=1500")).toEqual({
+    previews: 1500,
+  });
+  expect(mockOptionsFromSearch("?mockPreviews=soon")).toEqual({});
+});
+
+test("with previews, ideas come pending and become their builds when due", async () => {
+  const ideas = await getIdeas("demo-evening", "vehicles", "en", {
+    ...fast,
+    previews: 40,
+  });
+  expect(ideas.map((idea) => idea.previewStatus)).toEqual([
+    "pending",
+    "pending",
+    "pending",
+  ]);
+  expect(ideas.some((idea) => idea.buildId || idea.preview)).toBe(false);
+  const early = await getIdea("demo-evening", ideas[0].id, fast);
+  expect(early?.idea.previewStatus).toBe("pending");
+
+  await new Promise((done) => setTimeout(done, 60));
+  const kept = (await getScan("demo-evening", fast))?.ideas?.items ?? [];
+  expect(kept.map((idea) => idea.previewStatus)).toEqual([
+    "ready",
+    "ready",
+    "ready",
+  ]);
+  expect(kept[0]).toMatchObject({ buildId: "race-car" });
+  expect(kept[0].preview).toEqual(BUILD_PREVIEWS["race-car"]);
+});
+
+test("resetting the demo forgets pending previews", async () => {
+  await getIdeas("demo-evening", "vehicles", "en", { ...fast, previews: 0 });
+  resetMockData();
+  const ideas = await getIdeas("demo-evening", "vehicles", "en", fast);
+  expect(ideas.every((idea) => idea.previewStatus === undefined)).toBe(true);
 });
 
 test("a cancelled scan rejects and saves nothing", async () => {

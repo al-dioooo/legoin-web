@@ -51,6 +51,13 @@ export {
   UnauthorizedError,
 } from "@/lib/api/error";
 
+/**
+ * How often a screen reads an idea again while its preview is on its way
+ * (contract, "Idea previews"): `getScan` on the ideas list, `getIdea` on the
+ * idea's page.
+ */
+export const PREVIEW_POLL_MS = 3_000;
+
 // Written out in full so Next.js inlines it into the browser bundle.
 const backend = backendFor(process.env.NEXT_PUBLIC_API_URL);
 

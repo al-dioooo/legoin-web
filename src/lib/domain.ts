@@ -105,7 +105,27 @@ export type Idea = {
   buildId?: string;
   /** Pictures of that build; sent with `buildId`, or neither is. */
   preview?: Preview;
+  /**
+   * For an idea the agent wrote, when the backend builds previews (contract,
+   * "Idea previews"): `pending` while it's built, `on_open` until the idea's
+   * page is opened, `ready` with `buildId` and `preview`, `unavailable` when
+   * none will come. Once `ready`, the idea's steps and parts are the build's.
+   */
+  previewStatus?: PreviewStatus;
 };
+
+export const PREVIEW_STATUSES = [
+  "pending",
+  "on_open",
+  "ready",
+  "unavailable",
+] as const;
+export type PreviewStatus = (typeof PREVIEW_STATUSES)[number];
+
+/** Whether a preview is on its way, so the screen polls for it. */
+export function previewComing(idea: Pick<Idea, "previewStatus">) {
+  return idea.previewStatus === "pending" || idea.previewStatus === "on_open";
+}
 
 /**
  * A checked build's picture and LDraw model, as URLs: an isometric 640 px
