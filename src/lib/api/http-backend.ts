@@ -7,16 +7,24 @@
 import type { Backend } from "@/lib/api/backend";
 import { deviceId as storedDeviceId } from "@/lib/api/device-id";
 import { ApiError, NotFoundError } from "@/lib/api/error";
+import { photoBlob, photoFileName } from "@/lib/api/upload";
 import {
   type IdeaSet,
   SCAN_FAILURES,
   type Scan,
   type ScanFailure,
+  type ScanStage,
   type StoredIdea,
 } from "@/lib/domain";
 
-/** The contract's client-side limits ("Timeouts"). */
+/** The contract's client-side limits ("Timeouts" and "Scanning a photo"). */
 export const LIMITS = {
+  /** Between polls of a running scan job. */
+  pollMs: 500,
+  /** A scan that hasn't ended by then is given up, as `network`. */
+  scanMs: 45_000,
+  /** Polls in a row with no answer before a scan is given up. */
+  missedPolls: 3,
   /** A request for ideas with no answer by then is aborted, as `network`. */
   ideasMs: 40_000,
   /** Most idea ids `exclude` may hold; the newest are kept. */
@@ -27,6 +35,12 @@ export const LIMITS = {
 type ApiErrorBody = {
   error: { code: string; message: string; field?: string };
 };
+
+/** Only on the wire: a scan in progress, polled until it ends. */
+type ScanJob =
+  | { id: string; status: "running"; stage: ScanStage }
+  | { id: string; status: "done"; scan: Scan }
+  | { id: string; status: "failed"; error: ApiErrorBody["error"] };
 
 /** Failures of the backend's own, which ScanFailure may not name yet. */
 const SERVER_FAILURES = ["timeout", "unavailable", "internal"];
@@ -60,6 +74,32 @@ function errorFor(status: number, body: unknown): Error {
     return new ApiError("network");
   }
   return new Error(`The API answered ${status} ${code}: ${error?.message}`);
+}
+
+function isScanJob(body: unknown): body is ScanJob {
+  const job = body as Partial<ScanJob> | undefined;
+  return (
+    typeof job?.id === "string" &&
+    (job.status === "running" ||
+      job.status === "done" ||
+      job.status === "failed")
+  );
+}
+
+/** Waits, or rejects with `signal`'s reason as soon as it aborts. */
+function sleep(ms: number, signal: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    signal.throwIfAborted();
+    const stop = () => {
+      clearTimeout(timer);
+      reject(signal.reason);
+    };
+    const timer = setTimeout(() => {
+      signal.removeEventListener("abort", stop);
+      resolve();
+    }, ms);
+    signal.addEventListener("abort", stop, { once: true });
+  });
 }
 
 const path = (...segments: string[]) =>
@@ -134,10 +174,75 @@ export function httpBackend(
     }
   }
 
+  /** Sends `DELETE /scan-jobs/{id}` without waiting, even as the page unloads. */
+  function cancel(jobId: string) {
+    void send(`${base}${path("scan-jobs", jobId)}`, {
+      method: "DELETE",
+      headers: { "Legoin-Device-Id": deviceId() },
+      keepalive: true,
+    }).catch(() => {});
+  }
+
   return {
-    // Scanning comes in the next commit: upload, then poll the scan job.
-    createScan: () =>
-      Promise.reject(new Error("Scanning over HTTP isn't written yet")),
+    /**
+     * Uploads the photo as a scan job and polls it until it ends, passing each
+     * stage on. Aborting rejects with an AbortError at once and cancels the
+     * job. The job is also cancelled when the scan is given up: 45 s with no
+     * ending, or 3 polls in a row with no answer, which reject as `network`.
+     */
+    async createScan(photo, { onStage, signal }) {
+      signal?.throwIfAborted();
+      const giveUp = new AbortController();
+      const deadline = setTimeout(() => giveUp.abort(), LIMITS.scanMs);
+      const stop = signal
+        ? AbortSignal.any([signal, giveUp.signal])
+        : giveUp.signal;
+      let jobId: string | undefined;
+      try {
+        const file = await photoBlob(photo, { fetch: send, signal: stop });
+        const form = new FormData();
+        form.append("photo", file, photoFileName(file));
+        const accepted = await object("/scan-jobs", {
+          method: "POST",
+          body: form,
+          signal: stop,
+        });
+        if (!isScanJob(accepted)) throw new ApiError("network");
+        let job: ScanJob = accepted;
+        jobId = job.id;
+        let missed = 0;
+        for (;;) {
+          if (job.status === "done") return job.scan;
+          if (job.status === "failed") {
+            // The backend saved nothing, so there's nothing to cancel.
+            jobId = undefined;
+            throw errorFor(200, job);
+          }
+          onStage?.(job.stage);
+          await sleep(LIMITS.pollMs, stop);
+          try {
+            const next = await object(path("scan-jobs", job.id), {
+              signal: stop,
+            });
+            if (!isScanJob(next)) throw new ApiError("network");
+            job = next;
+            missed = 0;
+          } catch (error) {
+            // One poll with no answer is just retried.
+            const noAnswer =
+              error instanceof ApiError && error.reason === "network";
+            if (!noAnswer || ++missed >= LIMITS.missedPolls) throw error;
+          }
+        }
+      } catch (error) {
+        if (jobId !== undefined) cancel(jobId);
+        if (signal?.aborted) throw signal.reason;
+        if (giveUp.signal.aborted) throw new ApiError("network");
+        throw error;
+      } finally {
+        clearTimeout(deadline);
+      }
+    },
 
     getScan: (id) => orNull(object(path("scans", id)) as Promise<Scan>),
 

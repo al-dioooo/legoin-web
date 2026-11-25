@@ -3,7 +3,7 @@
  * API contract's own examples, and each test checks one rule of
  * api/contract.md. There's no backend yet, so this is the only check.
  */
-import { describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   BASE_URL,
   CORRECTED_SCAN,
@@ -12,14 +12,17 @@ import {
   IDEA_SET,
   IDEAS_REQUEST,
   INVALID_REQUEST,
+  JOB_ACCEPTED,
   JOB_DONE,
+  JOB_FAILED,
+  JOB_RUNNING,
   SCAN_LIST,
   SCAN_NOT_FOUND,
   STORED_IDEA,
 } from "@/lib/api/contract-examples";
 import { ApiError, NotFoundError } from "@/lib/api/error";
 import { httpBackend, LIMITS } from "@/lib/api/http-backend";
-import { SCAN_FAILURES } from "@/lib/domain";
+import { SCAN_FAILURES, type ScanStage } from "@/lib/domain";
 
 type Seen = { method: string; path: string; init: RequestInit };
 type Answer = (request: Seen) => Response | Promise<Response>;
@@ -80,6 +83,189 @@ const outcome = <T>(promise: Promise<T>) =>
     (value) => ({ value }),
     (reason: unknown) => ({ reason }),
   );
+
+const PHOTO = {
+  src: "data:image/jpeg;base64,/9j/4AAQ",
+  width: 1200,
+  height: 800,
+};
+
+describe("scanning a photo", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  /** Polls answer with `polls` in turn, after the upload's 202. */
+  function scanning(...polls: Answer[]) {
+    const api = fakeApi((request) =>
+      request.method === "POST"
+        ? json(JOB_ACCEPTED, 202)
+        : request.method === "DELETE"
+          ? noContent()
+          : polled(request),
+    );
+    const polled = inTurn(...polls);
+    const stages: ScanStage[] = [];
+    const controller = new AbortController();
+    const result = outcome(
+      api.backend.createScan(PHOTO, {
+        onStage: (stage) => stages.push(stage),
+        signal: controller.signal,
+      }),
+    );
+    return { ...api, stages, controller, result };
+  }
+
+  test("uploads the photo as a job, polls it every 500 ms and resolves with the scan", async () => {
+    const scan = scanning(
+      () => json(JOB_RUNNING),
+      () => json(JOB_DONE),
+    );
+    await vi.advanceTimersByTimeAsync(2 * LIMITS.pollMs);
+    expect(await scan.result).toEqual({ value: JOB_DONE.scan });
+    expect(scan.stages).toEqual(["detecting", "classifying"]);
+    expect(requests(scan.seen)).toEqual([
+      "POST /scan-jobs",
+      "GET /scan-jobs/job_8c1f2e",
+      "GET /scan-jobs/job_8c1f2e",
+    ]);
+    for (const request of scan.seen) {
+      expect(headers(request)["Legoin-Device-Id"]).toBe(DEVICE_ID);
+    }
+
+    // The photo goes as a multipart part named `photo`; fetch sets the type.
+    const upload = scan.seen[0].init;
+    expect(headers(scan.seen[0])["Content-Type"]).toBeUndefined();
+    const part = (upload.body as FormData).get("photo") as File;
+    expect(part.name).toBe("photo.jpg");
+    expect(part.type).toBe("image/jpeg");
+    expect([...new Uint8Array(await part.arrayBuffer())]).toEqual([
+      0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10,
+    ]);
+  });
+
+  test("the sample photo is fetched from the site, without the device id, and uploaded", async () => {
+    const jpeg = new Uint8Array([0xff, 0xd8, 0xff]);
+    const api = fakeApi((request) =>
+      request.path === "/contoh/kepingan-2.jpg"
+        ? new Response(jpeg, { headers: { "Content-Type": "image/jpeg" } })
+        : request.method === "POST"
+          ? json(JOB_ACCEPTED, 202)
+          : json(JOB_DONE),
+    );
+    const scan = outcome(
+      api.backend.createScan(
+        { src: "/contoh/kepingan-2.jpg", width: 1200, height: 800 },
+        {},
+      ),
+    );
+    await vi.advanceTimersByTimeAsync(LIMITS.pollMs);
+    expect(await scan).toEqual({ value: JOB_DONE.scan });
+    expect(api.seen[0].init.headers).toBeUndefined();
+    const part = (api.seen[1].init.body as FormData).get("photo") as File;
+    expect([...new Uint8Array(await part.arrayBuffer())]).toEqual([...jpeg]);
+  });
+
+  test("a failed job rejects with its reason, and isn't cancelled", async () => {
+    const scan = scanning(() => json(JOB_FAILED));
+    await vi.advanceTimersByTimeAsync(LIMITS.pollMs);
+    expect(await scan.result).toEqual({ reason: new ApiError("too_dark") });
+    expect(requests(scan.seen)).not.toContain("DELETE /scan-jobs/job_8c1f2e");
+  });
+
+  // "ScanFailure reasons": a code that names a reason is that reason; the
+  // backend's own failures are `network` until ScanFailure has a reason for
+  // them, as the contract says of `timeout`.
+  test.each([
+    "no_pieces",
+    "too_dark",
+    "too_blurry",
+    "timeout",
+    "unavailable",
+    "internal",
+  ])("a job that failed with %s rejects with the reason the contract gives", async (code) => {
+    const reason = (SCAN_FAILURES as readonly string[]).includes(code)
+      ? code
+      : "network";
+    const scan = scanning(() =>
+      json({ ...JOB_FAILED, error: { code, message: "Failed." } }),
+    );
+    await vi.advanceTimersByTimeAsync(LIMITS.pollMs);
+    expect(await scan.result).toEqual({
+      reason: new ApiError(reason as "network"),
+    });
+  });
+
+  test("aborting stops polling, rejects with an AbortError at once and deletes the job with keepalive", async () => {
+    const scan = scanning(() => json(JOB_RUNNING));
+    await vi.advanceTimersByTimeAsync(LIMITS.pollMs + 100);
+    scan.controller.abort();
+    const { reason } = (await scan.result) as { reason: Error };
+    expect(reason.name).toBe("AbortError");
+    await vi.advanceTimersByTimeAsync(10 * LIMITS.pollMs);
+    expect(requests(scan.seen)).toEqual([
+      "POST /scan-jobs",
+      "GET /scan-jobs/job_8c1f2e",
+      "DELETE /scan-jobs/job_8c1f2e",
+    ]);
+    const cancel = scan.seen[2];
+    expect(cancel.init.keepalive).toBe(true);
+    expect(headers(cancel)["Legoin-Device-Id"]).toBe(DEVICE_ID);
+  });
+
+  test("aborting during the upload rejects at once, with no job to delete", async () => {
+    const api = fakeApi(silent);
+    const controller = new AbortController();
+    const scan = outcome(
+      api.backend.createScan(PHOTO, { signal: controller.signal }),
+    );
+    await vi.advanceTimersByTimeAsync(0);
+    controller.abort();
+    const { reason } = (await scan) as { reason: Error };
+    expect(reason.name).toBe("AbortError");
+    expect(requests(api.seen)).toEqual(["POST /scan-jobs"]);
+  });
+
+  test("one poll with no answer is retried; three in a row give up as network and delete the job", async () => {
+    const scan = scanning(
+      offline,
+      () => json(JOB_RUNNING),
+      offline,
+      () => error("unavailable", 503),
+      () => new Response("<html>Bad gateway</html>", { status: 502 }),
+    );
+    await vi.advanceTimersByTimeAsync(5 * LIMITS.pollMs);
+    expect(await scan.result).toEqual({ reason: new ApiError("network") });
+    expect(requests(scan.seen)).toEqual([
+      "POST /scan-jobs",
+      ...Array(5).fill("GET /scan-jobs/job_8c1f2e"),
+      "DELETE /scan-jobs/job_8c1f2e",
+    ]);
+  });
+
+  test("a scan with no ending after 45 s gives up as network and deletes the job", async () => {
+    const scan = scanning(() => json(JOB_RUNNING));
+    await vi.advanceTimersByTimeAsync(LIMITS.scanMs - LIMITS.pollMs);
+    expect(requests(scan.seen)).not.toContain("DELETE /scan-jobs/job_8c1f2e");
+    await vi.advanceTimersByTimeAsync(LIMITS.pollMs);
+    expect(await scan.result).toEqual({ reason: new ApiError("network") });
+    expect(requests(scan.seen).at(-1)).toBe("DELETE /scan-jobs/job_8c1f2e");
+  });
+
+  test("45 s count a poll that never answers too", async () => {
+    const scan = scanning(silent);
+    await vi.advanceTimersByTimeAsync(LIMITS.scanMs);
+    expect(await scan.result).toEqual({ reason: new ApiError("network") });
+    expect(requests(scan.seen)).toEqual([
+      "POST /scan-jobs",
+      "GET /scan-jobs/job_8c1f2e",
+      "DELETE /scan-jobs/job_8c1f2e",
+    ]);
+  });
+});
 
 describe("scans", () => {
   test("getScan reads one scan, and turns 404 not_found into null", async () => {
