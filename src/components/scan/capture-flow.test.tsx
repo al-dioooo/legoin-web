@@ -50,6 +50,14 @@ beforeEach(() => {
   api.createScan.mockReset();
 });
 
+test("says where the photo goes before it's scanned, not while", async () => {
+  render(<CaptureFlow copy={copy} locale="en" />);
+  expect(screen.getByText(en.scan.capture.privacy)).toBeDefined();
+  pick(new File(["jpg"], "bricks.jpg", { type: "image/jpeg" }));
+  await screen.findByAltText(en.scan.capture.previewAlt);
+  expect(screen.getByText(en.scan.capture.privacy)).toBeDefined();
+});
+
 test("a file that isn't an image shows an inline error", async () => {
   render(<CaptureFlow copy={copy} locale="en" />);
   pick(new File(["%PDF"], "notes.pdf", { type: "application/pdf" }));
