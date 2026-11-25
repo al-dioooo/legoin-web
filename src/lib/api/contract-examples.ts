@@ -172,9 +172,9 @@ export const IDEA_SET = {
       title: "Mobil balap kecil",
       summary: "Badan merah, kap hijau, lampu kuning.",
       steps: [
-        "Pasang brick 2×4 merah di atas plate 2×4 hitam sebagai badan.",
-        "Taruh slope 2×2 hijau di depan sebagai kap mesin.",
-        "Tambahkan brick 2×2 hitam di belakang dan dua round 1×1 kuning sebagai lampu.",
+        "Pasang brick 2×4 merah di atas plate 2×4 hitam, mundur satu stud, supaya baris depan plate kelihatan.",
+        "Taruh slope 2×2 hijau di depan brick merah sebagai kap mesin, dan brick 2×2 hitam di belakangnya sebagai kabin.",
+        "Pasang dua round 1×1 kuning di baris depan plate sebagai lampu depan.",
       ],
       used: [
         { part: "brick-2x2", color: "black", quantity: 1 },
@@ -185,6 +185,13 @@ export const IDEA_SET = {
         { part: "round-1x1", color: "yellow", quantity: 2 },
         { part: "plate-2x4", color: "black", quantity: 1 },
       ],
+      buildId: "race-car",
+      preview: {
+        image:
+          "https://api.legoin.example/v1/builds/race-car/preview.webp?v=32a32212e618",
+        model:
+          "https://api.legoin.example/v1/builds/race-car/model.ldr?v=378de85baa5d",
+      },
     },
     {
       id: "idea_l8k3",
