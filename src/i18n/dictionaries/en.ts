@@ -169,7 +169,7 @@ export const en = {
     photoAltPlain: "Your photo",
     missing: {
       title: "We couldn't find that scan",
-      body: "It may have been deleted from this browser.",
+      body: "It may have been deleted.",
       action: "Start a new scan",
     },
     failed: {
@@ -394,7 +394,7 @@ export const en = {
   },
   history: {
     title: "Your scans",
-    lead: "Your scans from this browser. Open one to see its pieces and ideas again.",
+    lead: "Your scans. Open one to see its pieces and ideas again.",
     loading: "Loading your scans…",
     count: { one: "{count} scan", other: "{count} scans" },
     newScan: "New scan",
@@ -411,8 +411,7 @@ export const en = {
     },
     clear: {
       action: "Clear my scans",
-      question:
-        "Delete all {count} scans from this browser? You can't get them back.",
+      question: "Delete all {count} scans? You can't get them back.",
       confirm: "Delete all",
       keep: "Keep my scans",
       done: "Your scans are cleared.",
