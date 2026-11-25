@@ -170,7 +170,7 @@ export const en = {
     photoAltPlain: "Your photo",
     missing: {
       title: "We couldn't find that scan",
-      body: "It may have been deleted from this browser.",
+      body: "It may have been deleted.",
       action: "Start a new scan",
     },
     failed: {
@@ -535,7 +535,7 @@ export const en = {
   },
   history: {
     title: "Your scans",
-    lead: "Scans are saved in this browser. Open one to see its pieces and ideas again.",
+    lead: "Your scans. Open one to see its pieces and ideas again.",
     loading: "Loading your scans…",
     count: { one: "{count} scan", other: "{count} scans" },
     newScan: "New scan",
@@ -552,8 +552,7 @@ export const en = {
     },
     clear: {
       action: "Clear my scans",
-      question:
-        "Delete all {count} scans from this browser? You can't get them back.",
+      question: "Delete all {count} scans? You can't get them back.",
       confirm: "Delete all",
       keep: "Keep my scans",
       done: "Your scans are cleared.",
@@ -561,25 +560,25 @@ export const en = {
     },
     empty: {
       title: "No scans yet",
-      body: "Photograph your pieces and the scan is saved here, in this browser.",
+      body: "Photograph your pieces and the scan shows up here.",
       action: "Start a scan",
     },
     failed: {
       title: "We couldn't load your scans",
-      body: "Try again in a moment. Your scans are still saved in this browser.",
+      body: "Try again in a moment. Your scans are still saved.",
       retry: "Try again",
     },
   },
   states: {
     notFound: {
       title: "We couldn't find that page",
-      body: "The link may be broken, or the page has moved. Your scans are still saved in this browser.",
+      body: "The link may be broken, or the page has moved. Your scans are still saved.",
       home: "Back to home",
       scan: "Start a scan",
     },
     error: {
       title: "Something went wrong",
-      body: "This page stopped working. Try again, or go back to the home page. Your scans are still saved in this browser.",
+      body: "This page stopped working. Try again, or go back to the home page. Your scans are still saved.",
       retry: "Try again",
       home: "Back to home",
     },
