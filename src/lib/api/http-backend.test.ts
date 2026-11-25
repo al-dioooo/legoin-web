@@ -8,7 +8,6 @@ import {
   BASE_URL,
   CORRECTED_SCAN,
   CORRECTION,
-  DEVICE_ID,
   IDEA_SET,
   IDEAS_REQUEST,
   INVALID_REQUEST,
@@ -19,6 +18,7 @@ import {
   SCAN_LIST,
   SCAN_NOT_FOUND,
   STORED_IDEA,
+  TOKEN,
 } from "@/lib/api/contract-examples";
 import { ApiError, NotFoundError } from "@/lib/api/error";
 import { httpBackend, LIMITS } from "@/lib/api/http-backend";
@@ -61,7 +61,7 @@ function fakeApi(answer: Answer) {
   });
   const backend = httpBackend(BASE_URL, {
     fetch: fetch as typeof globalThis.fetch,
-    deviceId: () => DEVICE_ID,
+    token: () => TOKEN,
   });
   return { backend, seen, fetch };
 }
@@ -133,7 +133,7 @@ describe("scanning a photo", () => {
       "GET /scan-jobs/job_8c1f2e",
     ]);
     for (const request of scan.seen) {
-      expect(headers(request)["Legoin-Device-Id"]).toBe(DEVICE_ID);
+      expect(headers(request).Authorization).toBe(`Bearer ${TOKEN}`);
     }
 
     // The photo goes as a multipart part named `photo`; fetch sets the type.
@@ -147,7 +147,7 @@ describe("scanning a photo", () => {
     ]);
   });
 
-  test("the sample photo is fetched from the site, without the device id, and uploaded", async () => {
+  test("the sample photo is fetched from the site, without the token, and uploaded", async () => {
     const jpeg = new Uint8Array([0xff, 0xd8, 0xff]);
     const api = fakeApi((request) =>
       request.path === "/contoh/kepingan-2.jpg"
@@ -213,7 +213,7 @@ describe("scanning a photo", () => {
     ]);
     const cancel = scan.seen[2];
     expect(cancel.init.keepalive).toBe(true);
-    expect(headers(cancel)["Legoin-Device-Id"]).toBe(DEVICE_ID);
+    expect(headers(cancel).Authorization).toBe(`Bearer ${TOKEN}`);
   });
 
   test("aborting during the upload rejects at once, with no job to delete", async () => {
@@ -281,7 +281,7 @@ describe("scans", () => {
       "GET /scans/scn_4kd2p9",
       "GET /scans/scn_4kd2p9",
     ]);
-    expect(headers(api.seen[0])).toEqual({ "Legoin-Device-Id": DEVICE_ID });
+    expect(headers(api.seen[0])).toEqual({ Authorization: `Bearer ${TOKEN}` });
   });
 
   test("listScans unwraps { scans }, newest first as the API sends them", async () => {
@@ -434,7 +434,7 @@ test("the base URL may end in a slash, and ids are sent as path segments", async
       seen.push(String(input));
       return json(SCAN_NOT_FOUND, 404);
     }) as typeof fetch,
-    deviceId: () => DEVICE_ID,
+    token: () => TOKEN,
   });
   await backend.getScan("scn 1/2");
   expect(seen).toEqual([`${BASE_URL}/scans/scn%201%2F2`]);

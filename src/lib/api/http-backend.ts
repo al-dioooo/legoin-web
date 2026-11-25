@@ -2,13 +2,20 @@
  * api/contract.md in al-dioooo/legoin-docs
  * (https://github.com/al-dioooo/legoin-docs/blob/main/api/contract.md).
  * `backendFor` picks it when NEXT_PUBLIC_API_URL is set. Browser only: the
- * browser calls the API itself, and the device id lives in localStorage.
+ * browser calls the API itself, and the session lives in localStorage.
  */
 import type { Backend } from "@/lib/api/backend";
-import { deviceId as storedDeviceId } from "@/lib/api/device-id";
-import { ApiError, NotFoundError } from "@/lib/api/error";
+import {
+  ApiError,
+  AuthError,
+  NotFoundError,
+  UnauthorizedError,
+} from "@/lib/api/error";
+import { sessionToken } from "@/lib/api/session";
 import { photoBlob, photoFileName } from "@/lib/api/upload";
 import {
+  AUTH_FAILURES,
+  type AuthFailure,
   type IdeaSet,
   SCAN_FAILURES,
   type Scan,
@@ -48,6 +55,9 @@ const SERVER_FAILURES = ["timeout", "unavailable", "internal"];
 /**
  * The error for an answer that failed (contract, "Errors"):
  *
+ * - `unauthorized`, or any other 401, is an UnauthorizedError: there's no
+ *   valid session;
+ * - `invalid_credentials`, `email_taken` and `rate_limited` are an AuthError;
  * - a code that names a ScanFailure is that reason, so `timeout` passes
  *   through once ScanFailure has it;
  * - `not_found` is a NotFoundError;
@@ -59,6 +69,12 @@ const SERVER_FAILURES = ["timeout", "unavailable", "internal"];
 function errorFor(status: number, body: unknown): Error {
   const error = (body as Partial<ApiErrorBody> | undefined)?.error;
   const code = error?.code;
+  if ((AUTH_FAILURES as readonly unknown[]).includes(code)) {
+    return new AuthError(code as AuthFailure);
+  }
+  if (code === "unauthorized" || status === 401) {
+    return new UnauthorizedError(error?.message);
+  }
   if (
     code !== "network" &&
     (SCAN_FAILURES as readonly unknown[]).includes(code)
@@ -110,8 +126,8 @@ type Request = RequestInit & { json?: unknown };
 export type HttpBackendOptions = {
   /** The fetch to call; tests pass a fake. */
   fetch?: typeof fetch;
-  /** The `Legoin-Device-Id` to send; by default this device's, from localStorage. */
-  deviceId?: () => string;
+  /** The session token to send; by default the kept session's. */
+  token?: () => string | undefined;
 };
 
 /** A backend for the API at `baseUrl`, version included (`…/v1`). */
@@ -119,13 +135,19 @@ export function httpBackend(
   baseUrl: string,
   {
     fetch: send = (input, init) => fetch(input, init),
-    deviceId = storedDeviceId,
+    token = sessionToken,
   }: HttpBackendOptions = {},
 ): Backend {
   const base = baseUrl.replace(/\/+$/, "");
 
+  /** `Authorization: Bearer <token>` when someone's logged in. */
+  function authorization(): Record<string, string> {
+    const current = token();
+    return current ? { Authorization: `Bearer ${current}` } : {};
+  }
+
   /**
-   * One request, with the device id. Resolves with the answer's JSON, or
+   * One request, with the session's token. Resolves with the answer's JSON, or
    * undefined when it has none. Rejects as `errorFor` says, with `network`
    * when `fetch` itself fails, or with `signal`'s reason once it aborts.
    */
@@ -133,7 +155,7 @@ export function httpBackend(
     route: string,
     { json, ...init }: Request = {},
   ): Promise<unknown> {
-    const headers: Record<string, string> = { "Legoin-Device-Id": deviceId() };
+    const headers = authorization();
     if (json !== undefined) headers["Content-Type"] = "application/json";
     let response: Response;
     try {
@@ -178,7 +200,7 @@ export function httpBackend(
   function cancel(jobId: string) {
     void send(`${base}${path("scan-jobs", jobId)}`, {
       method: "DELETE",
-      headers: { "Legoin-Device-Id": deviceId() },
+      headers: authorization(),
       keepalive: true,
     }).catch(() => {});
   }

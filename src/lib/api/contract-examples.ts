@@ -9,10 +9,10 @@
 
 export const BASE_URL = "https://api.legoin.example/v1";
 
-/** The `Legoin-Device-Id` every example sends. */
-export const DEVICE_ID = "3b0e6f1c-5d2a-4f7e-9c41-8a2d7e5b9f10";
+/** The session token every example sends, as `Authorization: Bearer`. */
+export const TOKEN = "lgn_pY5h2PcG9NnqPsZk4j-mzx5D7dFTpfR8_jUFioj9cOg";
 
-// 4. Scans: POST /scan-jobs and GET /scan-jobs/{jobId}
+// 5. Scans: POST /scan-jobs and GET /scan-jobs/{jobId}
 
 export const JOB_ACCEPTED = {
   id: "job_8c1f2e",
@@ -69,13 +69,13 @@ export const JOB_FAILED = {
   error: { code: "too_dark", message: "The photo is too dark to find pieces." },
 };
 
-// 4. Scans: GET /scans/{scanId}
+// 5. Scans: GET /scans/{scanId}
 
 export const SCAN_NOT_FOUND = {
   error: { code: "not_found", message: "No scan scn_4kd2p9." },
 };
 
-// 4. Scans: GET /scans ("the three detections above" filled in)
+// 5. Scans: GET /scans ("the three detections above" filled in)
 
 export const SCAN_LIST = {
   scans: [
@@ -101,7 +101,7 @@ export const SCAN_LIST = {
   ],
 };
 
-// 4. Scans: PATCH /scans/{scanId}/detections
+// 5. Scans: PATCH /scans/{scanId}/detections
 
 export const CORRECTION = {
   changes: [
@@ -153,7 +153,7 @@ export const CORRECTED_SCAN = {
   lastTheme: "vehicles",
 };
 
-// 5. Ideas: POST /scans/{scanId}/ideas
+// 6. Ideas: POST /scans/{scanId}/ideas
 
 export const IDEAS_REQUEST = {
   theme: "vehicles",
@@ -232,12 +232,12 @@ export const IDEA_SET = {
   ],
 } as const;
 
-// 5. Ideas: GET /scans/{scanId}/ideas/{ideaId} ("the rest of the idea" and
+// 6. Ideas: GET /scans/{scanId}/ideas/{ideaId} ("the rest of the idea" and
 // "all three ideas of the set" filled in)
 
 export const STORED_IDEA = { idea: IDEA_SET.items[0], set: IDEA_SET };
 
-// 6. Errors
+// 7. Errors
 
 export const INVALID_REQUEST = {
   error: {
