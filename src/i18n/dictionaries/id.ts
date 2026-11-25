@@ -174,7 +174,7 @@ export const id: Dictionary = {
     photoAltPlain: "Fotomu",
     missing: {
       title: "Kami tidak menemukan hasil pindai itu",
-      body: "Mungkin sudah dihapus dari peramban ini.",
+      body: "Mungkin sudah dihapus.",
       action: "Mulai pindai baru",
     },
     failed: {
@@ -405,7 +405,7 @@ export const id: Dictionary = {
   },
   history: {
     title: "Riwayat pindai",
-    lead: "Hasil pindaimu dari peramban ini. Buka salah satunya untuk melihat lagi kepingan dan idenya.",
+    lead: "Hasil pindaimu. Buka salah satunya untuk melihat lagi kepingan dan idenya.",
     loading: "Memuat hasil pindaimu…",
     count: { one: "{count} hasil pindai", other: "{count} hasil pindai" },
     newScan: "Pindai baru",
@@ -424,7 +424,7 @@ export const id: Dictionary = {
     clear: {
       action: "Hapus semua hasil pindai",
       question:
-        "Hapus semua {count} hasil pindai dari peramban ini? Yang sudah dihapus tidak bisa kembali.",
+        "Hapus semua {count} hasil pindai? Yang sudah dihapus tidak bisa kembali.",
       confirm: "Hapus semua",
       keep: "Batal",
       done: "Semua hasil pindai sudah dihapus.",
