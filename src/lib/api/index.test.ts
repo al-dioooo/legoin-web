@@ -1,5 +1,13 @@
 import { beforeEach, expect, test } from "vitest";
-import { ApiError, createScan, getIdea, getIdeas, getScan } from "@/lib/api";
+import {
+  ApiError,
+  createScan,
+  getIdea,
+  getIdeas,
+  getScan,
+  NotFoundError,
+  updateDetections,
+} from "@/lib/api";
 import { SCAN_STAGES, type ScanStage } from "@/lib/domain";
 import { EVENING_PHOTO } from "@/lib/sample-scan";
 
@@ -73,4 +81,15 @@ test("ideas skipped with exclude stay out of the kept set", async () => {
   });
   expect((await getScan("demo-desk"))?.ideas?.items).toEqual(next);
   expect(await getIdea("demo-desk", first[0].id)).toBeNull();
+});
+
+test("a scan that's gone is null to read, and a NotFoundError to change", async () => {
+  visit("mockDelay=0");
+  expect(await getScan("gone")).toBeNull();
+  await expect(
+    updateDetections("gone", [{ type: "remove", id: "piece" }]),
+  ).rejects.toBeInstanceOf(NotFoundError);
+  await expect(getIdeas("gone", "animals", "en")).rejects.toBeInstanceOf(
+    NotFoundError,
+  );
 });

@@ -52,6 +52,14 @@ export class MockApiError extends Error {
   }
 }
 
+/** A scan that isn't there, where the API answers `404 not_found`. */
+export class MockNotFoundError extends Error {
+  constructor(id: string) {
+    super(`No scan with id ${id}`);
+    this.name = "MockNotFoundError";
+  }
+}
+
 /**
  * Options from a URL query, for demos: `?mock=fail-too_dark&mockDelay=0`.
  * Unknown values are ignored.
@@ -169,7 +177,7 @@ export function updateDetections(
   return respond(options, () => {
     const scans = load();
     const scan = scans.find((candidate) => candidate.id === id);
-    if (!scan) throw new Error(`No scan with id ${id}`);
+    if (!scan) throw new MockNotFoundError(id);
     const before = scan.detections;
     scan.detections = applyChanges(before, changes, newId);
     if (!sameInventory(before, scan.detections)) delete scan.ideas;
@@ -216,7 +224,7 @@ export function getIdeas(
   return respond({ delayMs: 1200, ...options }, () => {
     const scans = load();
     const scan = scans.find((candidate) => candidate.id === scanId);
-    if (!scan) throw new Error(`No scan with id ${scanId}`);
+    if (!scan) throw new MockNotFoundError(scanId);
 
     const inventory = toInventory(scan.detections);
     // The API answers 409 no_pieces rather than ideas with every part missing.

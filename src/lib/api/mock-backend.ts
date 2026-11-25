@@ -2,7 +2,7 @@
  * page's URL here, so screens never handle them. Browser only, like the mock.
  */
 import type { Backend } from "@/lib/api/backend";
-import { ApiError } from "@/lib/api/error";
+import { ApiError, NotFoundError } from "@/lib/api/error";
 import * as mock from "@/lib/mock/api";
 
 /**
@@ -17,12 +17,15 @@ function demoOptions(): mock.MockOptions {
 /** Reads and saves answer at a short, fixed pace and never fail on demand. */
 const QUICK: mock.MockOptions = { delayMs: 150 };
 
-/** The mock's failures, as the data layer's. */
+/** The mock's failures, as the data layer's: the same errors as the API's. */
 async function asApiError<T>(call: Promise<T>): Promise<T> {
   try {
     return await call;
   } catch (error) {
     if (error instanceof mock.MockApiError) throw new ApiError(error.reason);
+    if (error instanceof mock.MockNotFoundError) {
+      throw new NotFoundError(error.message);
+    }
     throw error;
   }
 }
@@ -32,7 +35,8 @@ export const mockBackend: Backend = {
     asApiError(mock.createScan(photo, { ...demoOptions(), ...options })),
   getScan: (id) => mock.getScan(id, QUICK),
   listScans: () => mock.listScans(QUICK),
-  updateDetections: (id, changes) => mock.updateDetections(id, changes, QUICK),
+  updateDetections: (id, changes) =>
+    asApiError(mock.updateDetections(id, changes, QUICK)),
   deleteScan: (id) => mock.deleteScan(id, QUICK),
   getIdeas: (scanId, theme, locale, options) =>
     asApiError(
