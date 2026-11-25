@@ -10,7 +10,7 @@ import { EmptyState, EmptyStateIcon } from "@/components/ui/empty-state";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { plural } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
-import { getIdeas, getScan } from "@/lib/api";
+import { getIdeas, getScan, PREVIEW_POLL_MS } from "@/lib/api";
 import { type Idea, isTheme, type Scan, type Theme } from "@/lib/domain";
 
 type Copy = {
@@ -75,6 +75,8 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
   const [choice, setChoice] = useState<Theme | null>(null);
   const [ask, setAsk] = useState<Ask | null>(null);
   const [answer, setAnswer] = useState<Answer | null>(null);
+  /** Counts preview reads that failed, so the next one is tried anyway. */
+  const [previewPoll, setPreviewPoll] = useState(0);
   // An ask on its way, so showing the page again waits for it instead of
   // sending it twice.
   const pending = useRef<{ key: string; ideas: Promise<Idea[]> } | null>(null);
@@ -128,6 +130,36 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
   useEffect(() => {
     if (scanState.kind === "failed") failedHeading.current?.focus();
   }, [scanState.kind]);
+
+  // Previews still being built: read the scan again every few seconds, and
+  // take its ideas while they're still this set. A replaced set stops it.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a missed read bumps previewPoll to try again
+  useEffect(() => {
+    if (!ideas?.some((idea) => idea.previewStatus === "pending")) return;
+    const shown = ideas.map((idea) => idea.id).join();
+    let active = true;
+    const timer = setTimeout(() => {
+      void getScan(id).then(
+        (found) => {
+          const latest = found?.ideas;
+          if (!active || !latest) return;
+          if (latest.items.map((idea) => idea.id).join() !== shown) return;
+          setScanState((state) =>
+            state.kind === "ready"
+              ? { kind: "ready", scan: { ...state.scan, ideas: latest } }
+              : state,
+          );
+        },
+        () => {
+          if (active) setPreviewPoll((count) => count + 1);
+        },
+      );
+    }, PREVIEW_POLL_MS);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [id, ideas, previewPoll]);
 
   useEffect(() => {
     if (!shouldAsk || !theme) return;
