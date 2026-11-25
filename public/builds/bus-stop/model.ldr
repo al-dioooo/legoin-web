@@ -1,0 +1,14 @@
+0 Bus stop
+0 Name: bus-stop.ldr
+0 Author: Legoin, built with BrickLayer
+0 // Parts: the LDraw parts library, CC BY 4.0, https://library.ldraw.org
+0 // LEGO is a trademark of the LEGO Group, which does not sponsor, authorize or
+0 // endorse this file.
+1 72 40 -8 20 1 0 0 0 1 0 0 0 1 3020.dat
+1 15 10 -32 30 1 0 0 0 1 0 0 0 1 3005.dat
+1 15 10 -56 30 1 0 0 0 1 0 0 0 1 3005.dat
+1 15 70 -32 30 1 0 0 0 1 0 0 0 1 3005.dat
+1 15 70 -56 30 1 0 0 0 1 0 0 0 1 3005.dat
+1 70 40 -32 10 1 0 0 0 1 0 0 0 1 3004.dat
+1 71 40 -40 10 1 0 0 0 1 0 0 0 1 3069b.dat
+1 0 40 -64 20 1 0 0 0 1 0 0 0 1 3020.dat

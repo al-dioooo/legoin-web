@@ -9,10 +9,33 @@
 
 export const BASE_URL = "https://api.legoin.example/v1";
 
-/** The `Legoin-Device-Id` every example sends. */
+/** The session token every example sends, as `Authorization: Bearer`. */
+export const TOKEN = "lgn_pY5h2PcG9NnqPsZk4j-mzx5D7dFTpfR8_jUFioj9cOg";
+
+// 4. Accounts: POST /auth/register, POST /auth/login and GET /auth/me
+
+/** The device id the register example moves scans from. */
 export const DEVICE_ID = "3b0e6f1c-5d2a-4f7e-9c41-8a2d7e5b9f10";
 
-// 4. Scans: POST /scan-jobs and GET /scan-jobs/{jobId}
+export const REGISTER_REQUEST = {
+  email: "ana@example.com",
+  password: "baseplate-2x4",
+  deviceId: DEVICE_ID,
+};
+
+export const SESSION = {
+  token: TOKEN,
+  expiresAt: "2026-12-25T03:10:00.000Z",
+  account: {
+    id: "acc_7r2k9d",
+    email: "ana@example.com",
+    createdAt: "2026-11-25T03:10:00.000Z",
+  },
+};
+
+export const ACCOUNT = SESSION.account;
+
+// 5. Scans: POST /scan-jobs and GET /scan-jobs/{jobId}
 
 export const JOB_ACCEPTED = {
   id: "job_8c1f2e",
@@ -69,13 +92,13 @@ export const JOB_FAILED = {
   error: { code: "too_dark", message: "The photo is too dark to find pieces." },
 };
 
-// 4. Scans: GET /scans/{scanId}
+// 5. Scans: GET /scans/{scanId}
 
 export const SCAN_NOT_FOUND = {
   error: { code: "not_found", message: "No scan scn_4kd2p9." },
 };
 
-// 4. Scans: GET /scans ("the three detections above" filled in)
+// 5. Scans: GET /scans ("the three detections above" filled in)
 
 export const SCAN_LIST = {
   scans: [
@@ -101,7 +124,7 @@ export const SCAN_LIST = {
   ],
 };
 
-// 4. Scans: PATCH /scans/{scanId}/detections
+// 5. Scans: PATCH /scans/{scanId}/detections
 
 export const CORRECTION = {
   changes: [
@@ -153,7 +176,7 @@ export const CORRECTED_SCAN = {
   lastTheme: "vehicles",
 };
 
-// 5. Ideas: POST /scans/{scanId}/ideas
+// 6. Ideas: POST /scans/{scanId}/ideas
 
 export const IDEAS_REQUEST = {
   theme: "vehicles",
@@ -172,9 +195,9 @@ export const IDEA_SET = {
       title: "Mobil balap kecil",
       summary: "Badan merah, kap hijau, lampu kuning.",
       steps: [
-        "Pasang brick 2×4 merah di atas plate 2×4 hitam sebagai badan.",
-        "Taruh slope 2×2 hijau di depan sebagai kap mesin.",
-        "Tambahkan brick 2×2 hitam di belakang dan dua round 1×1 kuning sebagai lampu.",
+        "Pasang brick 2×4 merah di atas plate 2×4 hitam, mundur satu stud, supaya baris depan plate kelihatan.",
+        "Taruh slope 2×2 hijau di depan brick merah sebagai kap mesin, dan brick 2×2 hitam di belakangnya sebagai kabin.",
+        "Pasang dua round 1×1 kuning di baris depan plate sebagai lampu depan.",
       ],
       used: [
         { part: "brick-2x2", color: "black", quantity: 1 },
@@ -185,6 +208,13 @@ export const IDEA_SET = {
         { part: "round-1x1", color: "yellow", quantity: 2 },
         { part: "plate-2x4", color: "black", quantity: 1 },
       ],
+      buildId: "race-car",
+      preview: {
+        image:
+          "https://api.legoin.example/v1/builds/race-car/preview.webp?v=32a32212e618",
+        model:
+          "https://api.legoin.example/v1/builds/race-car/model.ldr?v=378de85baa5d",
+      },
     },
     {
       id: "idea_l8k3",
@@ -225,12 +255,12 @@ export const IDEA_SET = {
   ],
 } as const;
 
-// 5. Ideas: GET /scans/{scanId}/ideas/{ideaId} ("the rest of the idea" and
+// 6. Ideas: GET /scans/{scanId}/ideas/{ideaId} ("the rest of the idea" and
 // "all three ideas of the set" filled in)
 
 export const STORED_IDEA = { idea: IDEA_SET.items[0], set: IDEA_SET };
 
-// 6. Errors
+// 7. Errors
 
 export const INVALID_REQUEST = {
   error: {

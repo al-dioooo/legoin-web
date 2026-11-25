@@ -33,6 +33,35 @@ test("credits the dataset with its citation, DOI and license", () => {
   ).toBe("https://creativecommons.org/licenses/by/4.0/");
 });
 
+test("credits the build pictures' paper, code and part data with their licenses", () => {
+  const footer = renderFooter("en");
+  const builds = within(footer).getByRole("region", { name: "Build pictures" });
+  expect(builds.textContent).toContain(
+    "(2026). BrickWright: Agentic Creation of Physically Feasible Brick Builds.",
+  );
+  expect(
+    within(builds)
+      .getByRole("link", { name: "arXiv:2610.31651" })
+      .getAttribute("href"),
+  ).toBe("https://arxiv.org/abs/2610.31651");
+  for (const [name, href] of [
+    [
+      "BrickLayer and BrickWright",
+      "https://github.com/AvaLovelace1/brickwright",
+    ],
+    ["LDraw.org Parts Library", "https://library.ldraw.org/"],
+    ["BrickNet", "https://github.com/kulits/BrickNet"],
+    ["Rebrickable", "https://rebrickable.com/downloads/"],
+  ]) {
+    expect(
+      within(builds).getByRole("link", { name }).getAttribute("href"),
+    ).toBe(href);
+  }
+  expect(builds.textContent).toContain(
+    "LDraw.org Parts Library, CC BY 2.0 and 4.0",
+  );
+});
+
 test("credits the team and course, and carries the photo and trademark notes", () => {
   const footer = renderFooter("en");
   const team = within(footer).getByRole("region", { name: "Team" });

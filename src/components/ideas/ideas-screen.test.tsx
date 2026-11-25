@@ -8,10 +8,12 @@ import {
 } from "@testing-library/react";
 import { Activity, type ReactNode } from "react";
 import { beforeEach, expect, test, vi } from "vitest";
+import { IdeaCard } from "@/components/ideas/idea-card";
 import { IdeasScreen } from "@/components/ideas/ideas-screen";
 import { en } from "@/i18n/dictionaries/en";
 import { id } from "@/i18n/dictionaries/id";
-import { getIdeas, getScan, updateDetections } from "@/lib/api";
+import { getIdeas, getScan, register, updateDetections } from "@/lib/api";
+import type { Idea } from "@/lib/domain";
 
 const route = vi.hoisted(() => ({ id: "demo-evening", search: "" }));
 const push = vi.fn();
@@ -57,9 +59,11 @@ function visit(search: string) {
   window.history.replaceState(null, "", `/en/scan/${route.id}/ideas?${search}`);
 }
 
-beforeEach(() => {
-  // The mock keeps scans in localStorage; empty, it starts from the demo scans.
+beforeEach(async () => {
+  // The mock keeps each account's scans in localStorage, and a new account
+  // starts from the demo scans.
   localStorage.clear();
+  await register("test@example.com", "baseplate-2x4");
   route.id = "demo-evening";
   visit("");
   push.mockClear();
@@ -168,6 +172,44 @@ test("shows three ideas with difficulty, counts and a link to the steps", async 
       .getByRole("link", { name: "See steps: Little race car" })
       .getAttribute("href"),
   ).toBe("/en/scan/demo-evening/ideas/race-car?theme=vehicles&mockDelay=0");
+});
+
+test("each idea that's a checked build shows its picture", async () => {
+  visit("theme=vehicles&mockDelay=0");
+  render(<IdeasScreen copy={copy} locale="en" />);
+  await screen.findByText("3 ideas ready.");
+  const [raceCar] = screen.getAllByRole("article");
+  const picture = within(raceCar).getByRole("img", {
+    name: "The finished Little race car",
+  });
+  expect(picture.getAttribute("src")).toMatch(
+    /^\/builds\/race-car\/preview\.webp\?v=[0-9a-f]{12}$/,
+  );
+});
+
+test("an idea the agent wrote itself has no picture", () => {
+  const idea = {
+    id: "idea_l8k3",
+    theme: "vehicles",
+    difficulty: "medium",
+    title: "Locomotive",
+    summary: "A red engine with a black funnel.",
+    steps: ["Lay the red 2×4 brick as the engine."],
+    used: [],
+    missing: [{ part: "brick-2x4", color: "red", quantity: 1 }],
+  } satisfies Idea;
+  render(
+    <IdeaCard
+      idea={idea}
+      index={1}
+      total={3}
+      href="#"
+      copy={copy}
+      locale="en"
+    />,
+  );
+  expect(screen.getByRole("article")).toBeDefined();
+  expect(screen.queryByRole("img")).toBeNull();
 });
 
 test("other ideas replace the shown ones, and full matches say so", async () => {

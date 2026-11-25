@@ -3,7 +3,7 @@ import { beforeEach, expect, onTestFinished, test, vi } from "vitest";
 import { ScanResults } from "@/components/results/scan-results";
 import { en } from "@/i18n/dictionaries/en";
 import { id } from "@/i18n/dictionaries/id";
-import { createScan, getScan } from "@/lib/api";
+import { createScan, getScan, register } from "@/lib/api";
 import { forgetHandedOffScan, handOffScan } from "@/lib/scan-handoff";
 
 const route = vi.hoisted(() => ({ id: "demo-evening" }));
@@ -25,9 +25,11 @@ function inventoryTile(part: string) {
   return tile;
 }
 
-beforeEach(() => {
-  // The mock keeps scans in localStorage; empty, it starts from the demo scans.
+beforeEach(async () => {
+  // The mock keeps each account's scans in localStorage, and a new account
+  // starts from the demo scans.
   localStorage.clear();
+  await register("test@example.com", "baseplate-2x4");
   route.id = "demo-evening";
   forgetHandedOffScan("demo-evening");
 });

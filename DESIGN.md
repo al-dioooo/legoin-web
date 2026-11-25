@@ -131,10 +131,11 @@ UI primitives live in `src/components/ui`, the logo in `src/components/brand`.
 | `DetectionBox`, `DetectedPhoto` | Detected pieces over a scan photo, in 0–1 fractions of the image. A label sits above its box's left side, and its text is always part of the box's spoken name, so voice control works. `fitLabels` keeps it inside the photo: near the right edge it lines up with the box's right side, and at the top edge it goes inside a big box's top or below a small box. |
 | `Logo`, `LogoMark` | Wordmark with mark, or the mark alone with a `title` |
 | `LanguageSwitcher` | EN/ID pill in the header that keeps the current page (`src/components`) |
-| `SiteFooter` | Footer on every page: team, the CC BY 4.0 dataset credit, the AI-photo and LEGO trademark notes (`src/components`, credits in `src/lib/credits.ts`) |
+| `SiteFooter` | Footer on every page: team, the CC BY 4.0 dataset credit, the build pictures' credits (ADR-0010), the AI-photo and LEGO trademark notes (`src/components`, credits in `src/lib/credits.ts`) |
 | `ThemePicker` | Theme radio group of native radios: `cards` for the first choice, `compact` pills to switch theme in place (`src/components/ideas`) |
-| `IdeaCard` | One build idea in a list: difficulty, pieces used and missing (or "Uses only your pieces"), and a link to its steps (`src/components/ideas`) |
-| `IdeaDetail` | One idea in full, laid out as a booklet page: parts used, a "What you're missing" summary whose counts add up, numbered steps that click in, and links to the ideas beside it (`src/components/ideas`) |
+| `BuildPreview` | A checked build's picture on a paper plate, no grain; `card` or `page` size (`src/components/ideas`) |
+| `IdeaCard` | One build idea in a list: the build's picture when it's a checked build, difficulty, pieces used and missing (or "Uses only your pieces"), and a link to its steps (`src/components/ideas`) |
+| `IdeaDetail` | One idea in full, laid out as a booklet page: the build's picture and its `.ldr` download when it's a checked build, parts used, a "What you're missing" summary whose counts add up, numbered steps that click in, and links to the ideas beside it (`src/components/ideas`) |
 | `ScanRow` | One past scan in history: photo, date, piece count, last theme and the titles of the ideas it keeps, each linking to its idea in the language it was written in; the card opens the scan (`src/components/history`) |
 | `ConfirmDelete` | `danger` button that asks in place before deleting, with focus on "Keep it"; Escape backs out (`src/components/history`) |
 

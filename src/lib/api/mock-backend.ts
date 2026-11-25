@@ -2,7 +2,14 @@
  * page's URL here, so screens never handle them. Browser only, like the mock.
  */
 import type { Backend } from "@/lib/api/backend";
-import { ApiError, NotFoundError } from "@/lib/api/error";
+import {
+  ApiError,
+  AuthError,
+  NotFoundError,
+  UnauthorizedError,
+} from "@/lib/api/error";
+import { sessionToken } from "@/lib/api/session";
+import * as accounts from "@/lib/mock/accounts";
 import * as mock from "@/lib/mock/api";
 
 /**
@@ -30,17 +37,71 @@ async function asApiError<T>(call: Promise<T>): Promise<T> {
   }
 }
 
+/** The mock's log-in failures, as the API's. */
+async function asAuthError<T>(call: Promise<T>): Promise<T> {
+  try {
+    return await call;
+  } catch (error) {
+    if (error instanceof accounts.MockAuthError) {
+      throw new AuthError(error.reason);
+    }
+    // The API's `400 invalid_request`: a bug, since the forms check first.
+    if (error instanceof accounts.MockInvalidError) {
+      throw new Error(`The mock refused ${error.field}: ${error.message}`);
+    }
+    throw error;
+  }
+}
+
+/**
+ * The logged-in account's id, for the mock's per-account scans. Like the API,
+ * a call without a valid session rejects with an UnauthorizedError.
+ */
+function owner(): string {
+  const account = accounts.accountFor(sessionToken());
+  if (!account) throw new UnauthorizedError();
+  return account.id;
+}
+
+/** Runs `call` with the owner, so a missing session rejects instead of throwing. */
+const asOwner = <T>(call: (account: string) => Promise<T>): Promise<T> =>
+  Promise.resolve().then(() => call(owner()));
+
 export const mockBackend: Backend = {
+  register: ({ email, password }) =>
+    asAuthError(accounts.register(email, password)),
+  logIn: ({ email, password }) => asAuthError(accounts.logIn(email, password)),
+  logOut: async () => accounts.logOut(sessionToken()),
+  async getAccount() {
+    const account = accounts.accountFor(sessionToken());
+    if (!account) throw new UnauthorizedError();
+    return account;
+  },
   createScan: (photo, options) =>
-    asApiError(mock.createScan(photo, { ...demoOptions(), ...options })),
-  getScan: (id) => mock.getScan(id, QUICK),
-  listScans: () => mock.listScans(QUICK),
-  updateDetections: (id, changes) =>
-    asApiError(mock.updateDetections(id, changes, QUICK)),
-  deleteScan: (id) => mock.deleteScan(id, QUICK),
-  getIdeas: (scanId, theme, locale, options) =>
-    asApiError(
-      mock.getIdeas(scanId, theme, locale, { ...demoOptions(), ...options }),
+    asOwner((account) =>
+      asApiError(
+        mock.createScan(photo, { ...demoOptions(), ...options, account }),
+      ),
     ),
-  getIdea: (scanId, ideaId) => mock.getIdea(scanId, ideaId, QUICK),
+  getScan: (id) =>
+    asOwner((account) => mock.getScan(id, { ...QUICK, account })),
+  listScans: () => asOwner((account) => mock.listScans({ ...QUICK, account })),
+  updateDetections: (id, changes) =>
+    asOwner((account) =>
+      asApiError(mock.updateDetections(id, changes, { ...QUICK, account })),
+    ),
+  deleteScan: (id) =>
+    asOwner((account) => mock.deleteScan(id, { ...QUICK, account })),
+  getIdeas: (scanId, theme, locale, options) =>
+    asOwner((account) =>
+      asApiError(
+        mock.getIdeas(scanId, theme, locale, {
+          ...demoOptions(),
+          ...options,
+          account,
+        }),
+      ),
+    ),
+  getIdea: (scanId, ideaId) =>
+    asOwner((account) => mock.getIdea(scanId, ideaId, { ...QUICK, account })),
 };
