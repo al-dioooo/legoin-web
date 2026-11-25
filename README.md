@@ -1,6 +1,6 @@
 # legoin-web
 
-The Legoin web frontend. Product docs, team guidelines and decisions live in [legoin-docs](https://github.com/al-dioooo/legoin-docs).
+The Legoin web frontend: scan your LEGO pieces and get build ideas, or turn a picture into a checked LEGO build (Picture to LEGO, ADR-0012). Product docs, team guidelines and decisions live in [legoin-docs](https://github.com/al-dioooo/legoin-docs).
 
 ## Tech stack
 
@@ -54,7 +54,7 @@ Put every variable in `.env.example` too.
 | --- | --- | --- |
 | `NEXT_PUBLIC_API_URL` | No | Base URL of the Legoin API, version included, such as `https://api.legoin.example/v1` (see [the API contract](https://github.com/al-dioooo/legoin-docs/blob/main/api/contract.md)). Leave it empty to use the mock backend, which keeps accounts and scans in the browser's `localStorage`. When it's set, the browser calls the API itself, so the API has to allow the site's origin. A value that isn't an `http(s)` URL fails `pnpm build`, and the data screens in `pnpm dev`, with an error naming the variable. Next.js inlines it into the browser bundle at build time. |
 
-Without a backend, demo conditions go in the page URL: `?mock=fail-<reason>` (`no_pieces`, `too_dark`, `too_blurry`, `network` or `timeout`) makes scanning or ideas fail, and `?mockDelay=<ms>` sets their pace (`0` skips the wait).
+Without a backend, demo conditions go in the page URL: `?mock=fail-<reason>` (`no_pieces`, `too_dark`, `too_blurry`, `network` or `timeout`) makes scanning or ideas fail, and `?mockDelay=<ms>` sets their pace (`0` skips the wait). On the Picture to LEGO page (`/en/picture`), `?mock=fail-<reason>` takes a picture build's reasons instead: `picture_unusable`, `picture_refused`, `no_valid_build`, `picture_limit`, `picture_budget`, `timeout`, `unavailable` or `network`. The mock turns any picture into one of the library's checked builds, two a day per account.
 
 ## Deployment
 

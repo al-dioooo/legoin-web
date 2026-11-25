@@ -136,6 +136,10 @@ UI primitives live in `src/components/ui`, the logo in `src/components/brand`.
 | `BuildPreview` | A checked build's picture on a paper plate, no grain; `card` or `page` size (`src/components/ideas`) |
 | `IdeaCard` | One build idea in a list: the build's picture when it's a checked build, difficulty, pieces used and missing (or "Uses only your pieces"), and a link to its steps (`src/components/ideas`) |
 | `IdeaDetail` | One idea in full, laid out as a booklet page: the build's picture and its `.ldr` download when it's a checked build, parts used, a "What you're missing" summary whose counts add up, numbered steps that click in, and links to the ideas beside it (`src/components/ideas`) |
+| `PictureFlow` | Picture to LEGO's upload (ADR-0012): the day's quota as a dot and a label, the note that the picture goes to Anthropic before anything is chosen, a picture from the camera, a file or a drop, the job's four stages with cancel, and a failure with the way forward (`src/components/picture`) |
+| `PictureResult` | One picture build as a booklet page: its rendered build and `.ldr`, the picture it came from, every part, numbered steps that click in, and a scan picker that checks the parts against that scan (`src/components/picture`) |
+| `PictureList` | The account's picture builds, newest first, each a small picture and title linking to its page (`src/components/picture`) |
+| `BuildSteps`, `MissingSummary` | Numbered steps that can be ticked off, and the counts that add up with the parts still to find; shared by ideas and picture builds (`src/components/ideas`) |
 | `ScanRow` | One past scan in history: photo, date, piece count, last theme and the titles of the ideas it keeps, each linking to its idea in the language it was written in; the card opens the scan (`src/components/history`) |
 | `ConfirmDelete` | `danger` button that asks in place before deleting, with focus on "Keep it"; Escape backs out (`src/components/history`) |
 

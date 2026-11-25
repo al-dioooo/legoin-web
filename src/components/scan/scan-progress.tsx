@@ -10,12 +10,13 @@ import { cx } from "@/lib/cx";
 import { type Photo, SCAN_STAGES, type ScanStage } from "@/lib/domain";
 
 type Copy = Dictionary["scan"]["progress"];
-type StageState = "done" | "current" | "waiting";
+export type StageState = "done" | "current" | "waiting";
 
 /** The PRD's target from photo to recommendations. */
 export const SLOW_AFTER_SECONDS = 15;
 
-function StageMark({ state }: { state: StageState }) {
+/** A stage's dot: ticked when done, pulsing while current. Shared with picture builds. */
+export function StageMark({ state }: { state: StageState }) {
   return (
     <span
       aria-hidden="true"
