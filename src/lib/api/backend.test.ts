@@ -1,7 +1,18 @@
 import { expect, test, vi } from "vitest";
 import { backendFor, inOrder } from "@/lib/api/backend";
 import { mockBackend } from "@/lib/api/mock-backend";
+import { forgetSession, saveSession } from "@/lib/api/session";
 import type { ScanStage } from "@/lib/domain";
+
+const SESSION = {
+  token: "lgn_test",
+  expiresAt: "2999-01-01T00:00:00.000Z",
+  account: {
+    id: "acc_1",
+    email: "ana@example.com",
+    createdAt: "2026-11-25T00:00:00.000Z",
+  },
+};
 
 test("without an API URL the mock serves the data", () => {
   expect(backendFor(undefined)).toBe(mockBackend);
@@ -19,16 +30,18 @@ test("an API URL picks the HTTP client for that base", async () => {
   );
   vi.stubGlobal("fetch", fetch);
   try {
+    saveSession(SESSION);
     const backend = backendFor(" https://api.legoin.test/v1 ");
     expect(backend).not.toBe(mockBackend);
     expect(await backend.getScan("scn_1")).toBeNull();
     expect(fetch).toHaveBeenCalledWith(
       "https://api.legoin.test/v1/scans/scn_1",
       expect.objectContaining({
-        headers: { "Legoin-Device-Id": expect.any(String) },
+        headers: { Authorization: `Bearer ${SESSION.token}` },
       }),
     );
   } finally {
+    forgetSession();
     vi.unstubAllGlobals();
   }
 });

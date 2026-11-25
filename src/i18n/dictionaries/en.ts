@@ -12,12 +12,48 @@ export const en = {
   app: {
     home: "Legoin home",
     history: "History",
+    account: "Logged in as {email}",
+    logOut: "Log out",
     skip: "Skip to content",
     steps: {
       label: "Scan progress",
       photo: "Photo",
       pieces: "Pieces",
       ideas: "Ideas",
+    },
+  },
+  auth: {
+    checking: "Checking your log-in…",
+    email: "Email",
+    password: "Password",
+    passwordHint: "At least 8 characters.",
+    busy: "One moment…",
+    login: {
+      title: "Log in",
+      lead: "Log in to scan your pieces. Your scans and ideas follow you to any device you log in on.",
+      submit: "Log in",
+      switchPrompt: "No account yet?",
+      switchLink: "Create one",
+      noReset:
+        "Forgot your password? There's no way to reset it yet, so create a new account.",
+    },
+    register: {
+      title: "Create an account",
+      lead: "An account keeps your scans and ideas, on any device you log in on.",
+      submit: "Create account",
+      switchPrompt: "Already have an account?",
+      switchLink: "Log in",
+    },
+    errors: {
+      email: "Enter an email like name@example.com.",
+      passwordShort: "Use at least 8 characters.",
+      passwordLong: "Use at most 128 characters.",
+      passwordMissing: "Enter your password.",
+      invalid_credentials: "That email and password don't match an account.",
+      email_taken: "That email already has an account. Log in instead.",
+      rate_limited: "Too many tries. Wait a few minutes, then try again.",
+      network: "We couldn't reach Legoin. Check your connection and try again.",
+      generic: "Something went wrong. Try again.",
     },
   },
   footer: {

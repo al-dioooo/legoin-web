@@ -47,6 +47,23 @@ export const SCAN_FAILURES = [
 ] as const;
 export type ScanFailure = (typeof SCAN_FAILURES)[number];
 
+/** Who's logged in (contract, "4. Accounts"). */
+export type Account = {
+  id: string;
+  /** As the backend keeps it: trimmed and lowercased. */
+  email: string;
+  /** ISO 8601 time the account was made. */
+  createdAt: string;
+};
+
+/** Why logging in or making an account failed, for the form to say. */
+export const AUTH_FAILURES = [
+  "invalid_credentials",
+  "email_taken",
+  "rate_limited",
+] as const;
+export type AuthFailure = (typeof AUTH_FAILURES)[number];
+
 export const THEMES = ["vehicles", "animals", "buildings", "surprise"] as const;
 export type Theme = (typeof THEMES)[number];
 

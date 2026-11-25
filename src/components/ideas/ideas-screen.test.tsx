@@ -12,7 +12,7 @@ import { IdeaCard } from "@/components/ideas/idea-card";
 import { IdeasScreen } from "@/components/ideas/ideas-screen";
 import { en } from "@/i18n/dictionaries/en";
 import { id } from "@/i18n/dictionaries/id";
-import { getIdeas, getScan, updateDetections } from "@/lib/api";
+import { getIdeas, getScan, register, updateDetections } from "@/lib/api";
 import type { Idea } from "@/lib/domain";
 
 const route = vi.hoisted(() => ({ id: "demo-evening", search: "" }));
@@ -59,9 +59,11 @@ function visit(search: string) {
   window.history.replaceState(null, "", `/en/scan/${route.id}/ideas?${search}`);
 }
 
-beforeEach(() => {
-  // The mock keeps scans in localStorage; empty, it starts from the demo scans.
+beforeEach(async () => {
+  // The mock keeps each account's scans in localStorage, and a new account
+  // starts from the demo scans.
   localStorage.clear();
+  await register("test@example.com", "baseplate-2x4");
   route.id = "demo-evening";
   visit("");
   push.mockClear();

@@ -4,7 +4,13 @@ import { IdeaDetail } from "@/components/ideas/idea-detail";
 import { IdeasScreen } from "@/components/ideas/ideas-screen";
 import { en } from "@/i18n/dictionaries/en";
 import { id } from "@/i18n/dictionaries/id";
-import { getIdea, getIdeas, getScan, updateDetections } from "@/lib/api";
+import {
+  getIdea,
+  getIdeas,
+  getScan,
+  register,
+  updateDetections,
+} from "@/lib/api";
 
 const route = vi.hoisted(() => ({
   id: "demo-evening",
@@ -65,9 +71,11 @@ async function askForIdeas(locale: "en" | "id" = "en") {
 const href = (name: RegExp | string) =>
   screen.getByRole("link", { name }).getAttribute("href");
 
-beforeEach(() => {
-  // The mock keeps scans in localStorage; empty, it starts from the demo scans.
+beforeEach(async () => {
+  // The mock keeps each account's scans in localStorage, and a new account
+  // starts from the demo scans.
   localStorage.clear();
+  await register("test@example.com", "baseplate-2x4");
   route.id = "demo-evening";
 });
 

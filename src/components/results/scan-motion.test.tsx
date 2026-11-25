@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, expect, test, vi } from "vitest";
 import { ScanResults } from "@/components/results/scan-results";
 import { en } from "@/i18n/dictionaries/en";
-import { getScan } from "@/lib/api";
+import { getScan, register } from "@/lib/api";
 import { forgetHandedOffScan, handOffScan } from "@/lib/scan-handoff";
 
 vi.mock("next/navigation", () => ({
@@ -18,9 +18,11 @@ function boxes() {
     .filter((button) => button.classList.contains("detection-box"));
 }
 
-beforeEach(() => {
-  // The mock keeps scans in localStorage; empty, it starts from the demo scans.
+beforeEach(async () => {
+  // The mock keeps each account's scans in localStorage, and a new account
+  // starts from the demo scans.
   localStorage.clear();
+  await register("test@example.com", "baseplate-2x4");
   forgetHandedOffScan("demo-evening");
 });
 

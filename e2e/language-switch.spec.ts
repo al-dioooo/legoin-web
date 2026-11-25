@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { copyFor, startsWith } from "./support";
+import { copyFor, signUp, startsWith } from "./support";
 
 const en = copyFor("en");
 const id = copyFor("id");
@@ -7,6 +7,7 @@ const id = copyFor("id");
 test("switching language on the ideas page keeps the theme", async ({
   page,
 }) => {
+  await signUp(page);
   await page.goto("/en/scan/demo-desk/ideas?theme=animals&mockDelay=0");
   await expect(page.getByRole("article")).toHaveCount(3);
 

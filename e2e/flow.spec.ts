@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { fill } from "../src/i18n/format";
-import { copyFor, LOCALES, startsWith } from "./support";
+import { copyFor, LOCALES, signUp, startsWith } from "./support";
 
 /* The whole flow, clicked through as a person would: photo, scan, results and
  * a correction, a theme and three ideas with their build pictures, an idea's
@@ -14,6 +14,7 @@ for (const locale of LOCALES) {
     const copy = copyFor(locale);
 
     await test.step("home leads to the scan step", async () => {
+      await signUp(page, locale);
       await page.goto(`/${locale}`);
       await page.getByRole("link", { name: copy.home.ctaScan }).click();
       await expect(
