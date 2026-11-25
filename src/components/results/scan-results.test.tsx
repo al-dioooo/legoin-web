@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
-import { beforeEach, expect, test, vi } from "vitest";
+import { beforeEach, expect, onTestFinished, test, vi } from "vitest";
 import { ScanResults } from "@/components/results/scan-results";
 import { en } from "@/i18n/dictionaries/en";
 import { id } from "@/i18n/dictionaries/id";
@@ -161,6 +161,60 @@ test("a handed-off scan stays on screen when its refresh fails", async () => {
   await act(async () => fail(new Error("offline")));
   expect(screen.queryByText(en.results.failed.title)).toBeNull();
   expect(screen.getByText("8 pieces")).toBeDefined();
+});
+
+/** Straight from the scanner: the API's scan, and the local copy on screen. */
+async function handOffRemoteScan() {
+  const stored = await getScan("demo-evening");
+  if (!stored) throw new Error("demo scan missing");
+  const scan = {
+    ...stored,
+    photo: { ...stored.photo, src: "https://photos.legoin.example/scn.jpg" },
+  };
+  const local = { ...stored.photo, src: "data:image/jpeg;base64,AA==" };
+  handOffScan(scan, local);
+  vi.mocked(getScan).mockResolvedValueOnce(scan);
+  return { scan, local };
+}
+
+/** jsdom can't load images; each `decode()` waits for the test to settle it. */
+function controlImageDecoding() {
+  const settle = { load: () => {}, fail: () => {} };
+  onTestFinished(() => {
+    delete (HTMLImageElement.prototype as Partial<HTMLImageElement>).decode;
+  });
+  HTMLImageElement.prototype.decode = vi.fn(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        settle.load = resolve;
+        settle.fail = () => reject(new Error("EncodingError"));
+      }),
+  );
+  return settle;
+}
+
+const photoSrc = () =>
+  screen.getByAltText(en.results.photoAlt).getAttribute("src");
+
+test("straight from a scan, the local photo shows until the API's copy loads", async () => {
+  const decoding = controlImageDecoding();
+  const { scan, local } = await handOffRemoteScan();
+  render(<ScanResults copy={copy} locale="en" />);
+  expect(photoSrc()).toBe(local.src);
+  // The API's copy of the scan is in, but its photo hasn't loaded yet.
+  await act(async () => {});
+  expect(getScan).toHaveBeenLastCalledWith("demo-evening");
+  expect(photoSrc()).toBe(local.src);
+  await act(async () => decoding.load());
+  expect(photoSrc()).toBe(scan.photo.src);
+});
+
+test("the local photo stays when the API's copy fails to load", async () => {
+  const decoding = controlImageDecoding();
+  const { local } = await handOffRemoteScan();
+  render(<ScanResults copy={copy} locale="en" />);
+  await act(async () => decoding.fail());
+  expect(photoSrc()).toBe(local.src);
 });
 
 test("a photo with no boxes says the results are a demo", async () => {

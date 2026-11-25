@@ -151,7 +151,9 @@ export function CaptureFlow({ copy, locale }: { copy: Copy; locale: Locale }) {
         signal: controller.signal,
         onStage: showStage,
       });
-      handOffScan(result);
+      // The API's photo is a URL that hasn't loaded yet; the results draw the
+      // copy on screen now until it has, so the photo can morph across.
+      handOffScan(result, chosen.photo);
       router.push(`/${locale}/scan/${result.id}`, {
         transitionTypes: [STEP_FORWARD],
       });

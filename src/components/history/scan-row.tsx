@@ -57,7 +57,11 @@ export function ScanRow({
         width={scan.photo.width}
         height={scan.photo.height}
         alt=""
-        sizes="(min-width: 640px) 9rem, 6rem"
+        // Like DetectedPhoto: a scan photo is already at most 1200 px, and the
+        // API serves it from a host of its own, maybe with a signed URL, which
+        // Next's optimizer would need configuring for and would keep cached
+        // after the scan is deleted. One URL also means one download.
+        unoptimized
         className="aspect-[4/3] h-auto w-full rounded-callout border-2 border-ink object-cover"
       />
       <div>
