@@ -44,7 +44,7 @@ Put every variable in `.env.example` too.
 
 | Variable | Required | What it does |
 | --- | --- | --- |
-| `NEXT_PUBLIC_API_URL` | No | Base URL of the Legoin API. Leave it empty to use the mock backend, which keeps scans in the browser's `localStorage`. There is no HTTP client yet, so any value fails `pnpm build`, and the data screens in `pnpm dev`, with an error naming the variable. Next.js inlines it into the browser bundle at build time. |
+| `NEXT_PUBLIC_API_URL` | No | Base URL of the Legoin API, version included, such as `https://api.legoin.example/v1` (see [the API contract](https://github.com/al-dioooo/legoin-docs/blob/main/api/contract.md)). Leave it empty to use the mock backend, which keeps scans in the browser's `localStorage`. When it's set, the browser calls the API itself, so the API has to allow the site's origin. A value that isn't an `http(s)` URL fails `pnpm build`, and the data screens in `pnpm dev`, with an error naming the variable. Next.js inlines it into the browser bundle at build time. |
 
 Without a backend, demo conditions go in the page URL: `?mock=fail-<reason>` (`no_pieces`, `too_dark`, `too_blurry` or `network`) makes scanning or ideas fail, and `?mockDelay=<ms>` sets their pace (`0` skips the wait).
 
@@ -54,7 +54,7 @@ Without a backend, demo conditions go in the page URL: `?mock=fail-<reason>` (`n
 
 - **Production:** every push to `main` deploys to <https://legoin-web.vercel.app>, which is public.
 - **Previews:** every pull request gets its own deployment, rebuilt on each push. The Vercel bot comments its link on the PR, and the commit gets a `Vercel` status. Previews sit behind Vercel's log-in, so open them with an account that has access to the project.
-- **Backend:** both run on the mock backend, so scans live in each visitor's browser and the `?mock=` and `?mockDelay=` conditions work there too. Leave `NEXT_PUBLIC_API_URL` unset in the Vercel project until the API client exists, because any value fails the build.
+- **Backend:** both run on the mock backend, so scans live in each visitor's browser and the `?mock=` and `?mockDelay=` conditions work there too. Leave `NEXT_PUBLIC_API_URL` unset in the Vercel project until the API is deployed. Once it's set, a new build talks to the API, and the demo conditions stop working.
 
 ## Contributing
 
