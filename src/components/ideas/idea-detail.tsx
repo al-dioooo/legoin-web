@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BuildPreview } from "@/components/ideas/build-preview";
-import { Odometer } from "@/components/motion/odometer";
+import { BuildSteps } from "@/components/ideas/build-steps";
+import { MissingSummary } from "@/components/ideas/missing-summary";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { EmptyState, EmptyStateIcon } from "@/components/ui/empty-state";
 import { PartCallout } from "@/components/ui/part-callout";
-import { StepNumber } from "@/components/ui/step-number";
 import { Sticker } from "@/components/ui/sticker";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { fill, plural } from "@/i18n/format";
@@ -307,7 +307,10 @@ export function IdeaDetail({ copy, locale }: { copy: Copy; locale: Locale }) {
           used={used}
           missing={missing}
           parts={idea.missing}
-          copy={copy}
+          copy={{
+            summary: copy.ideaDetail.summary,
+            partsMissing: copy.common.partsMissing,
+          }}
           locale={locale}
         />
       </aside>
@@ -322,11 +325,16 @@ export function IdeaDetail({ copy, locale }: { copy: Copy; locale: Locale }) {
           </Sticker>
         </h2>
         {/* Keyed by idea, so ticks never carry over to the next idea. */}
-        <Steps
+        <BuildSteps
           key={idea.id}
           steps={idea.steps}
           lang={written}
-          copy={copy}
+          copy={{
+            markDone: copy.ideaDetail.markDone,
+            progress: copy.ideaDetail.progress,
+            allDone: copy.ideaDetail.allDone,
+            step: copy.common.step,
+          }}
           className="mt-stud"
         />
       </section>
@@ -356,161 +364,6 @@ export function IdeaDetail({ copy, locale }: { copy: Copy; locale: Locale }) {
         )}
       </nav>
     </article>
-  );
-}
-
-/** The counts that add up, and the parts still to find in a dashed box. */
-function MissingSummary({
-  used,
-  missing,
-  parts,
-  copy,
-  locale,
-}: {
-  used: number;
-  missing: number;
-  parts: PartCount[];
-  copy: Copy;
-  locale: Locale;
-}) {
-  const { summary } = copy.ideaDetail;
-  const counts = [
-    [summary.needed, used + missing],
-    [summary.have, used],
-    [summary.missing, missing],
-  ] as const;
-  return (
-    <section
-      aria-labelledby="missing-title"
-      className="rounded-card border-[2.5px] border-ink bg-card p-5 shadow-card"
-    >
-      <h2 id="missing-title" className="font-display text-xl">
-        {summary.title}
-      </h2>
-      <dl className="mt-4 grid grid-cols-3 gap-2">
-        {counts.map(([label, count]) => (
-          <div
-            key={label}
-            className="rounded-control border-2 border-ink bg-page px-2 py-2 sm:px-3"
-          >
-            <dt className="text-xs font-semibold text-ink-secondary hyphens-auto">
-              {label}
-            </dt>
-            <dd className="font-mono text-2xl font-bold">
-              <span className="sr-only">{count}</span>
-              <Odometer value={count} />
-            </dd>
-          </div>
-        ))}
-      </dl>
-      <p className="mt-4">
-        {missing === 0 ? summary.none : plural(summary.some, missing, locale)}
-      </p>
-      {parts.length > 0 && (
-        <PartCallout
-          title={copy.common.partsMissing}
-          parts={parts}
-          locale={locale}
-          missing
-          detailed
-          className="mt-4"
-        />
-      )}
-    </section>
-  );
-}
-
-/** Numbered steps that click in one by one and can be ticked off, locally. */
-function Steps({
-  steps,
-  lang,
-  copy,
-  className,
-}: {
-  steps: string[];
-  lang: Locale;
-  copy: Copy;
-  className?: string;
-}) {
-  const [done, setDone] = useState<ReadonlySet<number>>(() => new Set());
-  const idPrefix = useId();
-  const { ideaDetail, common } = copy;
-
-  function toggle(index: number) {
-    setDone((current) => {
-      const next = new Set(current);
-      if (next.has(index)) next.delete(index);
-      else next.add(index);
-      return next;
-    });
-  }
-
-  return (
-    <div className={className}>
-      <ol className="assemble space-y-3">
-        {steps.map((step, index) => {
-          const checked = done.has(index);
-          const inputId = `${idPrefix}-${index + 1}`;
-          return (
-            <li
-              // Steps are plain text and never reorder, so position is identity.
-              // biome-ignore lint/suspicious/noArrayIndexKey: see above
-              key={index}
-              className={cx(
-                "flex items-start gap-3 rounded-callout border-2 border-ink p-4 transition-colors",
-                checked ? "bg-success-subtle" : "bg-card",
-              )}
-            >
-              <StepNumber value={index + 1} label={common.step} />
-              {/* Clicking the text ticks the step too. */}
-              <label
-                htmlFor={inputId}
-                lang={lang}
-                className="flex-1 cursor-pointer self-center"
-              >
-                {step}
-              </label>
-              <span className="relative grid size-8 shrink-0 place-items-center self-center">
-                <input
-                  id={inputId}
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => toggle(index)}
-                  aria-label={fill(ideaDetail.markDone, { step: index + 1 })}
-                  className="size-8 cursor-pointer appearance-none rounded-control border-[2.5px] border-ink bg-page checked:bg-highlight"
-                />
-                {checked && (
-                  <svg
-                    viewBox="0 0 16 16"
-                    aria-hidden="true"
-                    className="click-in pointer-events-none absolute size-4 text-ink"
-                  >
-                    <path
-                      d="M3 8.5 6.5 12 13 4.5"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </span>
-            </li>
-          );
-        })}
-      </ol>
-      <output className="mt-3 block min-h-6 text-sm font-semibold">
-        {done.size === 0
-          ? ""
-          : done.size === steps.length
-            ? ideaDetail.allDone
-            : fill(ideaDetail.progress, {
-                done: done.size,
-                total: steps.length,
-              })}
-      </output>
-    </div>
   );
 }
 
