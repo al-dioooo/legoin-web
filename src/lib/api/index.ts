@@ -9,9 +9,12 @@
 import type { Locale } from "@/i18n/locales";
 import {
   backendFor,
+  type CreatePictureBuildOptions,
   type CreateScanOptions,
   type GetIdeasOptions,
+  type GetPictureBuildOptions,
   inOrder,
+  picturesInOrder,
 } from "@/lib/api/backend";
 import { forgetDeviceId, legacyDeviceId } from "@/lib/api/device-id";
 import { UnauthorizedError } from "@/lib/api/error";
@@ -27,16 +30,24 @@ import type {
   DetectionChange,
   Idea,
   Photo,
+  PictureBuild,
+  PictureQuota,
   Scan,
   StoredIdea,
   Theme,
 } from "@/lib/domain";
 
-export type { CreateScanOptions, GetIdeasOptions } from "@/lib/api/backend";
+export type {
+  CreatePictureBuildOptions,
+  CreateScanOptions,
+  GetIdeasOptions,
+  GetPictureBuildOptions,
+} from "@/lib/api/backend";
 export {
   ApiError,
   AuthError,
   NotFoundError,
+  PictureError,
   UnauthorizedError,
 } from "@/lib/api/error";
 
@@ -196,4 +207,55 @@ export function getIdea(
   ideaId: string,
 ): Promise<StoredIdea | null> {
   return signedIn(backend.getIdea(scanId, ideaId));
+}
+
+/**
+ * Whether this account can start a picture build now, and how many it has
+ * left today (contract, "13. Picture builds"). Read it before the upload.
+ */
+export function getPictureQuota(): Promise<PictureQuota> {
+  return signedIn(backend.getPictureQuota());
+}
+
+/**
+ * Sends the picture to be designed as a LEGO build, in `locale`, and resolves
+ * with the saved build. It takes about a minute: `onStage` hears each stage
+ * once, in order. A build that fails or can't start rejects with a
+ * PictureError; aborting through `signal` rejects with an AbortError and
+ * cancels the job. The picture goes to the model provider (ADR-0012), so say
+ * so before calling this.
+ */
+export function createPictureBuild(
+  picture: Photo,
+  locale: Locale,
+  { onStage, signal }: CreatePictureBuildOptions = {},
+): Promise<PictureBuild> {
+  return signedIn(
+    backend.createPictureBuild(picture, locale, {
+      signal,
+      onStage: onStage && picturesInOrder(onStage),
+    }),
+  );
+}
+
+/** This account's picture builds, newest first. */
+export function listPictureBuilds(): Promise<PictureBuild[]> {
+  return signedIn(backend.listPictureBuilds());
+}
+
+/**
+ * One picture build, or null if there's none with this id. With `scanId`, its
+ * `check` says which of its parts that scan has and which are missing, as the
+ * scan is now; a scan that's gone leaves `check` out.
+ */
+export function getPictureBuild(
+  id: string,
+  { scanId }: GetPictureBuildOptions = {},
+): Promise<PictureBuild | null> {
+  return signedIn(backend.getPictureBuild(id, { scanId }));
+}
+
+/** Deletes the build, with its picture and model. */
+export function deletePictureBuild(id: string): Promise<void> {
+  return signedIn(backend.deletePictureBuild(id));
 }
