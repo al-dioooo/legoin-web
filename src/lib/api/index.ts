@@ -1,7 +1,8 @@
 /* The data layer. Screens read and write only through these functions, so
  * swapping the mock for the real API changes nothing outside src/lib/api.
- * `NEXT_PUBLIC_API_URL` picks the backend (see backend.ts); unset, it's the
- * browser-side mock, so call these from Client Components.
+ * `NEXT_PUBLIC_API_URL` picks the backend (see backend.ts): unset, it's the
+ * mock in localStorage; set, it's the HTTP client, which the browser runs too.
+ * Either way, call these from Client Components.
  */
 import type { Locale } from "@/i18n/locales";
 import {

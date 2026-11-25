@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import { backendFor, inOrder } from "@/lib/api/backend";
 import { mockBackend } from "@/lib/api/mock-backend";
 import type { ScanStage } from "@/lib/domain";
@@ -10,10 +10,33 @@ test("without an API URL the mock serves the data", () => {
   expect(backendFor("  ")).toBe(mockBackend);
 });
 
-test("an API URL fails loudly until there's an HTTP client", () => {
-  expect(() => backendFor("https://api.legoin.test")).toThrow(
-    /NEXT_PUBLIC_API_URL.*no HTTP client/,
+test("an API URL picks the HTTP client for that base", async () => {
+  const fetch = vi.fn(
+    async () =>
+      new Response(JSON.stringify({ error: { code: "not_found" } }), {
+        status: 404,
+      }),
   );
+  vi.stubGlobal("fetch", fetch);
+  try {
+    const backend = backendFor(" https://api.legoin.test/v1 ");
+    expect(backend).not.toBe(mockBackend);
+    expect(await backend.getScan("scn_1")).toBeNull();
+    expect(fetch).toHaveBeenCalledWith(
+      "https://api.legoin.test/v1/scans/scn_1",
+      expect.objectContaining({
+        headers: { "Legoin-Device-Id": expect.any(String) },
+      }),
+    );
+  } finally {
+    vi.unstubAllGlobals();
+  }
+});
+
+test("a value that isn't an http(s) URL fails loudly, naming the variable", () => {
+  for (const value of ["api.legoin.test", "/v1", "ftp://api.legoin.test"]) {
+    expect(() => backendFor(value)).toThrow(/NEXT_PUBLIC_API_URL.*http\(s\)/);
+  }
 });
 
 test("stages reach the screen once each, in order", () => {
