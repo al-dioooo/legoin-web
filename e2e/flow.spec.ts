@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { fill } from "../src/i18n/format";
 import { copyFor, LOCALES, startsWith } from "./support";
 
 /* The whole flow, clicked through as a person would: photo, scan, results and
- * a correction, a theme and three ideas, an idea's steps, then the scan in
- * history, deleted. The app's own links don't carry the demo options, so the
+ * a correction, a theme and three ideas with their build pictures, an idea's
+ * steps and its model download, then the scan in history, deleted. The app's own links don't carry the demo options, so the
  * scan and the ideas take the mock's normal pace (a few seconds in all).
  */
 for (const locale of LOCALES) {
@@ -85,6 +86,21 @@ for (const locale of LOCALES) {
       .getByRole("heading")
       .allTextContents();
 
+    await test.step("each idea shows its build's picture", async () => {
+      for (const title of titles) {
+        const picture = page
+          .getByRole("article", { name: title })
+          .getByRole("img", { name: fill(copy.ideas.preview.alt, { title }) });
+        await expect(picture).toBeVisible();
+        // Served from public/builds/, so it has to load, not just be there.
+        await expect
+          .poll(() =>
+            picture.evaluate((img: HTMLImageElement) => img.naturalWidth),
+          )
+          .toBe(640);
+      }
+    });
+
     await test.step("see one idea's steps, then the next idea", async () => {
       await page
         .getByRole("article", { name: titles[0] })
@@ -96,6 +112,9 @@ for (const locale of LOCALES) {
       await expect(
         page.getByRole("region", { name: copy.ideaDetail.steps }),
       ).toBeVisible();
+      const download = page.waitForEvent("download");
+      await page.getByRole("link", { name: copy.ideas.preview.model }).click();
+      expect((await download).suggestedFilename()).toMatch(/^[a-z-]+\.ldr$/);
       await page
         .getByRole("navigation", { name: copy.ideaDetail.nav })
         .getByRole("link", { name: startsWith(copy.ideaDetail.next) })
