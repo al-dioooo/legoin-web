@@ -179,6 +179,24 @@ test("a failed request keeps the ideas from before", async () => {
   expect((await getScan("demo-desk", fast))?.ideas?.items).toEqual(ideas);
 });
 
+test("a scan with no pieces fails with no_pieces and saves nothing", async () => {
+  await getIdeas("demo-desk", "animals", "en", fast);
+  const scan = await getScan("demo-desk", fast);
+  if (!scan) throw new Error("demo scan missing");
+  await updateDetections(
+    "demo-desk",
+    scan.detections.map(({ id }) => ({ type: "remove", id })),
+    fast,
+  );
+  await expect(getIdeas("demo-desk", "vehicles", "en", fast)).rejects.toEqual(
+    new MockApiError("no_pieces"),
+  );
+  // The theme from before stays, and no ideas were written for no pieces.
+  const after = await getScan("demo-desk", fast);
+  expect(after?.lastTheme).toBe("animals");
+  expect(after?.ideas).toBeUndefined();
+});
+
 test("surprise mixes one idea from every theme", async () => {
   const ideas = await getIdeas("demo-desk", "surprise", "en", fast);
   expect(ideas.map((idea) => idea.theme)).toEqual([

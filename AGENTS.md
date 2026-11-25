@@ -35,7 +35,7 @@ Follow [DESIGN.md](DESIGN.md) and check `/en/desain` before building a screen. T
 
 ## Data
 
-Screens read and write data only through the data layer, `@/lib/api`, typed by `src/lib/domain.ts`. Those types follow the API contract in [legoin-docs#7](https://github.com/al-dioooo/legoin-docs/issues/7), so swapping in the real API changes only `src/lib/api`. Nothing under `src/app` or `src/components` may import `@/lib/mock`; a test checks this.
+Screens read and write data only through the data layer, `@/lib/api`, typed by `src/lib/domain.ts`. Those types follow the API contract, [`api/contract.md` in legoin-docs](https://github.com/al-dioooo/legoin-docs/blob/main/api/contract.md), so swapping in the real API changes only `src/lib/api`. Nothing under `src/app` or `src/components` may import `@/lib/mock`; a test checks this.
 
 - **Backend:** `NEXT_PUBLIC_API_URL` picks it in `src/lib/api/backend.ts`. Unset, it's the mock in `src/lib/mock`. There is no HTTP client yet, so setting it stops the app with an error.
 - **Storage:** the mock keeps scans in `localStorage`, so it's browser only. Call the data layer from Client Components.
