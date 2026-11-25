@@ -432,9 +432,9 @@ export const en = {
       difficulty: "Easy",
       summary: "Red body, green hood, yellow lights.",
       steps: [
-        "Put the red 2×4 brick on a black 2×4 plate as the body.",
-        "Add the green 2×2 slope at the front as the hood.",
-        "Add the black 2×2 brick at the back and two yellow 1×1 rounds as lights.",
+        "Put the red 2×4 brick on the black 2×4 plate, one stud back, so the plate's front row shows.",
+        "Add the green 2×2 slope on the front of the red brick as the hood, and the black 2×2 brick behind it as the cab.",
+        "Put the two yellow 1×1 rounds on the plate's front row as headlights.",
       ],
     },
     seeSteps: "See the steps",

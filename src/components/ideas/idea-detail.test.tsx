@@ -103,7 +103,7 @@ test("shows the idea's parts, what's missing and numbered steps", async () => {
   expect(items).toHaveLength(3);
   expect(items[0].textContent).toContain("Step 1");
   expect(items[0].textContent).toContain(
-    "Put the red 2×4 brick on a black 2×4 plate as the body.",
+    "Put the red 2×4 brick on the black 2×4 plate, one stud back, so the plate's front row shows.",
   );
 });
 

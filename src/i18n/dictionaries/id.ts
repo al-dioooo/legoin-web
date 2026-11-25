@@ -439,9 +439,9 @@ export const id: Dictionary = {
       difficulty: "Mudah",
       summary: "Badan merah, kap hijau, lampu kuning.",
       steps: [
-        "Pasang brick 2×4 merah di atas plate 2×4 hitam sebagai badan.",
-        "Taruh slope 2×2 hijau di depan sebagai kap mesin.",
-        "Tambahkan brick 2×2 hitam di belakang dan dua round 1×1 kuning sebagai lampu.",
+        "Pasang brick 2×4 merah di atas plate 2×4 hitam, mundur satu stud, supaya baris depan plate kelihatan.",
+        "Taruh slope 2×2 hijau di depan brick merah sebagai kap mesin, dan brick 2×2 hitam di belakangnya sebagai kabin.",
+        "Pasang dua round 1×1 kuning di baris depan plate sebagai lampu depan.",
       ],
     },
     seeSteps: "Lihat langkah",
