@@ -20,10 +20,10 @@ export default async function RegisterPage() {
   const locale = await currentLocale();
   const { auth } = await getDictionary();
   return (
-    <section aria-labelledby="account-title" className="mx-auto max-w-md">
+    <section aria-labelledby="register-title" className="mx-auto max-w-md">
       <div className="click-in">
         <h1
-          id="account-title"
+          id="register-title"
           className="font-display text-3xl leading-tight sm:text-5xl"
         >
           <Sticker className="-rotate-2">{auth.register.title}</Sticker>

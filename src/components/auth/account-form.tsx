@@ -107,7 +107,8 @@ export function AccountForm({
     <form
       noValidate
       onSubmit={submit}
-      aria-labelledby="account-title"
+      // The page's heading, which each page names after its mode.
+      aria-labelledby={`${mode}-title`}
       className="mt-[calc(var(--stud)*1.5)] rounded-card border-[2.5px] border-ink bg-card p-5 shadow-card sm:p-6"
     >
       <div className="grid gap-4">
