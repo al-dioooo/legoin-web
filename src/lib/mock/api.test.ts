@@ -81,7 +81,9 @@ test("corrections persist", async () => {
 });
 
 test("a correction that changes the inventory drops the kept ideas", async () => {
-  const [raceCar] = await getIdeas("demo-evening", "vehicles", "en", fast);
+  const {
+    items: [raceCar],
+  } = await getIdeas("demo-evening", "vehicles", "en", fast);
   const scan = await updateDetections(
     "demo-evening",
     [{ type: "edit", id: "evening-6", part: "plate-2x2" }],
@@ -96,7 +98,12 @@ test("a correction that changes the inventory drops the kept ideas", async () =>
 });
 
 test("a correction that leaves the inventory as it was keeps the ideas", async () => {
-  const ideas = await getIdeas("demo-evening", "animals", "en", fast);
+  const { items: ideas } = await getIdeas(
+    "demo-evening",
+    "animals",
+    "en",
+    fast,
+  );
   const flagged = (await getScan("demo-evening", fast))?.detections.find(
     (d) => d.id === "evening-6",
   );
@@ -125,7 +132,7 @@ test("deleted scans are gone", async () => {
 });
 
 test("ideas come in the requested language and remember the theme", async () => {
-  const ideas = await getIdeas("demo-desk", "vehicles", "id", fast);
+  const { items: ideas } = await getIdeas("demo-desk", "vehicles", "id", fast);
   expect(ideas.map((idea) => idea.title)).toEqual([
     "Mobil balap kecil",
     "Truk pengantar",
@@ -136,7 +143,7 @@ test("ideas come in the requested language and remember the theme", async () => 
 
 test("the latest ideas are kept on the scan with their theme and language", async () => {
   expect((await getScan("demo-desk", fast))?.ideas).toBeUndefined();
-  const ideas = await getIdeas("demo-desk", "surprise", "id", fast);
+  const { items: ideas } = await getIdeas("demo-desk", "surprise", "id", fast);
   expect((await getScan("demo-desk", fast))?.ideas).toEqual({
     theme: "surprise",
     locale: "id",
@@ -145,7 +152,12 @@ test("the latest ideas are kept on the scan with their theme and language", asyn
 });
 
 test("a kept idea reads back with its set, in the language it was written in", async () => {
-  const ideas = await getIdeas("demo-evening", "animals", "id", fast);
+  const { items: ideas } = await getIdeas(
+    "demo-evening",
+    "animals",
+    "id",
+    fast,
+  );
   const stored = await getIdea("demo-evening", ideas[1].id, fast);
   expect(stored?.idea).toEqual(ideas[1]);
   expect(stored?.idea.title).toBe("Kura-kura");
@@ -162,8 +174,13 @@ test("an unknown scan or idea, or a scan without ideas yet, has no idea", async 
 });
 
 test("other ideas replace the kept ones", async () => {
-  const first = await getIdeas("demo-evening", "vehicles", "en", fast);
-  const second = await getIdeas("demo-evening", "vehicles", "en", {
+  const { items: first } = await getIdeas(
+    "demo-evening",
+    "vehicles",
+    "en",
+    fast,
+  );
+  const { items: second } = await getIdeas("demo-evening", "vehicles", "en", {
     ...fast,
     exclude: ids(first),
   });
@@ -176,7 +193,7 @@ test("other ideas replace the kept ones", async () => {
 });
 
 test("a failed request keeps the ideas from before", async () => {
-  const ideas = await getIdeas("demo-desk", "animals", "en", fast);
+  const { items: ideas } = await getIdeas("demo-desk", "animals", "en", fast);
   await expect(
     getIdeas("demo-desk", "vehicles", "en", { ...fast, fail: "network" }),
   ).rejects.toEqual(new MockApiError("network"));
@@ -202,7 +219,7 @@ test("a scan with no pieces fails with no_pieces and saves nothing", async () =>
 });
 
 test("every idea is a checked build, with its picture and model", async () => {
-  const ideas = await getIdeas("demo-desk", "surprise", "id", fast);
+  const { items: ideas } = await getIdeas("demo-desk", "surprise", "id", fast);
   for (const idea of ideas) {
     expect(idea.buildId).toBe(idea.id);
     expect(idea.preview).toEqual(BUILD_PREVIEWS[idea.id]);
@@ -228,7 +245,7 @@ test("every template's build files are in public/, at URLs versioned by their ha
 });
 
 test("surprise mixes one idea from every theme", async () => {
-  const ideas = await getIdeas("demo-desk", "surprise", "en", fast);
+  const { items: ideas } = await getIdeas("demo-desk", "surprise", "en", fast);
   expect(ideas.map((idea) => idea.theme)).toEqual([
     "vehicles",
     "animals",
@@ -237,13 +254,18 @@ test("surprise mixes one idea from every theme", async () => {
 });
 
 test("trying other ideas shows unseen ones first, then starts over", async () => {
-  const first = await getIdeas("demo-evening", "animals", "en", fast);
-  const second = await getIdeas("demo-evening", "animals", "en", {
+  const { items: first } = await getIdeas(
+    "demo-evening",
+    "animals",
+    "en",
+    fast,
+  );
+  const { items: second } = await getIdeas("demo-evening", "animals", "en", {
     ...fast,
     exclude: ids(first),
   });
   expect(ids(second)).toEqual(["snail", "crab", "puppy"]);
-  const third = await getIdeas("demo-evening", "animals", "en", {
+  const { items: third } = await getIdeas("demo-evening", "animals", "en", {
     ...fast,
     exclude: [...ids(first), ...ids(second)],
   });
@@ -251,8 +273,8 @@ test("trying other ideas shows unseen ones first, then starts over", async () =>
 });
 
 test("surprise moves on to the next idea of every theme", async () => {
-  const first = await getIdeas("demo-desk", "surprise", "en", fast);
-  const next = await getIdeas("demo-desk", "surprise", "en", {
+  const { items: first } = await getIdeas("demo-desk", "surprise", "en", fast);
+  const { items: next } = await getIdeas("demo-desk", "surprise", "en", {
     ...fast,
     exclude: ids(first),
   });
@@ -260,8 +282,15 @@ test("surprise moves on to the next idea of every theme", async () => {
 });
 
 test("some evening ideas use only the evening pieces", async () => {
-  const first = await getIdeas("demo-evening", "vehicles", "en", fast);
-  const [goKart] = await getIdeas("demo-evening", "vehicles", "en", {
+  const { items: first } = await getIdeas(
+    "demo-evening",
+    "vehicles",
+    "en",
+    fast,
+  );
+  const {
+    items: [goKart],
+  } = await getIdeas("demo-evening", "vehicles", "en", {
     ...fast,
     exclude: ids(first),
   });
@@ -278,8 +307,8 @@ test("no idea in any demo counts a missing part as owned", async () => {
     );
     for (const theme of ["vehicles", "animals", "buildings"] as const) {
       // Two rounds cover all six ideas of a theme.
-      const first = await getIdeas(scan.id, theme, "en", fast);
-      const second = await getIdeas(scan.id, theme, "en", {
+      const { items: first } = await getIdeas(scan.id, theme, "en", fast);
+      const { items: second } = await getIdeas(scan.id, theme, "en", {
         ...fast,
         exclude: ids(first),
       });
@@ -313,42 +342,61 @@ test("demo query options turn into failures and delays", () => {
     delayMs: 0,
   });
   expect(mockOptionsFromSearch("?mock=fail-everything")).toEqual({});
-  expect(mockOptionsFromSearch("?mockPreviews=1500")).toEqual({
-    previews: 1500,
+  expect(mockOptionsFromSearch("?mockBuilds=1500")).toEqual({
+    builds: 1500,
   });
-  expect(mockOptionsFromSearch("?mockPreviews=soon")).toEqual({});
+  expect(mockOptionsFromSearch("?mockBuilds=soon")).toEqual({});
 });
 
-test("with previews, ideas come pending and become their builds when due", async () => {
-  const ideas = await getIdeas("demo-evening", "vehicles", "en", {
+test("with builds, ideas answer as building and join the set one by one", async () => {
+  const answer = await getIdeas("demo-evening", "vehicles", "en", {
     ...fast,
-    previews: 40,
+    builds: 40,
   });
-  expect(ideas.map((idea) => idea.previewStatus)).toEqual([
-    "pending",
-    "pending",
-    "pending",
+  expect(answer.items).toEqual([]);
+  expect(answer.building).toEqual([
+    { id: "race-car", theme: "vehicles" },
+    { id: "delivery-truck", theme: "vehicles" },
+    { id: "little-boat", theme: "vehicles" },
   ]);
-  expect(ideas.some((idea) => idea.buildId || idea.preview)).toBe(false);
-  const early = await getIdea("demo-evening", ideas[0].id, fast);
-  expect(early?.idea.previewStatus).toBe("pending");
+  // Nothing to open while it's building.
+  expect(await getIdea("demo-evening", "race-car", fast)).toBeNull();
+
+  await new Promise((done) => setTimeout(done, 55));
+  const partway = (await getScan("demo-evening", fast))?.ideas;
+  expect(ids(partway?.items ?? [])).toEqual(["race-car", "delivery-truck"]);
+  expect(partway?.building).toEqual([{ id: "little-boat", theme: "vehicles" }]);
+
+  await new Promise((done) => setTimeout(done, 30));
+  const done = (await getScan("demo-evening", fast))?.ideas;
+  expect(ids(done?.items ?? [])).toEqual([
+    "race-car",
+    "delivery-truck",
+    "little-boat",
+  ]);
+  expect(done).not.toHaveProperty("building");
+  expect(done?.items[0].preview).toEqual(BUILD_PREVIEWS["race-car"]);
+  expect((await getIdea("demo-evening", "race-car", fast))?.idea.title).toBe(
+    "Little race car",
+  );
+});
+
+test("a replaced set's builds never land on the new one", async () => {
+  await getIdeas("demo-evening", "vehicles", "en", { ...fast, builds: 20 });
+  await getIdeas("demo-evening", "animals", "en", fast);
 
   await new Promise((done) => setTimeout(done, 60));
-  const kept = (await getScan("demo-evening", fast))?.ideas?.items ?? [];
-  expect(kept.map((idea) => idea.previewStatus)).toEqual([
-    "ready",
-    "ready",
-    "ready",
-  ]);
-  expect(kept[0]).toMatchObject({ buildId: "race-car" });
-  expect(kept[0].preview).toEqual(BUILD_PREVIEWS["race-car"]);
+  const kept = (await getScan("demo-evening", fast))?.ideas;
+  expect(kept?.theme).toBe("animals");
+  expect(kept?.items.every((idea) => idea.theme === "animals")).toBe(true);
 });
 
-test("resetting the demo forgets pending previews", async () => {
-  await getIdeas("demo-evening", "vehicles", "en", { ...fast, previews: 0 });
+test("resetting the demo forgets builds on their way", async () => {
+  await getIdeas("demo-evening", "vehicles", "en", { ...fast, builds: 0 });
   resetMockData();
-  const ideas = await getIdeas("demo-evening", "vehicles", "en", fast);
-  expect(ideas.every((idea) => idea.previewStatus === undefined)).toBe(true);
+  const answer = await getIdeas("demo-evening", "vehicles", "en", fast);
+  expect(answer.items).toHaveLength(3);
+  expect(answer).not.toHaveProperty("building");
 });
 
 test("a cancelled scan rejects and saves nothing", async () => {

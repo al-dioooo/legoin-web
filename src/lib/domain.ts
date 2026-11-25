@@ -101,31 +101,20 @@ export type Idea = {
   used: PartCount[];
   /** Parts the build needs that the person doesn't have. */
   missing: PartCount[];
-  /** The checked build this idea is, from the backend's library (ADR-0010). */
+  /**
+   * The checked build this idea is: the library's (ADR-0010), or one the agent
+   * built from the scan's photo and pieces (ADR-0013).
+   */
   buildId?: string;
   /** Pictures of that build; sent with `buildId`, or neither is. */
   preview?: Preview;
-  /**
-   * For an idea the agent wrote, when the backend builds previews (contract,
-   * "Idea previews"): `pending` while it's built, `on_open` until the idea's
-   * page is opened, `ready` with `buildId` and `preview`, `unavailable` when
-   * none will come. Once `ready`, the idea's steps and parts are the build's.
-   */
-  previewStatus?: PreviewStatus;
 };
 
-export const PREVIEW_STATUSES = [
-  "pending",
-  "on_open",
-  "ready",
-  "unavailable",
-] as const;
-export type PreviewStatus = (typeof PREVIEW_STATUSES)[number];
-
-/** Whether a preview is on its way, so the screen polls for it. */
-export function previewComing(idea: Pick<Idea, "previewStatus">) {
-  return idea.previewStatus === "pending" || idea.previewStatus === "on_open";
-}
+/**
+ * An idea the agent is still building from the scan (ADR-0013): it joins the
+ * set's `items` with the same id when it's done, with its picture.
+ */
+export type BuildingIdea = { id: string; theme: IdeaTheme };
 
 /**
  * A checked build's picture and LDraw model, as URLs: an isometric 640 px
@@ -144,6 +133,11 @@ export type IdeaSet = {
   /** The language the ideas are written in. */
   locale: Locale;
   items: Idea[];
+  /**
+   * Ideas still being built, in order; left out when there are none. Each
+   * joins `items` when it's done, so a screen reads the set again until then.
+   */
+  building?: BuildingIdea[];
 };
 
 /** A stored idea and the set it belongs to, as written. */
@@ -161,76 +155,3 @@ export type DetectionChange =
     }
   /** Puts a piece back exactly as it was, box and confidence included. Used for undo. */
   | { type: "restore"; detection: Detection };
-
-/* Picture builds (contract, "13. Picture builds", ADR-0012): a person uploads a
- * picture and the agent designs a checked LEGO build of it from the catalogue.
- */
-
-export const PICTURE_STAGES = [
-  "queued",
-  "designing",
-  "checking",
-  "rendering",
-] as const;
-export type PictureStage = (typeof PICTURE_STAGES)[number];
-
-/**
- * Why a picture build failed or wasn't started, for the screen to say: the
- * API's own codes, `unavailable` when picture builds are off or busy, and
- * `network` when there was no usable answer or anything else went wrong.
- */
-export const PICTURE_FAILURES = [
-  "picture_unusable",
-  "picture_refused",
-  "no_valid_build",
-  "picture_limit",
-  "picture_budget",
-  "timeout",
-  "unavailable",
-  "network",
-] as const;
-export type PictureFailure = (typeof PICTURE_FAILURES)[number];
-
-/** `cek_inventori` of a picture build's parts against one of the person's scans. */
-export type PictureCheck = {
-  scanId: string;
-  /** Parts the person owns that the build uses. */
-  used: PartCount[];
-  /** Parts the build needs that the person doesn't have. */
-  missing: PartCount[];
-};
-
-/** A checked build of an uploaded picture, kept with the account. */
-export type PictureBuild = {
-  id: string;
-  /** ISO 8601 time the build was saved. */
-  createdAt: string;
-  /** The language its title, summary and steps are written in. */
-  locale: Locale;
-  title: string;
-  summary: string;
-  steps: string[];
-  /** Every part the build needs. */
-  parts: PartCount[];
-  /** The uploaded picture, as kept. */
-  picture: Photo;
-  /** The rendered build and its LDraw model. */
-  preview: Preview;
-  /** True when a limit ended the job: the title, summary and steps are plain ones. */
-  plain?: true;
-  /** Only when asked for against a scan. */
-  check?: PictureCheck;
-};
-
-/** Whether the account can start a picture build now, and how many it has left. */
-export type PictureQuota = {
-  available: boolean;
-  /** Why not: off on this backend, the day's limit reached, or the budget spent. */
-  reason?: "off" | "limit" | "budget";
-  /** Picture builds started today (UTC). */
-  used: number;
-  /** How many a day. */
-  limit: number;
-  /** ISO 8601: the next midnight UTC, when `used` goes back to 0. */
-  resetsAt: string;
-};

@@ -8,7 +8,7 @@ import {
 } from "@testing-library/react";
 import { Activity, type ReactNode } from "react";
 import { beforeEach, expect, test, vi } from "vitest";
-import { IdeaCard } from "@/components/ideas/idea-card";
+import { BuildingCard, IdeaCard } from "@/components/ideas/idea-card";
 import { IdeasScreen } from "@/components/ideas/ideas-screen";
 import { en } from "@/i18n/dictionaries/en";
 import { id } from "@/i18n/dictionaries/id";
@@ -24,14 +24,14 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push, replace }),
 }));
 // The real data layer, watched, to tell showing kept ideas from asking again;
-// previews are read again every 20 ms rather than every few seconds.
+// a set still building is read again every 20 ms rather than every 3 s.
 vi.mock("@/lib/api", async (importOriginal) => {
   const api = await importOriginal<typeof import("@/lib/api")>();
   return {
     ...api,
     getScan: vi.fn(api.getScan),
     getIdeas: vi.fn(api.getIdeas),
-    PREVIEW_POLL_MS: 20,
+    BUILD_POLL_MS: 20,
   };
 });
 
@@ -81,7 +81,7 @@ async function askedBefore(
 ) {
   const page = window.location.href;
   window.history.replaceState(null, "", "/en/scan?mockDelay=0");
-  const ideas = await getIdeas(route.id, theme, locale);
+  const { items: ideas } = await getIdeas(route.id, theme, locale);
   window.history.replaceState(null, "", page);
   vi.mocked(getIdeas).mockClear();
   return ideas;
@@ -214,56 +214,36 @@ test("an idea the agent wrote itself has no picture", () => {
   expect(screen.queryByRole("img")).toBeNull();
 });
 
-test("a preview being built holds its place; one that won't come leaves none", () => {
-  const written = {
-    id: "idea_l8k3",
-    theme: "vehicles",
-    difficulty: "medium",
-    title: "Locomotive",
-    summary: "A red engine with a black funnel.",
-    steps: ["Lay the red 2×4 brick as the engine."],
-    used: [],
-    missing: [{ part: "brick-2x4", color: "red", quantity: 1 }],
-  } satisfies Idea;
-  const card = (idea: Idea) =>
-    render(
-      <IdeaCard
-        idea={idea}
-        index={1}
-        total={3}
-        href="#"
-        copy={copy}
-        locale="en"
-      />,
-    );
+test("an idea still building holds its card's place, with its number and theme", () => {
+  render(<BuildingCard theme="animals" index={2} total={3} copy={copy} />);
 
-  const { unmount } = card({ ...written, previewStatus: "pending" });
-  expect(screen.getByText(en.ideas.preview.pending)).toBeDefined();
-  expect(screen.queryByRole("img")).toBeNull();
-  unmount();
-  // `on_open` builds when the idea's page opens, so the card shows nothing yet.
-  for (const previewStatus of ["on_open", "unavailable"] as const) {
-    const { unmount } = card({ ...written, previewStatus });
-    expect(screen.queryByText(en.ideas.preview.pending)).toBeNull();
-    expect(screen.queryByRole("img")).toBeNull();
-    unmount();
-  }
+  expect(screen.getByText(en.ideas.building.card)).toBeDefined();
+  expect(screen.getByText("IDEA 2/3 · Animals")).toBeDefined();
+  // Nothing to open yet.
+  expect(screen.queryByRole("link")).toBeNull();
+  expect(screen.queryByRole("article")).toBeNull();
 });
 
-test("previews being built click in when they're ready, then reading stops", async () => {
-  visit("theme=vehicles&mockDelay=0&mockPreviews=300");
+test("ideas being built click in one by one, then reading stops", async () => {
+  visit("theme=vehicles&mockDelay=0&mockBuilds=300");
   render(<IdeasScreen copy={copy} locale="en" />);
-  await screen.findByText("3 ideas ready.");
-  expect(screen.getAllByText(en.ideas.preview.pending)).toHaveLength(3);
-  expect(screen.queryByRole("img")).toBeNull();
+  expect(
+    await screen.findByText("Building 3 ideas from your pieces…"),
+  ).toBeDefined();
+  expect(screen.getAllByText(en.ideas.building.card)).toHaveLength(3);
+  expect(screen.queryAllByRole("article")).toHaveLength(0);
 
-  const picture = await screen.findByRole(
-    "img",
-    { name: "The finished Little race car" },
+  const raceCar = await screen.findByRole(
+    "article",
+    { name: "Little race car" },
     { timeout: 2000 },
   );
-  expect(picture.closest(".click-in")).not.toBeNull();
-  expect(screen.queryByText(en.ideas.preview.pending)).toBeNull();
+  expect(raceCar.className).toContain("click-in");
+  expect(within(raceCar).getByText("IDEA 1/3 · Vehicles")).toBeDefined();
+  expect(
+    await screen.findByText("3 ideas ready.", undefined, { timeout: 2000 }),
+  ).toBeDefined();
+  expect(screen.queryByText(en.ideas.building.card)).toBeNull();
   expect(screen.getAllByRole("img")).toHaveLength(3);
 
   const reads = vi.mocked(getScan).mock.calls.length;
@@ -271,20 +251,35 @@ test("previews being built click in when they're ready, then reading stops", asy
   expect(vi.mocked(getScan).mock.calls.length).toBe(reads);
 });
 
-test("other ideas stop reading the previews of the ones they replace", async () => {
-  visit("theme=vehicles&mockDelay=0&mockPreviews=150");
+test("while some are still building, the status says how many", async () => {
+  visit("theme=vehicles&mockDelay=0&mockBuilds=300");
   render(<IdeasScreen copy={copy} locale="en" />);
-  await screen.findByRole("article", { name: "Little race car" });
-  fireEvent.click(screen.getByRole("button", { name: "Try other ideas" }));
-  await screen.findByRole("article", { name: "Go-kart" });
+  await screen.findByText("Building 3 ideas from your pieces…");
 
-  await screen.findByRole(
-    "img",
-    { name: "The finished Go-kart" },
-    { timeout: 2000 },
-  );
-  // The first set's previews never land on the second set's cards.
-  expect(screen.queryByRole("article", { name: "Little race car" })).toBeNull();
+  // The first is done at 300 ms, the next two 75 ms apart.
+  expect(
+    await screen.findByText(
+      /^\d ideas? ready\. Building \d more…$/,
+      undefined,
+      {
+        timeout: 2000,
+      },
+    ),
+  ).toBeDefined();
+});
+
+test("other ideas replace a set still building, and never send ids still building", async () => {
+  visit("theme=vehicles&mockDelay=0&mockBuilds=150");
+  render(<IdeasScreen copy={copy} locale="en" />);
+  await screen.findByText("Building 3 ideas from your pieces…");
+  fireEvent.click(screen.getByRole("button", { name: "Try other ideas" }));
+
+  await waitFor(() => expect(getIdeas).toHaveBeenCalledTimes(2));
+  expect(vi.mocked(getIdeas).mock.calls[1][3]).toEqual({ exclude: [] });
+  expect(
+    await screen.findByText("3 ideas ready.", undefined, { timeout: 2000 }),
+  ).toBeDefined();
+  // Only the new set's three: the first set's builds never land on it.
   expect(screen.getAllByRole("article")).toHaveLength(3);
 });
 

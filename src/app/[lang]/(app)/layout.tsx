@@ -9,7 +9,6 @@ import { Logo } from "@/components/brand/logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { buttonStyles } from "@/components/ui/button";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
-import { cx } from "@/lib/cx";
 
 /**
  * Shell for the scan flow and history: the logo, step progress, history, the
@@ -45,15 +44,6 @@ export default async function AppLayout({ children }: LayoutProps<"/[lang]">) {
         </Suspense>
         {/* Wraps on narrow phones rather than pushing the language switch off screen. */}
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-          <Link
-            href={`/${locale}/picture`}
-            className={cx(
-              buttonStyles({ variant: "ghost", size: "sm" }),
-              "whitespace-nowrap",
-            )}
-          >
-            {dict.app.picture}
-          </Link>
           <Link
             href={`/${locale}/history`}
             className={buttonStyles({ variant: "ghost", size: "sm" })}

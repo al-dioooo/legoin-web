@@ -10,7 +10,7 @@ import { fill, plural } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import type { PartCount } from "@/lib/bricks";
 import { cx } from "@/lib/cx";
-import type { Idea } from "@/lib/domain";
+import type { Idea, IdeaTheme } from "@/lib/domain";
 
 type Copy = {
   ideas: Dictionary["ideas"];
@@ -23,8 +23,7 @@ const pieceCount = (parts: PartCount[]) =>
 /**
  * One build idea in the list (PRD F6): what it is, how hard it is, and how many
  * of its pieces the person has. Missing pieces are counted from `missing` only,
- * so they never pass as owned. A checked build shows its picture on top, and
- * a preview still being built a placeholder in its place.
+ * so they never pass as owned. A checked build shows its picture on top.
  */
 export function IdeaCard({
   idea,
@@ -33,6 +32,7 @@ export function IdeaCard({
   href,
   copy,
   locale,
+  arrived = false,
 }: {
   idea: Idea;
   /** Position in the list, from 1. */
@@ -41,6 +41,8 @@ export function IdeaCard({
   href: string;
   copy: Copy;
   locale: Locale;
+  /** It was being built a moment ago, so it clicks in (ADR-0006). */
+  arrived?: boolean;
 }) {
   const titleId = `idea-${idea.id}`;
   const used = pieceCount(idea.used);
@@ -49,25 +51,18 @@ export function IdeaCard({
   return (
     <article
       aria-labelledby={titleId}
-      className="flex h-full flex-col rounded-card border-[2.5px] border-ink bg-card p-5 shadow-card"
+      className={cx(
+        "flex h-full flex-col rounded-card border-[2.5px] border-ink bg-card p-5 shadow-card",
+        arrived && "click-in",
+      )}
     >
-      {idea.preview ? (
-        // Keyed by build, so a preview that arrives clicks in.
+      {idea.preview && (
         <BuildPreview
-          key={idea.buildId}
           preview={idea.preview}
           alt={fill(copy.ideas.preview.alt, { title: idea.title })}
           size="card"
-          className={cx("mb-4", idea.previewStatus === "ready" && "click-in")}
+          className="mb-4"
         />
-      ) : (
-        idea.previewStatus === "pending" && (
-          <BuildPreviewPending
-            label={copy.ideas.preview.pending}
-            size="card"
-            className="mb-4"
-          />
-        )
       )}
       <p className="font-mono text-xs font-bold tracking-[0.2em] uppercase">
         {fill(copy.common.ideaOf, { index, total })} ·{" "}
@@ -116,5 +111,38 @@ export function IdeaCard({
         <span aria-hidden="true">→</span>
       </Link>
     </article>
+  );
+}
+
+/**
+ * An idea still being built from the scan (ADR-0013), holding its card's
+ * place: its number and theme, and the build preview's placeholder. It isn't a
+ * link: there's nothing to open until it's done.
+ */
+export function BuildingCard({
+  theme,
+  index,
+  total,
+  copy,
+}: {
+  theme: IdeaTheme;
+  index: number;
+  total: number;
+  copy: Pick<Copy, "common"> & {
+    ideas: Pick<Copy["ideas"], "building" | "picker">;
+  };
+}) {
+  return (
+    <div className="flex h-full flex-col rounded-card border-[2.5px] border-dashed border-ink bg-card p-5">
+      <BuildPreviewPending
+        label={copy.ideas.building.card}
+        size="card"
+        className="mb-4"
+      />
+      <p className="font-mono text-xs font-bold tracking-[0.2em] uppercase">
+        {fill(copy.common.ideaOf, { index, total })} ·{" "}
+        {copy.ideas.picker.themes[theme].label}
+      </p>
+    </div>
   );
 }

@@ -6,13 +6,11 @@ import {
   ApiError,
   AuthError,
   NotFoundError,
-  PictureError,
   UnauthorizedError,
 } from "@/lib/api/error";
 import { sessionToken } from "@/lib/api/session";
 import * as accounts from "@/lib/mock/accounts";
 import * as mock from "@/lib/mock/api";
-import * as pictures from "@/lib/mock/pictures";
 
 /**
  * `?mock=fail-<reason>` and `?mockDelay=` from the page's URL, read on every
@@ -21,27 +19,6 @@ import * as pictures from "@/lib/mock/pictures";
 function demoOptions(): mock.MockOptions {
   if (typeof window === "undefined") return {};
   return mock.mockOptionsFromSearch(window.location.search);
-}
-
-/** Picture reads and deletes, at the same short pace. */
-const QUICK_PICTURES: pictures.MockPictureOptions = { delayMs: 150 };
-
-/** `?mock=fail-<reason>` and `?mockDelay=` for picture builds. */
-function pictureOptions(): pictures.MockPictureOptions {
-  if (typeof window === "undefined") return {};
-  return pictures.pictureOptionsFromSearch(window.location.search);
-}
-
-/** The mock's picture failures, as the data layer's. */
-async function asPictureError<T>(call: Promise<T>): Promise<T> {
-  try {
-    return await call;
-  } catch (error) {
-    if (error instanceof pictures.MockPictureError) {
-      throw new PictureError(error.reason);
-    }
-    throw error;
-  }
 }
 
 /** Reads and saves answer at a short, fixed pace and never fail on demand. */
@@ -127,30 +104,4 @@ export const mockBackend: Backend = {
     ),
   getIdea: (scanId, ideaId) =>
     asOwner((account) => mock.getIdea(scanId, ideaId, { ...QUICK, account })),
-  getPictureQuota: () =>
-    asOwner((account) =>
-      pictures.getPictureQuota({ ...QUICK_PICTURES, account }),
-    ),
-  createPictureBuild: (picture, locale, options) =>
-    asOwner((account) =>
-      asPictureError(
-        pictures.createPictureBuild(picture, locale, {
-          ...pictureOptions(),
-          ...options,
-          account,
-        }),
-      ),
-    ),
-  listPictureBuilds: () =>
-    asOwner((account) =>
-      pictures.listPictureBuilds({ ...QUICK_PICTURES, account }),
-    ),
-  getPictureBuild: (id, { scanId }) =>
-    asOwner((account) =>
-      pictures.getPictureBuild(id, { ...QUICK_PICTURES, scanId, account }),
-    ),
-  deletePictureBuild: (id) =>
-    asOwner((account) =>
-      pictures.deletePictureBuild(id, { ...QUICK_PICTURES, account }),
-    ),
 };

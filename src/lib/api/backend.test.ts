@@ -1,8 +1,8 @@
 import { expect, test, vi } from "vitest";
-import { backendFor, inOrder, picturesInOrder } from "@/lib/api/backend";
+import { backendFor, inOrder } from "@/lib/api/backend";
 import { mockBackend } from "@/lib/api/mock-backend";
 import { forgetSession, saveSession } from "@/lib/api/session";
-import type { PictureStage, ScanStage } from "@/lib/domain";
+import type { ScanStage } from "@/lib/domain";
 
 const SESSION = {
   token: "lgn_test",
@@ -66,19 +66,4 @@ test("stages reach the screen once each, in order", () => {
     report(stage);
   }
   expect(heard).toEqual(["detecting", "coloring"]);
-});
-
-test("a picture build's stages are passed on once, in order", () => {
-  const heard: PictureStage[] = [];
-  const report = picturesInOrder((stage) => heard.push(stage));
-  for (const stage of [
-    "queued",
-    "queued",
-    "rendering",
-    "designing",
-    "rendering",
-  ] as const) {
-    report(stage);
-  }
-  expect(heard).toEqual(["queued", "rendering"]);
 });

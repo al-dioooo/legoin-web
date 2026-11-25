@@ -9,12 +9,9 @@
 import type { Locale } from "@/i18n/locales";
 import {
   backendFor,
-  type CreatePictureBuildOptions,
   type CreateScanOptions,
   type GetIdeasOptions,
-  type GetPictureBuildOptions,
   inOrder,
-  picturesInOrder,
 } from "@/lib/api/backend";
 import { forgetDeviceId, legacyDeviceId } from "@/lib/api/device-id";
 import { UnauthorizedError } from "@/lib/api/error";
@@ -28,35 +25,26 @@ import {
 import type {
   Account,
   DetectionChange,
-  Idea,
+  IdeaSet,
   Photo,
-  PictureBuild,
-  PictureQuota,
   Scan,
   StoredIdea,
   Theme,
 } from "@/lib/domain";
 
-export type {
-  CreatePictureBuildOptions,
-  CreateScanOptions,
-  GetIdeasOptions,
-  GetPictureBuildOptions,
-} from "@/lib/api/backend";
+export type { CreateScanOptions, GetIdeasOptions } from "@/lib/api/backend";
 export {
   ApiError,
   AuthError,
   NotFoundError,
-  PictureError,
   UnauthorizedError,
 } from "@/lib/api/error";
 
 /**
- * How often a screen reads an idea again while its preview is on its way
- * (contract, "Idea previews"): `getScan` on the ideas list, `getIdea` on the
- * idea's page.
+ * How often the ideas list reads the scan again while ideas are still being
+ * built from it (contract, section 13).
  */
-export const PREVIEW_POLL_MS = 3_000;
+export const BUILD_POLL_MS = 3_000;
 
 // Written out in full so Next.js inlines it into the browser bundle.
 const backend = backendFor(process.env.NEXT_PUBLIC_API_URL);
@@ -191,6 +179,10 @@ export function deleteScan(id: string): Promise<void> {
  * rejects with an ApiError, `no_pieces` for a scan with no pieces, and a scan
  * that's gone with a NotFoundError.
  *
+ * Resolves with the set as kept. When the backend builds the ideas from the
+ * scan (ADR-0013), it answers at once with the ones still being built in
+ * `building`; read the scan again with `getScan` until they're done.
+ *
  * Every call asks again; with a real model that's a wait and different ideas.
  * To show the kept ones, read `ideas` from `getScan` instead.
  */
@@ -199,7 +191,7 @@ export function getIdeas(
   theme: Theme,
   locale: Locale,
   { exclude }: GetIdeasOptions = {},
-): Promise<Idea[]> {
+): Promise<IdeaSet> {
   return signedIn(backend.getIdeas(scanId, theme, locale, { exclude }));
 }
 
@@ -214,55 +206,4 @@ export function getIdea(
   ideaId: string,
 ): Promise<StoredIdea | null> {
   return signedIn(backend.getIdea(scanId, ideaId));
-}
-
-/**
- * Whether this account can start a picture build now, and how many it has
- * left today (contract, "13. Picture builds"). Read it before the upload.
- */
-export function getPictureQuota(): Promise<PictureQuota> {
-  return signedIn(backend.getPictureQuota());
-}
-
-/**
- * Sends the picture to be designed as a LEGO build, in `locale`, and resolves
- * with the saved build. It takes about a minute: `onStage` hears each stage
- * once, in order. A build that fails or can't start rejects with a
- * PictureError; aborting through `signal` rejects with an AbortError and
- * cancels the job. The picture goes to the model provider (ADR-0012), so say
- * so before calling this.
- */
-export function createPictureBuild(
-  picture: Photo,
-  locale: Locale,
-  { onStage, signal }: CreatePictureBuildOptions = {},
-): Promise<PictureBuild> {
-  return signedIn(
-    backend.createPictureBuild(picture, locale, {
-      signal,
-      onStage: onStage && picturesInOrder(onStage),
-    }),
-  );
-}
-
-/** This account's picture builds, newest first. */
-export function listPictureBuilds(): Promise<PictureBuild[]> {
-  return signedIn(backend.listPictureBuilds());
-}
-
-/**
- * One picture build, or null if there's none with this id. With `scanId`, its
- * `check` says which of its parts that scan has and which are missing, as the
- * scan is now; a scan that's gone leaves `check` out.
- */
-export function getPictureBuild(
-  id: string,
-  { scanId }: GetPictureBuildOptions = {},
-): Promise<PictureBuild | null> {
-  return signedIn(backend.getPictureBuild(id, { scanId }));
-}
-
-/** Deletes the build, with its picture and model. */
-export function deletePictureBuild(id: string): Promise<void> {
-  return signedIn(backend.deletePictureBuild(id));
 }

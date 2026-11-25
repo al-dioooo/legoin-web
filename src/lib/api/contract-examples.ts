@@ -260,6 +260,65 @@ export const IDEA_SET = {
 
 export const STORED_IDEA = { idea: IDEA_SET.items[0], set: IDEA_SET };
 
+/** Contract section 13: a set still building, then one of its finished ideas. */
+export const IDEAS_BUILDING = {
+  theme: "vehicles",
+  locale: "en",
+  items: [],
+  building: [
+    {
+      id: "idea_b7q2",
+      theme: "vehicles",
+    },
+    {
+      id: "idea_c3m8",
+      theme: "vehicles",
+    },
+    {
+      id: "idea_d9x4",
+      theme: "vehicles",
+    },
+  ],
+} as const;
+
+export const IDEA_BUILT = {
+  id: "idea_b7q2",
+  theme: "vehicles",
+  difficulty: "easy",
+  title: "Little red racer",
+  summary: "A red racer with a green hood and a dark gray cab.",
+  steps: [
+    "Put the dark gray 2×2 brick down as the back of the car.",
+    "Put the red 2×4 brick on it, overhanging two studs at the front.",
+    "Put the green 2×2 slope on the front of the red brick as the hood.",
+  ],
+  used: [
+    {
+      part: "brick-2x2",
+      color: "dark-gray",
+      quantity: 1,
+    },
+    {
+      part: "brick-2x4",
+      color: "red",
+      quantity: 1,
+    },
+    {
+      part: "slope-2x2",
+      color: "green",
+      quantity: 1,
+    },
+  ],
+  missing: [],
+  buildId: "gen_Ue3nVb81qQ2wTzKp4mXaLc",
+  preview: {
+    image:
+      "https://api.legoin.example/v1/picture-files/2kD9fQwXr7pL0sZcVb3nMa.webp",
+    model:
+      "https://api.legoin.example/v1/picture-files/8hT4jYuIo1pAsDfGhJkLzx.ldr",
+  },
+} as const;
+
 // 7. Errors
 
 export const INVALID_REQUEST = {
@@ -267,78 +326,5 @@ export const INVALID_REQUEST = {
     code: "invalid_request",
     message: "changes[1].quantity must be from 1 to 20.",
     field: "changes[1].quantity",
-  },
-};
-
-// 13. Picture builds (Proposed, legoin-docs#26). The finished job's build and
-// the checked build are shortened there with comments; their steps and parts
-// keep the lines shown, and the checked build is the finished one plus
-// `check`.
-
-export const PICTURE_QUOTA = {
-  available: true,
-  used: 1,
-  limit: 2,
-  resetsAt: "2026-11-26T00:00:00.000Z",
-};
-
-export const PICTURE_JOB_ACCEPTED = {
-  id: "pjob_Q3v8tL2x",
-  status: "running",
-  stage: "queued",
-};
-
-export const PICTURE_BUILD = {
-  id: "pic_8KfD2mQx1Zr",
-  createdAt: "2026-11-25T08:41:05.000Z",
-  locale: "en",
-  title: "Little Red Car",
-  summary:
-    "A red car with four black wheels, a sloped cabin with blue side windows, yellow headlights at the front and orange taillights at the back.",
-  steps: [
-    "Stand four black round 1×1 bricks as wheels at the corners, 2 studs in from each end.",
-    "Lay five black 2×4 plates on top to make a chassis 10 studs long and 4 studs wide.",
-  ],
-  parts: [
-    { part: "brick-2x4", color: "red", quantity: 9 },
-    { part: "plate-2x4", color: "black", quantity: 5 },
-  ],
-  picture: {
-    src: "https://api.legoin.example/v1/picture-files/n4Qk0vXb7cT2mZr9LwYe1A.jpg",
-    width: 900,
-    height: 600,
-  },
-  preview: {
-    image:
-      "https://api.legoin.example/v1/picture-files/Hq7bW3pZ0sKd5yRf2LmNcQ.webp",
-    model:
-      "https://api.legoin.example/v1/picture-files/Vt8cX1nB6qLs4wJe9KdRaQ.ldr",
-  },
-} as const;
-
-export const PICTURE_JOB_DONE = {
-  id: "pjob_Q3v8tL2x",
-  status: "done",
-  build: PICTURE_BUILD,
-};
-
-export const PICTURE_JOB_FAILED = {
-  id: "pjob_Q3v8tL2x",
-  status: "failed",
-  error: {
-    code: "picture_unusable",
-    message: "There's no clear subject in the picture to build.",
-  },
-};
-
-export const PICTURE_BUILD_CHECKED = {
-  ...PICTURE_BUILD,
-  check: {
-    scanId: "scn_4kd2p9",
-    used: [{ part: "brick-2x4", color: "red", quantity: 1 }],
-    missing: [
-      { part: "brick-2x4", color: "red", quantity: 8 },
-      { part: "plate-2x4", color: "black", quantity: 5 },
-    ],
   },
 };

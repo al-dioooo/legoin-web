@@ -264,6 +264,13 @@ export function CaptureFlow({ copy, locale }: { copy: Copy; locale: Locale }) {
         </p>
       )}
 
+      {/* Before anything is uploaded: where the photo goes for ideas (ADR-0013). */}
+      {status.kind === "idle" && (
+        <p className="mt-3 max-w-prose text-sm text-ink-secondary">
+          {copy.capture.privacy}
+        </p>
+      )}
+
       <input
         ref={cameraInput}
         type="file"

@@ -46,8 +46,8 @@ export function BuildPreview({
 }
 
 /**
- * Where a build's picture will go while the backend builds it (an idea's
- * preview, ADR-0012): the same plate, with studs that pulse and a label. Under
+ * Where a build's picture will go while the backend builds it from the scan
+ * (ADR-0013): the same plate, dashed, with studs that pulse and a label. Under
  * reduced motion the studs hold still.
  */
 export function BuildPreviewPending({

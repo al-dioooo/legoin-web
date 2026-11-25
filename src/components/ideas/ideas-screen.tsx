@@ -3,15 +3,15 @@
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, useEffect, useRef, useState } from "react";
-import { IdeaCard } from "@/components/ideas/idea-card";
+import { BuildingCard, IdeaCard } from "@/components/ideas/idea-card";
 import { ThemePicker } from "@/components/ideas/theme-picker";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { EmptyState, EmptyStateIcon } from "@/components/ui/empty-state";
 import type { Dictionary } from "@/i18n/dictionaries/en";
 import { plural } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
-import { getIdeas, getScan, PREVIEW_POLL_MS } from "@/lib/api";
-import { type Idea, isTheme, type Scan, type Theme } from "@/lib/domain";
+import { BUILD_POLL_MS, getIdeas, getScan } from "@/lib/api";
+import { type IdeaSet, isTheme, type Scan, type Theme } from "@/lib/domain";
 
 type Copy = {
   ideas: Dictionary["ideas"];
@@ -35,6 +35,14 @@ type Ask = { theme: Theme; exclude: string[]; attempt: number };
 type Answer = { key: string; failed: boolean };
 
 const NONE: string[] = [];
+const NO_BUILDS: NonNullable<IdeaSet["building"]> = [];
+
+/** Every idea a set has or is building, so a read can tell it's the same set. */
+const idsOf = (set: IdeaSet) =>
+  [...set.items, ...(set.building ?? [])]
+    .map((idea) => idea.id)
+    .sort()
+    .join();
 
 export function IdeasLoading({ label }: { label: string }) {
   return (
@@ -60,6 +68,9 @@ export function IdeasLoading({ label }: { label: string }) {
  * Ideas the scan already keeps for this theme, in this language, are shown
  * without asking again, so coming back costs no wait and keeps the same ideas.
  * Other ideas, a retry and a theme the kept set isn't for always ask.
+ *
+ * Ideas still being built from the scan (ADR-0013) hold their place as cards
+ * of their own, and the screen reads the scan again until each is done.
  */
 export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
   const { id } = useParams<{ id: string }>();
@@ -75,11 +86,15 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
   const [choice, setChoice] = useState<Theme | null>(null);
   const [ask, setAsk] = useState<Ask | null>(null);
   const [answer, setAnswer] = useState<Answer | null>(null);
-  /** Counts preview reads that failed, so the next one is tried anyway. */
-  const [previewPoll, setPreviewPoll] = useState(0);
+  /** Counts reads of the scan that failed, so the next one is tried anyway. */
+  const [buildPoll, setBuildPoll] = useState(0);
   // An ask on its way, so showing the page again waits for it instead of
   // sending it twice.
-  const pending = useRef<{ key: string; ideas: Promise<Idea[]> } | null>(null);
+  const pending = useRef<{ key: string; ideas: Promise<IdeaSet> } | null>(null);
+  // Ideas this page has shown as building, so each clicks in when it's done.
+  const [wasBuilding, setWasBuilding] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
   const failedHeading = useRef<HTMLHeadingElement>(null);
   // A new theme starts over; asks for an earlier theme no longer apply.
   const current = ask && ask.theme === theme ? ask : null;
@@ -92,12 +107,14 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
   // count; neither does one a correction dropped.
   const kept =
     scan?.ideas?.theme === theme && scan.ideas.locale === locale
-      ? scan.ideas.items
+      ? scan.ideas
       : null;
   const answered = answer?.key === key ? answer : null;
   const failed = answered?.failed === true;
   // Other ideas and retries wait for their own answer.
-  const ideas = !failed && (attempt === 0 || answered) ? kept : null;
+  const set = !failed && (attempt === 0 || answered) ? kept : null;
+  const ideas = set?.items ?? null;
+  const building = set?.building ?? NO_BUILDS;
   const shouldAsk =
     theme !== null &&
     scan !== null &&
@@ -131,19 +148,26 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
     if (scanState.kind === "failed") failedHeading.current?.focus();
   }, [scanState.kind]);
 
-  // Previews still being built: read the scan again every few seconds, and
-  // take its ideas while they're still this set. A replaced set stops it.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: a missed read bumps previewPoll to try again
   useEffect(() => {
-    if (!ideas?.some((idea) => idea.previewStatus === "pending")) return;
-    const shown = ideas.map((idea) => idea.id).join();
+    setWasBuilding((seen) =>
+      building.every((slot) => seen.has(slot.id))
+        ? seen
+        : new Set([...seen, ...building.map((slot) => slot.id)]),
+    );
+  }, [building]);
+
+  // Ideas still being built: read the scan again every few seconds, and take
+  // its set while it's still this set. A replaced set stops it.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a missed read bumps buildPoll to try again
+  useEffect(() => {
+    if (!set?.building?.length) return;
+    const shown = idsOf(set);
     let active = true;
     const timer = setTimeout(() => {
       void getScan(id).then(
         (found) => {
           const latest = found?.ideas;
-          if (!active || !latest) return;
-          if (latest.items.map((idea) => idea.id).join() !== shown) return;
+          if (!active || !latest || idsOf(latest) !== shown) return;
           setScanState((state) =>
             state.kind === "ready"
               ? { kind: "ready", scan: { ...state.scan, ideas: latest } }
@@ -151,15 +175,15 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
           );
         },
         () => {
-          if (active) setPreviewPoll((count) => count + 1);
+          if (active) setBuildPoll((count) => count + 1);
         },
       );
-    }, PREVIEW_POLL_MS);
+    }, BUILD_POLL_MS);
     return () => {
       active = false;
       clearTimeout(timer);
     };
-  }, [id, ideas, previewPoll]);
+  }, [id, set, buildPoll]);
 
   useEffect(() => {
     if (!shouldAsk || !theme) return;
@@ -172,18 +196,14 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
     pending.current = { key: asked, ideas: answering };
     answering
       .then(
-        (items) => {
+        (answer) => {
           // The scan keeps these now, even if the page moved on, so it never
           // shows a set the scan no longer has.
           setScanState((state) =>
             state.kind === "ready"
               ? {
                   kind: "ready",
-                  scan: {
-                    ...state.scan,
-                    lastTheme: theme,
-                    ideas: { theme, locale, items },
-                  },
+                  scan: { ...state.scan, lastTheme: theme, ideas: answer },
                 }
               : state,
           );
@@ -296,19 +316,29 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
   }
 
   const loading = !ideas && !failed;
+  const total = (ideas?.length ?? 0) + building.length;
   const status = failed
     ? ""
     : !ideas
       ? copy.ideas.finding
-      : ideas.length === 0
+      : total === 0
         ? copy.ideas.none
-        : plural(copy.ideas.found, ideas.length, locale);
+        : ideas.length === 0
+          ? plural(copy.ideas.building.first, building.length, locale)
+          : [
+              plural(copy.ideas.found, ideas.length, locale),
+              building.length > 0 &&
+                plural(copy.ideas.building.more, building.length, locale),
+            ]
+              .filter(Boolean)
+              .join(" ");
 
   // Stays while other ideas load, so keyboard focus isn't lost.
-  const canTryOthers = (ideas?.length ?? 0) > 0 || (loading && attempt > 0);
+  const canTryOthers = total > 0 || (loading && attempt > 0);
 
   // Shown ideas move to the end of `exclude`, so the mock offers unseen ones
-  // first, then the ones shown longest ago.
+  // first, then the ones shown longest ago. Ideas still building aren't ideas
+  // the backend knows yet, so they're never sent.
   function tryOthers() {
     if (!theme || !ideas) return;
     const shown = ideas.map((idea) => idea.id);
@@ -361,17 +391,29 @@ export function IdeasScreen({ copy, locale }: { copy: Copy; locale: Locale }) {
         </div>
       )}
 
-      {ideas && ideas.length > 0 && (
+      {ideas && total > 0 && (
         <ol className="mt-4 grid gap-5 lg:grid-cols-3">
           {ideas.map((idea, index) => (
             <li key={idea.id}>
               <IdeaCard
                 idea={idea}
                 index={index + 1}
-                total={ideas.length}
+                total={total}
                 href={`/${locale}/scan/${id}/ideas/${idea.id}?${query}`}
                 copy={copy}
                 locale={locale}
+                // A build that was a placeholder here clicks in.
+                arrived={wasBuilding.has(idea.id)}
+              />
+            </li>
+          ))}
+          {building.map((slot, index) => (
+            <li key={slot.id}>
+              <BuildingCard
+                theme={slot.theme}
+                index={ideas.length + index + 1}
+                total={total}
+                copy={copy}
               />
             </li>
           ))}

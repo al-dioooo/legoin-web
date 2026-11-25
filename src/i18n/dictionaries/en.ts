@@ -12,7 +12,6 @@ export const en = {
   app: {
     home: "Legoin home",
     history: "History",
-    picture: "Picture to LEGO",
     account: "Logged in as {email}",
     logOut: "Log out",
     skip: "Skip to content",
@@ -69,7 +68,7 @@ export const en = {
     },
     builds: {
       title: "Build pictures",
-      body: "Template ideas are builds made and checked with BrickLayer and BrickWright. Picture builds are designed by Claude and checked with BrickLayer. Both are rendered from the LDraw.org Parts Library.",
+      body: "Template ideas are builds made and checked with BrickLayer and BrickWright, and their pictures are rendered from the LDraw.org Parts Library.",
     },
     notes: {
       title: "Good to know",
@@ -111,6 +110,8 @@ export const en = {
       choose: "Choose a photo",
       sample: "Try the sample photo",
       hint: "JPEG or PNG, up to 10 MB.",
+      privacy:
+        "To build ideas from your pieces, your photo and the pieces found in it are sent to Anthropic's Claude.",
       previewAlt: "Your photo of your pieces",
       sampleAlt:
         "Sample photo: eight pieces on a gray table, including a black 2×4 plate, a yellow round, an orange 1×2 brick and a blue 2×3 brick.",
@@ -275,8 +276,17 @@ export const en = {
     preview: {
       alt: "The finished {title}",
       model: "Download 3D model (.ldr)",
-      pending: "Building the preview…",
-      updated: "These steps and parts are the preview's build.",
+    },
+    building: {
+      card: "Building it from your pieces…",
+      first: {
+        one: "Building {count} idea from your pieces…",
+        other: "Building {count} ideas from your pieces…",
+      },
+      more: {
+        one: "Building {count} more…",
+        other: "Building {count} more…",
+      },
     },
     none: "No ideas for this theme yet. Try another theme.",
     failed: {
@@ -393,144 +403,6 @@ export const en = {
       title: "Reduced motion",
       description:
         "With reduced motion nothing travels, tilts or staggers. Pieces still fade in, the selection still shows, counts change at once, and the scanner beam and pointer glow are off.",
-    },
-  },
-  picture: {
-    title: "Picture to LEGO",
-    lead: "Upload a picture of one thing, like a car, an animal or a house. Legoin designs a LEGO build of it from the 13 parts it knows, and checks that it holds together.",
-    privacy: {
-      title: "Before you upload",
-      body: "Your picture is sent to Anthropic, the company behind Claude, the AI that designs your build. Only the picture and your language are sent. Legoin keeps the picture with the build until you delete it.",
-    },
-    quota: {
-      loading: "Checking how many builds you have left…",
-      left: {
-        one: "{count} picture build left today",
-        other: "{count} picture builds left today",
-      },
-      limit: "You've used today's picture builds. Come back tomorrow.",
-      budget:
-        "Legoin has used today's budget for picture builds. Try again tomorrow.",
-      off: "Picture builds aren't available right now.",
-    },
-    capture: {
-      title: "Your picture",
-      drop: "Drop a picture here",
-      or: "or",
-      take: "Take a picture",
-      choose: "Choose a picture",
-      hint: "One clear thing on a plain background works best. JPEG or PNG, up to 10 MB.",
-      previewAlt: "Your picture",
-      change: "Choose another",
-      submit: "Design my build",
-    },
-    errors: {
-      type: "That file isn't an image. Choose a JPEG or PNG picture.",
-      size: "That picture is over 10 MB. Choose a smaller one.",
-      read: "We couldn't open that picture. Try another one.",
-    },
-    progress: {
-      title: "Designing your build",
-      pictureAlt: "The picture being turned into a build",
-      stages: {
-        queued: "Waiting for a turn",
-        designing: "Designing the build",
-        checking: "Checking that it holds together",
-        rendering: "Drawing the finished build",
-      },
-      status: { done: "done", current: "in progress", waiting: "waiting" },
-      elapsed: "Time",
-      note: "This takes about a minute. Keep this page open.",
-      cancel: "Cancel",
-    },
-    failures: {
-      picture_unusable: {
-        title: "We couldn't find one thing to build",
-        body: "Try a clear picture of a single thing, like a car, an animal or a house.",
-      },
-      picture_refused: {
-        title: "We can't build this picture",
-        body: "Try a picture of something else.",
-      },
-      no_valid_build: {
-        title: "We couldn't finish a build",
-        body: "Legoin ran out of tries for this picture. Try again, or try a simpler one.",
-      },
-      picture_limit: {
-        title: "No picture builds left today",
-        body: "You've used today's picture builds. Come back tomorrow.",
-      },
-      picture_budget: {
-        title: "Picture builds are resting",
-        body: "Legoin has used today's budget for picture builds. Try again tomorrow.",
-      },
-      timeout: {
-        title: "Designing took too long",
-        body: "Try again in a moment, or try a simpler picture.",
-      },
-      unavailable: {
-        title: "Picture builds are busy",
-        body: "Too many builds are waiting, or picture builds are off right now. Try again in a minute.",
-      },
-      network: {
-        title: "Something went wrong",
-        body: "Check your connection and try again. Your picture is still here.",
-      },
-      retry: "Try again",
-      other: "Choose another picture",
-    },
-    list: {
-      title: "Your picture builds",
-      loading: "Loading your picture builds…",
-      empty: "Builds you make from pictures show up here.",
-      failed: "We couldn't load your picture builds.",
-      retry: "Try again",
-    },
-    result: {
-      title: "Picture build",
-      loading: "Loading this build…",
-      back: "Picture to LEGO",
-      eyebrow: "PICTURE BUILD",
-      pictureAlt: "The picture this build was designed from",
-      previewAlt: "The finished LEGO build: {title}",
-      model: "Download 3D model (.ldr)",
-      parts: "Parts",
-      steps: "Steps",
-      plain:
-        "Legoin ran out of time to write steps for this build, so these steps list the pieces level by level, from the bottom up.",
-      language: {
-        note: "This build was written in {language}.",
-        names: { en: "English", id: "Indonesian" },
-      },
-      check: {
-        title: "Do you have the pieces?",
-        label: "Compare with a scan",
-        choose: "Choose a scan",
-        scan: "{date} · {pieces}",
-        noScans: "Scan your pieces to see which of these you have.",
-        scanAction: "Scan your pieces",
-        loading: "Checking your pieces…",
-        failed: "We couldn't check your pieces. Try again.",
-      },
-      delete: {
-        action: "Delete",
-        question: "Delete this build and its picture? You can't get them back.",
-        confirm: "Delete build",
-        keep: "Keep it",
-        failed: "We couldn't delete this build. Try again.",
-      },
-      missing: {
-        title: "We couldn't find that build",
-        body: "It may have been deleted.",
-        action: "Make a picture build",
-      },
-      failed: {
-        title: "We couldn't load this build",
-        body: "Check your connection and try again.",
-        retry: "Try again",
-      },
-      credit:
-        "Designed by Claude and checked with BrickLayer. Rendered from the LDraw.org Parts Library.",
     },
   },
   history: {
