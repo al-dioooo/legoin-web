@@ -9,6 +9,7 @@ import {
   ApiError,
   AuthError,
   NotFoundError,
+  PictureError,
   UnauthorizedError,
 } from "@/lib/api/error";
 import { isSession, sessionToken } from "@/lib/api/session";
@@ -18,6 +19,11 @@ import {
   AUTH_FAILURES,
   type AuthFailure,
   type IdeaSet,
+  PICTURE_FAILURES,
+  type PictureBuild,
+  type PictureFailure,
+  type PictureQuota,
+  type PictureStage,
   SCAN_FAILURES,
   type Scan,
   type ScanFailure,
@@ -37,6 +43,10 @@ export const LIMITS = {
   ideasMs: 40_000,
   /** Most idea ids `exclude` may hold; the newest are kept. */
   exclude: 50,
+  /** Between polls of a running picture job, which takes about a minute. */
+  picturePollMs: 1_000,
+  /** A picture build that hasn't ended by then is given up, as `network`. */
+  pictureMs: 600_000,
 };
 
 /** Only on the wire: one body for every error. */
@@ -93,6 +103,31 @@ function errorFor(status: number, body: unknown): Error {
   return new Error(`The API answered ${status} ${code}: ${error?.message}`);
 }
 
+/**
+ * The error for a picture build's failed answer or job (contract, "13. Picture
+ * builds"): its own codes and `unavailable` are a PictureError with that
+ * reason; a session, a missing build and a bad request are as `errorFor` says;
+ * anything else is `network`.
+ */
+function pictureErrorFor(status: number, body: unknown): Error {
+  const code = (body as Partial<ApiErrorBody> | undefined)?.error?.code;
+  if (
+    code !== "network" &&
+    (PICTURE_FAILURES as readonly unknown[]).includes(code)
+  ) {
+    return new PictureError(code as PictureFailure);
+  }
+  const error = errorFor(status, body);
+  if (error instanceof ApiError) return new PictureError("network");
+  return error;
+}
+
+/** Only on the wire: a picture build in progress, polled until it ends. */
+type PictureJob =
+  | { id: string; status: "running"; stage: PictureStage }
+  | { id: string; status: "done"; build: PictureBuild }
+  | { id: string; status: "failed"; error: ApiErrorBody["error"] };
+
 function isScanJob(body: unknown): body is ScanJob {
   const job = body as Partial<ScanJob> | undefined;
   return (
@@ -126,6 +161,8 @@ type Request = RequestInit & {
   json?: unknown;
   /** False for the routes that make a session, which send no token. */
   auth?: boolean;
+  /** Turns a failed answer into the error to reject with; `errorFor` by default. */
+  failure?: (status: number, body: unknown) => Error;
 };
 
 function isAccount(value: unknown): value is Account {
@@ -167,7 +204,7 @@ export function httpBackend(
    */
   async function request(
     route: string,
-    { json, auth = true, ...init }: Request = {},
+    { json, auth = true, failure = errorFor, ...init }: Request = {},
   ): Promise<unknown> {
     const headers = auth ? authorization() : {};
     if (json !== undefined) headers["Content-Type"] = "application/json";
@@ -180,14 +217,14 @@ export function httpBackend(
       });
     } catch {
       init.signal?.throwIfAborted();
-      throw new ApiError("network");
+      throw failure(0, undefined);
     }
     const body =
       response.status === 204
         ? undefined
         : await response.json().catch(() => undefined);
     init.signal?.throwIfAborted();
-    if (!response.ok) throw errorFor(response.status, body);
+    if (!response.ok) throw failure(response.status, body);
     return body;
   }
 
@@ -195,7 +232,7 @@ export function httpBackend(
   async function object(route: string, init?: Request) {
     const body = await request(route, init);
     if (typeof body !== "object" || body === null) {
-      throw new ApiError("network");
+      throw (init?.failure ?? errorFor)(200, undefined);
     }
     return body;
   }
@@ -211,8 +248,8 @@ export function httpBackend(
   }
 
   /** Sends `DELETE /scan-jobs/{id}` without waiting, even as the page unloads. */
-  function cancel(jobId: string) {
-    void send(`${base}${path("scan-jobs", jobId)}`, {
+  function cancel(jobId: string, jobs = "scan-jobs") {
+    void send(`${base}${path(jobs, jobId)}`, {
       method: "DELETE",
       headers: authorization(),
       keepalive: true,
@@ -354,5 +391,117 @@ export function httpBackend(
       orNull(
         object(path("scans", scanId, "ideas", ideaId)) as Promise<StoredIdea>,
       ),
+
+    async getPictureQuota() {
+      const quota = (await object("/picture-quota", {
+        failure: pictureErrorFor,
+      })) as Partial<PictureQuota>;
+      if (typeof quota.available !== "boolean") {
+        throw new PictureError("network");
+      }
+      return quota as PictureQuota;
+    },
+
+    /**
+     * Uploads the picture as a picture job and polls it every second until it
+     * ends, passing each stage on. Aborting rejects with an AbortError at once
+     * and cancels the job. The job is also cancelled when it's given up: 10
+     * minutes with no ending, or 3 polls in a row with no answer, which reject
+     * as `network`. Failures reject with a PictureError.
+     */
+    async createPictureBuild(picture, locale, { onStage, signal }) {
+      signal?.throwIfAborted();
+      const giveUp = new AbortController();
+      const deadline = setTimeout(() => giveUp.abort(), LIMITS.pictureMs);
+      const stop = signal
+        ? AbortSignal.any([signal, giveUp.signal])
+        : giveUp.signal;
+      const failure = pictureErrorFor;
+      let jobId: string | undefined;
+      try {
+        const file = await photoBlob(picture, { fetch: send, signal: stop });
+        const form = new FormData();
+        form.append("picture", file, photoFileName(file));
+        form.append("locale", locale);
+        const accepted = await object("/picture-jobs", {
+          method: "POST",
+          body: form,
+          signal: stop,
+          failure,
+        });
+        if (!isPictureJob(accepted)) throw new PictureError("network");
+        let job: PictureJob = accepted;
+        jobId = job.id;
+        let missed = 0;
+        for (;;) {
+          if (job.status === "done") return job.build;
+          if (job.status === "failed") {
+            // The backend saved nothing, so there's nothing to cancel.
+            jobId = undefined;
+            throw pictureErrorFor(200, job);
+          }
+          onStage?.(job.stage);
+          await sleep(LIMITS.picturePollMs, stop);
+          try {
+            const next = await object(path("picture-jobs", job.id), {
+              signal: stop,
+              failure,
+            });
+            if (!isPictureJob(next)) throw new PictureError("network");
+            job = next;
+            missed = 0;
+          } catch (error) {
+            // One poll with no answer, or a busy one, is just retried.
+            const noAnswer =
+              error instanceof PictureError &&
+              (error.reason === "network" || error.reason === "unavailable");
+            if (!noAnswer || ++missed >= LIMITS.missedPolls) {
+              throw noAnswer ? new PictureError("network") : error;
+            }
+          }
+        }
+      } catch (error) {
+        if (jobId !== undefined) cancel(jobId, "picture-jobs");
+        if (signal?.aborted) throw signal.reason;
+        if (giveUp.signal.aborted) throw new PictureError("network");
+        if (error instanceof ApiError) throw new PictureError("network");
+        throw error;
+      } finally {
+        clearTimeout(deadline);
+      }
+    },
+
+    async listPictureBuilds() {
+      const { builds } = (await object("/picture-builds", {
+        failure: pictureErrorFor,
+      })) as { builds?: unknown };
+      if (!Array.isArray(builds)) throw new PictureError("network");
+      return builds as PictureBuild[];
+    },
+
+    getPictureBuild: (id, { scanId }) =>
+      orNull(
+        object(
+          `${path("picture-builds", id)}${scanId ? `?scanId=${encodeURIComponent(scanId)}` : ""}`,
+          { failure: pictureErrorFor },
+        ) as Promise<PictureBuild>,
+      ),
+
+    async deletePictureBuild(id) {
+      await request(path("picture-builds", id), {
+        method: "DELETE",
+        failure: pictureErrorFor,
+      });
+    },
   };
+}
+
+function isPictureJob(body: unknown): body is PictureJob {
+  const job = body as Partial<PictureJob> | undefined;
+  return (
+    typeof job?.id === "string" &&
+    (job.status === "running" ||
+      job.status === "done" ||
+      job.status === "failed")
+  );
 }

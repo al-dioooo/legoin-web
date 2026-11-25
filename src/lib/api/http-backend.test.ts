@@ -16,6 +16,12 @@ import {
   JOB_DONE,
   JOB_FAILED,
   JOB_RUNNING,
+  PICTURE_BUILD,
+  PICTURE_BUILD_CHECKED,
+  PICTURE_JOB_ACCEPTED,
+  PICTURE_JOB_DONE,
+  PICTURE_JOB_FAILED,
+  PICTURE_QUOTA,
   REGISTER_REQUEST,
   SCAN_LIST,
   SCAN_NOT_FOUND,
@@ -27,10 +33,11 @@ import {
   ApiError,
   AuthError,
   NotFoundError,
+  PictureError,
   UnauthorizedError,
 } from "@/lib/api/error";
 import { httpBackend, LIMITS } from "@/lib/api/http-backend";
-import { SCAN_FAILURES, type ScanStage } from "@/lib/domain";
+import { type PictureStage, SCAN_FAILURES, type ScanStage } from "@/lib/domain";
 
 type Seen = { method: string; path: string; init: RequestInit };
 type Answer = (request: Seen) => Response | Promise<Response>;
@@ -530,4 +537,175 @@ test("the base URL may end in a slash, and ids are sent as path segments", async
   });
   await backend.getScan("scn 1/2");
   expect(seen).toEqual([`${BASE_URL}/scans/scn%201%2F2`]);
+});
+
+describe("picture builds", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const RUNNING = { ...PICTURE_JOB_ACCEPTED, stage: "designing" };
+
+  /** Polls answer with `polls` in turn, after the upload's 202. */
+  function building(...polls: Answer[]) {
+    const api = fakeApi((request) =>
+      request.method === "POST"
+        ? json(PICTURE_JOB_ACCEPTED, 202)
+        : request.method === "DELETE"
+          ? noContent()
+          : polled(request),
+    );
+    const polled = inTurn(...polls);
+    const stages: PictureStage[] = [];
+    const controller = new AbortController();
+    const result = outcome(
+      api.backend.createPictureBuild(PHOTO, "id", {
+        onStage: (stage) => stages.push(stage),
+        signal: controller.signal,
+      }),
+    );
+    return { ...api, stages, controller, result };
+  }
+
+  test("the quota is read with the session", async () => {
+    const api = fakeApi(() => json(PICTURE_QUOTA));
+    expect(await api.backend.getPictureQuota()).toEqual(PICTURE_QUOTA);
+    expect(requests(api.seen)).toEqual(["GET /picture-quota"]);
+    expect(headers(api.seen[0]).Authorization).toBe(`Bearer ${TOKEN}`);
+  });
+
+  test("uploads the picture and its language as a job, polls it every second and resolves with the build", async () => {
+    const build = building(
+      () => json(RUNNING),
+      () => json(PICTURE_JOB_DONE),
+    );
+    await vi.advanceTimersByTimeAsync(2 * LIMITS.picturePollMs);
+    expect(await build.result).toEqual({ value: PICTURE_BUILD });
+    expect(build.stages).toEqual(["queued", "designing"]);
+    expect(requests(build.seen)).toEqual([
+      "POST /picture-jobs",
+      "GET /picture-jobs/pjob_Q3v8tL2x",
+      "GET /picture-jobs/pjob_Q3v8tL2x",
+    ]);
+    const form = build.seen[0].init.body as FormData;
+    expect((form.get("picture") as File).name).toBe("photo.jpg");
+    expect(form.get("locale")).toBe("id");
+  });
+
+  test.each([
+    "picture_unusable",
+    "picture_refused",
+    "no_valid_build",
+    "picture_budget",
+    "timeout",
+    "unavailable",
+  ])("a job that failed with %s rejects with that reason, and isn't cancelled", async (code) => {
+    const build = building(() =>
+      json({ ...PICTURE_JOB_FAILED, error: { code, message: "Failed." } }),
+    );
+    await vi.advanceTimersByTimeAsync(LIMITS.picturePollMs);
+    expect(await build.result).toEqual({
+      reason: new PictureError(code as "timeout"),
+    });
+    expect(requests(build.seen)).not.toContain(
+      "DELETE /picture-jobs/pjob_Q3v8tL2x",
+    );
+  });
+
+  test("a job that failed with internal is network", async () => {
+    const build = building(() =>
+      json({ ...PICTURE_JOB_FAILED, error: { code: "internal", message: "" } }),
+    );
+    await vi.advanceTimersByTimeAsync(LIMITS.picturePollMs);
+    expect(await build.result).toEqual({ reason: new PictureError("network") });
+  });
+
+  test.each([
+    ["picture_limit", 429],
+    ["picture_budget", 503],
+    ["unavailable", 503],
+  ])("an upload refused with %s rejects with that reason", async (code, status) => {
+    const api = fakeApi(() => error(code, status));
+    await expect(
+      api.backend.createPictureBuild(PHOTO, "en", {}),
+    ).rejects.toEqual(new PictureError(code as "unavailable"));
+  });
+
+  test("aborting stops polling, rejects with an AbortError and deletes the job with keepalive", async () => {
+    const build = building(() => json(RUNNING));
+    await vi.advanceTimersByTimeAsync(LIMITS.picturePollMs + 100);
+    build.controller.abort();
+    const { reason } = (await build.result) as { reason: Error };
+    expect(reason.name).toBe("AbortError");
+    await vi.advanceTimersByTimeAsync(5 * LIMITS.picturePollMs);
+    expect(requests(build.seen)).toEqual([
+      "POST /picture-jobs",
+      "GET /picture-jobs/pjob_Q3v8tL2x",
+      "DELETE /picture-jobs/pjob_Q3v8tL2x",
+    ]);
+    expect(build.seen[2].init.keepalive).toBe(true);
+  });
+
+  test("a busy or unanswered poll is retried; three in a row give up as network", async () => {
+    const build = building(
+      offline,
+      () => json(RUNNING),
+      () => error("unavailable", 503),
+      offline,
+      () => new Response("<html>Bad gateway</html>", { status: 502 }),
+    );
+    await vi.advanceTimersByTimeAsync(5 * LIMITS.picturePollMs);
+    expect(await build.result).toEqual({ reason: new PictureError("network") });
+    expect(requests(build.seen).at(-1)).toBe(
+      "DELETE /picture-jobs/pjob_Q3v8tL2x",
+    );
+  });
+
+  test("a build with no ending after 10 minutes gives up as network", async () => {
+    const build = building(() => json(RUNNING));
+    await vi.advanceTimersByTimeAsync(LIMITS.pictureMs);
+    expect(await build.result).toEqual({ reason: new PictureError("network") });
+    expect(requests(build.seen).at(-1)).toBe(
+      "DELETE /picture-jobs/pjob_Q3v8tL2x",
+    );
+  });
+
+  test("builds are listed, read with a scan's check, and deleted", async () => {
+    const api = fakeApi((request) =>
+      request.method === "DELETE"
+        ? noContent()
+        : request.path === "/picture-builds"
+          ? json({ builds: [PICTURE_BUILD] })
+          : request.path.includes("scanId")
+            ? json(PICTURE_BUILD_CHECKED)
+            : error("not_found", 404),
+    );
+    expect(await api.backend.listPictureBuilds()).toEqual([PICTURE_BUILD]);
+    expect(
+      await api.backend.getPictureBuild(PICTURE_BUILD.id, {
+        scanId: "scn_4kd2p9",
+      }),
+    ).toEqual(PICTURE_BUILD_CHECKED);
+    expect(await api.backend.getPictureBuild("pic_gone", {})).toBeNull();
+    await api.backend.deletePictureBuild(PICTURE_BUILD.id);
+    expect(requests(api.seen)).toEqual([
+      "GET /picture-builds",
+      "GET /picture-builds/pic_8KfD2mQx1Zr?scanId=scn_4kd2p9",
+      "GET /picture-builds/pic_gone",
+      "DELETE /picture-builds/pic_8KfD2mQx1Zr",
+    ]);
+  });
+
+  test("without a session, picture calls reject as unauthorized", async () => {
+    const api = fakeApi(() => error("unauthorized", 401));
+    await expect(api.backend.getPictureQuota()).rejects.toBeInstanceOf(
+      UnauthorizedError,
+    );
+    await expect(api.backend.listPictureBuilds()).rejects.toBeInstanceOf(
+      UnauthorizedError,
+    );
+  });
 });

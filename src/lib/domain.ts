@@ -141,3 +141,76 @@ export type DetectionChange =
     }
   /** Puts a piece back exactly as it was, box and confidence included. Used for undo. */
   | { type: "restore"; detection: Detection };
+
+/* Picture builds (contract, "13. Picture builds", ADR-0012): a person uploads a
+ * picture and the agent designs a checked LEGO build of it from the catalogue.
+ */
+
+export const PICTURE_STAGES = [
+  "queued",
+  "designing",
+  "checking",
+  "rendering",
+] as const;
+export type PictureStage = (typeof PICTURE_STAGES)[number];
+
+/**
+ * Why a picture build failed or wasn't started, for the screen to say: the
+ * API's own codes, `unavailable` when picture builds are off or busy, and
+ * `network` when there was no usable answer or anything else went wrong.
+ */
+export const PICTURE_FAILURES = [
+  "picture_unusable",
+  "picture_refused",
+  "no_valid_build",
+  "picture_limit",
+  "picture_budget",
+  "timeout",
+  "unavailable",
+  "network",
+] as const;
+export type PictureFailure = (typeof PICTURE_FAILURES)[number];
+
+/** `cek_inventori` of a picture build's parts against one of the person's scans. */
+export type PictureCheck = {
+  scanId: string;
+  /** Parts the person owns that the build uses. */
+  used: PartCount[];
+  /** Parts the build needs that the person doesn't have. */
+  missing: PartCount[];
+};
+
+/** A checked build of an uploaded picture, kept with the account. */
+export type PictureBuild = {
+  id: string;
+  /** ISO 8601 time the build was saved. */
+  createdAt: string;
+  /** The language its title, summary and steps are written in. */
+  locale: Locale;
+  title: string;
+  summary: string;
+  steps: string[];
+  /** Every part the build needs. */
+  parts: PartCount[];
+  /** The uploaded picture, as kept. */
+  picture: Photo;
+  /** The rendered build and its LDraw model. */
+  preview: Preview;
+  /** True when a limit ended the job: the title, summary and steps are plain ones. */
+  plain?: true;
+  /** Only when asked for against a scan. */
+  check?: PictureCheck;
+};
+
+/** Whether the account can start a picture build now, and how many it has left. */
+export type PictureQuota = {
+  available: boolean;
+  /** Why not: off on this backend, the day's limit reached, or the budget spent. */
+  reason?: "off" | "limit" | "budget";
+  /** Picture builds started today (UTC). */
+  used: number;
+  /** How many a day. */
+  limit: number;
+  /** ISO 8601: the next midnight UTC, when `used` goes back to 0. */
+  resetsAt: string;
+};
