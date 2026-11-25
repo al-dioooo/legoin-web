@@ -39,7 +39,7 @@ Screens read and write data only through the data layer, `@/lib/api`, typed by `
 
 - **Backend:** `NEXT_PUBLIC_API_URL` picks it in `src/lib/api/backend.ts`. Unset, it's the mock in `src/lib/mock`. There is no HTTP client yet, so setting it stops the app with an error.
 - **Storage:** the mock keeps scans in `localStorage`, so it's browser only. Call the data layer from Client Components.
-- **Demo conditions:** add `?mock=fail-<reason>` (`no_pieces`, `too_dark`, `too_blurry`, `network`) or `?mockDelay=0` to a URL. The data layer reads them for scanning and ideas; screens never handle them.
+- **Demo conditions:** add `?mock=fail-<reason>` (`no_pieces`, `too_dark`, `too_blurry`, `network`, `timeout`) or `?mockDelay=0` to a URL. The data layer reads them for scanning and ideas; screens never handle them.
 - **Inventory logic:** grouping, corrections and the used/missing split live in `src/lib/inventory.ts`. Keep that logic there, pure and tested, not in components.
 
 ## Commits

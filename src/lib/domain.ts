@@ -43,6 +43,7 @@ export const SCAN_FAILURES = [
   "too_dark",
   "too_blurry",
   "network",
+  "timeout",
 ] as const;
 export type ScanFailure = (typeof SCAN_FAILURES)[number];
 
