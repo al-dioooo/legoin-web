@@ -14,12 +14,51 @@ export const id: Dictionary = {
   app: {
     home: "Beranda Legoin",
     history: "Riwayat",
+    account: "Masuk sebagai {email}",
+    logOut: "Keluar",
     skip: "Langsung ke konten",
     steps: {
       label: "Progres pindai",
       photo: "Foto",
       pieces: "Kepingan",
       ideas: "Ide",
+    },
+  },
+  auth: {
+    checking: "Memeriksa sesi masukmu…",
+    email: "Email",
+    password: "Kata sandi",
+    passwordHint: "Minimal 8 karakter.",
+    busy: "Sebentar…",
+    login: {
+      title: "Masuk",
+      lead: "Masuk untuk memindai kepinganmu. Hasil pindai dan idemu ikut ke perangkat mana pun tempat kamu masuk.",
+      submit: "Masuk",
+      switchPrompt: "Belum punya akun?",
+      switchLink: "Buat akun",
+      noReset:
+        "Lupa kata sandi? Belum ada cara untuk mengaturnya ulang, jadi buat akun baru.",
+    },
+    register: {
+      title: "Buat akun",
+      lead: "Akun menyimpan hasil pindai dan idemu, di perangkat mana pun tempat kamu masuk.",
+      submit: "Buat akun",
+      switchPrompt: "Sudah punya akun?",
+      switchLink: "Masuk",
+    },
+    errors: {
+      email: "Tulis email seperti nama@contoh.com.",
+      passwordShort: "Pakai minimal 8 karakter.",
+      passwordLong: "Pakai maksimal 128 karakter.",
+      passwordMissing: "Tulis kata sandimu.",
+      invalid_credentials:
+        "Email dan kata sandi itu tidak cocok dengan akun mana pun.",
+      email_taken: "Email itu sudah punya akun. Masuk saja.",
+      rate_limited:
+        "Terlalu banyak percobaan. Tunggu beberapa menit, lalu coba lagi.",
+      network:
+        "Legoin tidak bisa dihubungi. Periksa koneksimu, lalu coba lagi.",
+      generic: "Ada yang salah. Coba lagi.",
     },
   },
   footer: {
@@ -31,6 +70,10 @@ export const id: Dictionary = {
       title: "Dataset",
       body: "Detektor kepingan Legoin belajar dari dataset ini:",
       license: "Berlisensi",
+    },
+    builds: {
+      title: "Gambar rakitan",
+      body: "Ide dari templat adalah rakitan yang dibuat dan dicek dengan BrickLayer dan BrickWright, dan gambarnya dirender dari LDraw.org Parts Library.",
     },
     notes: {
       title: "Perlu diketahui",
@@ -237,6 +280,10 @@ export const id: Dictionary = {
     complete: "Cukup dengan kepinganmu",
     seeSteps: "Lihat langkah",
     again: "Coba ide lain",
+    preview: {
+      alt: "{title} yang sudah jadi",
+      model: "Unduh model 3D (.ldr)",
+    },
     none: "Belum ada ide untuk tema ini. Coba tema lain.",
     failed: {
       title: "Kami tidak bisa mengambil ide",
@@ -439,9 +486,9 @@ export const id: Dictionary = {
       difficulty: "Mudah",
       summary: "Badan merah, kap hijau, lampu kuning.",
       steps: [
-        "Pasang brick 2×4 merah di atas plate 2×4 hitam sebagai badan.",
-        "Taruh slope 2×2 hijau di depan sebagai kap mesin.",
-        "Tambahkan brick 2×2 hitam di belakang dan dua round 1×1 kuning sebagai lampu.",
+        "Pasang brick 2×4 merah di atas plate 2×4 hitam, mundur satu stud, supaya baris depan plate kelihatan.",
+        "Taruh slope 2×2 hijau di depan brick merah sebagai kap mesin, dan brick 2×2 hitam di belakangnya sebagai kabin.",
+        "Pasang dua round 1×1 kuning di baris depan plate sebagai lampu depan.",
       ],
     },
     seeSteps: "Lihat langkah",

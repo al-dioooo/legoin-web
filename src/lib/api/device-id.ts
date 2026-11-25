@@ -1,46 +1,29 @@
-/* The `Legoin-Device-Id` the API keeps each device's scans apart by: a random
- * UUID made once and kept in localStorage. It's a placeholder until the team
- * decides on accounts, not security (the API contract's open question 2).
- * Browser only.
+/* The `Legoin-Device-Id` this browser sent before accounts: a random UUID
+ * kept in localStorage. The API kept scans by it, and the first log-in or
+ * account from this browser moves them to the account (contract, "Scans from
+ * before accounts"). Nothing makes a new one. Browser only.
  */
 
 const STORAGE_KEY = "legoin.deviceId.v1";
 
-/** For when storage is blocked: one id for as long as the page lives. */
-let unsaved: string | undefined;
+/** What the API takes as `deviceId`, as the header was. */
+const DEVICE_ID = /^[A-Za-z0-9._-]{1,128}$/;
 
-/** This device's id, made on the first call and the same after that. */
-export function deviceId(): string {
+/** This browser's old device id, if it has one the API would take. */
+export function legacyDeviceId(): string | undefined {
   try {
     const kept = localStorage.getItem(STORAGE_KEY);
-    if (kept) return kept;
-    const made = newUuid();
-    localStorage.setItem(STORAGE_KEY, made);
-    return made;
+    return kept && DEVICE_ID.test(kept) ? kept : undefined;
   } catch {
-    unsaved ??= newUuid();
-    return unsaved;
+    return undefined;
   }
 }
 
-/**
- * A version 4 UUID. `crypto.randomUUID` only exists on HTTPS and localhost,
- * so a phone testing a dev server over the LAN gets one built from
- * `crypto.getRandomValues`, which works everywhere.
- */
-export function newUuid(): string {
-  if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
-  const bytes = crypto.getRandomValues(new Uint8Array(16));
-  bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
-  bytes[8] = (bytes[8] & 0x3f) | 0x80; // RFC 4122 variant
-  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0"));
-  return [
-    hex.slice(0, 4),
-    hex.slice(4, 6),
-    hex.slice(6, 8),
-    hex.slice(8, 10),
-    hex.slice(10),
-  ]
-    .map((part) => part.join(""))
-    .join("-");
+/** Once its scans have moved, the id has nothing left to do. */
+export function forgetDeviceId() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Blocked storage has no id to forget.
+  }
 }

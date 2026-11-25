@@ -47,6 +47,23 @@ export const SCAN_FAILURES = [
 ] as const;
 export type ScanFailure = (typeof SCAN_FAILURES)[number];
 
+/** Who's logged in (contract, "4. Accounts"). */
+export type Account = {
+  id: string;
+  /** As the backend keeps it: trimmed and lowercased. */
+  email: string;
+  /** ISO 8601 time the account was made. */
+  createdAt: string;
+};
+
+/** Why logging in or making an account failed, for the form to say. */
+export const AUTH_FAILURES = [
+  "invalid_credentials",
+  "email_taken",
+  "rate_limited",
+] as const;
+export type AuthFailure = (typeof AUTH_FAILURES)[number];
+
 export const THEMES = ["vehicles", "animals", "buildings", "surprise"] as const;
 export type Theme = (typeof THEMES)[number];
 
@@ -84,7 +101,18 @@ export type Idea = {
   used: PartCount[];
   /** Parts the build needs that the person doesn't have. */
   missing: PartCount[];
+  /** The checked build this idea is, from the backend's library (ADR-0010). */
+  buildId?: string;
+  /** Pictures of that build; sent with `buildId`, or neither is. */
+  preview?: Preview;
 };
+
+/**
+ * A checked build's picture and LDraw model, as URLs: an isometric 640 px
+ * square WebP on a transparent background, and an `.ldr` download. Both are
+ * public and versioned, so they load in a plain `<img>` or link.
+ */
+export type Preview = { image: string; model: string };
 
 /**
  * One answer to a request for ideas, kept with the scan. Ideas are written once,

@@ -34,6 +34,7 @@ export default async function IdeaDetailPage() {
       difficulty: ideas.difficulty,
       complete: ideas.complete,
       usesNone: ideas.usesNone,
+      preview: ideas.preview,
     },
     themes: ideas.picker.themes,
     results: { missing: results.missing },

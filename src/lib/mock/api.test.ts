@@ -1,3 +1,6 @@
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { beforeEach, expect, test } from "vitest";
 import { toInventory } from "@/lib/inventory";
 import {
@@ -12,6 +15,7 @@ import {
   resetMockData,
   updateDetections,
 } from "@/lib/mock/api";
+import { BUILD_PREVIEWS } from "@/lib/mock/builds";
 import { IDEA_TEMPLATES } from "@/lib/mock/fixtures";
 import { EVENING_PHOTO } from "@/lib/sample-scan";
 
@@ -195,6 +199,32 @@ test("a scan with no pieces fails with no_pieces and saves nothing", async () =>
   const after = await getScan("demo-desk", fast);
   expect(after?.lastTheme).toBe("animals");
   expect(after?.ideas).toBeUndefined();
+});
+
+test("every idea is a checked build, with its picture and model", async () => {
+  const ideas = await getIdeas("demo-desk", "surprise", "id", fast);
+  for (const idea of ideas) {
+    expect(idea.buildId).toBe(idea.id);
+    expect(idea.preview).toEqual(BUILD_PREVIEWS[idea.id]);
+  }
+});
+
+test("every template's build files are in public/, at URLs versioned by their hash", () => {
+  for (const { id } of IDEA_TEMPLATES) {
+    const preview = BUILD_PREVIEWS[id];
+    expect(preview, id).toBeDefined();
+    for (const url of [preview.image, preview.model]) {
+      const [path, version] = url.split("?v=");
+      expect(path).toMatch(
+        new RegExp(`^/builds/${id}/(preview\\.webp|model\\.ldr)$`),
+      );
+      // Vitest runs from the project root, where public/ is.
+      const file = readFileSync(join("public", path));
+      expect(createHash("sha256").update(file).digest("hex").slice(0, 12)).toBe(
+        version,
+      );
+    }
+  }
 });
 
 test("surprise mixes one idea from every theme", async () => {

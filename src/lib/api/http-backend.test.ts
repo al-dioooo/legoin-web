@@ -5,10 +5,10 @@
  */
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
+  ACCOUNT,
   BASE_URL,
   CORRECTED_SCAN,
   CORRECTION,
-  DEVICE_ID,
   IDEA_SET,
   IDEAS_REQUEST,
   INVALID_REQUEST,
@@ -16,11 +16,19 @@ import {
   JOB_DONE,
   JOB_FAILED,
   JOB_RUNNING,
+  REGISTER_REQUEST,
   SCAN_LIST,
   SCAN_NOT_FOUND,
+  SESSION,
   STORED_IDEA,
+  TOKEN,
 } from "@/lib/api/contract-examples";
-import { ApiError, NotFoundError } from "@/lib/api/error";
+import {
+  ApiError,
+  AuthError,
+  NotFoundError,
+  UnauthorizedError,
+} from "@/lib/api/error";
 import { httpBackend, LIMITS } from "@/lib/api/http-backend";
 import { SCAN_FAILURES, type ScanStage } from "@/lib/domain";
 
@@ -61,7 +69,7 @@ function fakeApi(answer: Answer) {
   });
   const backend = httpBackend(BASE_URL, {
     fetch: fetch as typeof globalThis.fetch,
-    deviceId: () => DEVICE_ID,
+    token: () => TOKEN,
   });
   return { backend, seen, fetch };
 }
@@ -89,6 +97,90 @@ const PHOTO = {
   width: 1200,
   height: 800,
 };
+
+describe("accounts", () => {
+  test("register posts the credentials with no token and resolves with the session", async () => {
+    const api = fakeApi(() => json(SESSION, 201));
+    expect(await api.backend.register(REGISTER_REQUEST)).toEqual(SESSION);
+    expect(requests(api.seen)).toEqual(["POST /auth/register"]);
+    expect(JSON.parse(String(api.seen[0].init.body))).toEqual(REGISTER_REQUEST);
+    expect(headers(api.seen[0])).toEqual({
+      "Content-Type": "application/json",
+    });
+  });
+
+  test("logIn leaves deviceId out when there's none, and rejects the log-in codes as AuthErrors", async () => {
+    const api = fakeApi(
+      inTurn(
+        () => json(SESSION),
+        () => error("invalid_credentials", 401),
+        () => error("rate_limited", 429),
+        () => error("email_taken", 409),
+      ),
+    );
+    const credentials = { email: "ana@example.com", password: "baseplate-2x4" };
+    expect(await api.backend.logIn(credentials)).toEqual(SESSION);
+    expect(JSON.parse(String(api.seen[0].init.body))).toEqual(credentials);
+    await expect(api.backend.logIn(credentials)).rejects.toEqual(
+      new AuthError("invalid_credentials"),
+    );
+    await expect(api.backend.logIn(credentials)).rejects.toEqual(
+      new AuthError("rate_limited"),
+    );
+    await expect(api.backend.register(credentials)).rejects.toEqual(
+      new AuthError("email_taken"),
+    );
+    expect(requests(api.seen).at(-1)).toBe("POST /auth/register");
+  });
+
+  test("an answer that isn't a session is network", async () => {
+    const api = fakeApi(() => json({ token: TOKEN }, 201));
+    await expect(api.backend.register(REGISTER_REQUEST)).rejects.toEqual(
+      new ApiError("network"),
+    );
+  });
+
+  test("logOut posts the token, and sends nothing without one", async () => {
+    const api = fakeApi(() => noContent());
+    await api.backend.logOut();
+    expect(requests(api.seen)).toEqual(["POST /auth/logout"]);
+    expect(headers(api.seen[0])).toEqual({ Authorization: `Bearer ${TOKEN}` });
+
+    const fetch = vi.fn();
+    await httpBackend(BASE_URL, { fetch, token: () => undefined }).logOut();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  test("getAccount reads /auth/me, and a 401 is an UnauthorizedError", async () => {
+    const api = fakeApi(
+      inTurn(
+        () => json(ACCOUNT),
+        () => error("unauthorized", 401),
+      ),
+    );
+    expect(await api.backend.getAccount()).toEqual(ACCOUNT);
+    expect(requests(api.seen)).toEqual(["GET /auth/me"]);
+    await expect(api.backend.getAccount()).rejects.toBeInstanceOf(
+      UnauthorizedError,
+    );
+  });
+
+  test("any route answering 401 rejects with an UnauthorizedError, and without a session no token is sent", async () => {
+    const seen: RequestInit[] = [];
+    const backend = httpBackend(BASE_URL, {
+      fetch: (async (_input: RequestInfo | URL, init: RequestInit = {}) => {
+        seen.push(init);
+        return new Response(null, { status: 401 });
+      }) as typeof fetch,
+      token: () => undefined,
+    });
+    await expect(backend.listScans()).rejects.toBeInstanceOf(UnauthorizedError);
+    await expect(backend.getScan("scn_4kd2p9")).rejects.toBeInstanceOf(
+      UnauthorizedError,
+    );
+    expect(seen.map((init) => init.headers)).toEqual([{}, {}]);
+  });
+});
 
 describe("scanning a photo", () => {
   beforeEach(() => {
@@ -133,7 +225,7 @@ describe("scanning a photo", () => {
       "GET /scan-jobs/job_8c1f2e",
     ]);
     for (const request of scan.seen) {
-      expect(headers(request)["Legoin-Device-Id"]).toBe(DEVICE_ID);
+      expect(headers(request).Authorization).toBe(`Bearer ${TOKEN}`);
     }
 
     // The photo goes as a multipart part named `photo`; fetch sets the type.
@@ -147,7 +239,7 @@ describe("scanning a photo", () => {
     ]);
   });
 
-  test("the sample photo is fetched from the site, without the device id, and uploaded", async () => {
+  test("the sample photo is fetched from the site, without the token, and uploaded", async () => {
     const jpeg = new Uint8Array([0xff, 0xd8, 0xff]);
     const api = fakeApi((request) =>
       request.path === "/contoh/kepingan-2.jpg"
@@ -213,7 +305,7 @@ describe("scanning a photo", () => {
     ]);
     const cancel = scan.seen[2];
     expect(cancel.init.keepalive).toBe(true);
-    expect(headers(cancel)["Legoin-Device-Id"]).toBe(DEVICE_ID);
+    expect(headers(cancel).Authorization).toBe(`Bearer ${TOKEN}`);
   });
 
   test("aborting during the upload rejects at once, with no job to delete", async () => {
@@ -281,7 +373,7 @@ describe("scans", () => {
       "GET /scans/scn_4kd2p9",
       "GET /scans/scn_4kd2p9",
     ]);
-    expect(headers(api.seen[0])).toEqual({ "Legoin-Device-Id": DEVICE_ID });
+    expect(headers(api.seen[0])).toEqual({ Authorization: `Bearer ${TOKEN}` });
   });
 
   test("listScans unwraps { scans }, newest first as the API sends them", async () => {
@@ -434,7 +526,7 @@ test("the base URL may end in a slash, and ids are sent as path segments", async
       seen.push(String(input));
       return json(SCAN_NOT_FOUND, 404);
     }) as typeof fetch,
-    deviceId: () => DEVICE_ID,
+    token: () => TOKEN,
   });
   await backend.getScan("scn 1/2");
   expect(seen).toEqual([`${BASE_URL}/scans/scn%201%2F2`]);

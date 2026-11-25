@@ -1,0 +1,10 @@
+0 Go-kart
+0 Name: go-kart.ldr
+0 Author: Legoin, built with BrickLayer
+0 // Parts: the LDraw parts library, CC BY 4.0, https://library.ldraw.org
+0 // LEGO is a trademark of the LEGO Group, which does not sponsor, authorize or
+0 // endorse this file.
+1 0 20 -8 40 0 0 -1 0 1 0 1 0 0 3020.dat
+1 25 20 -32 10 1 0 0 0 1 0 0 0 1 3004.dat
+1 1 20 -32 50 0 0 -1 0 1 0 1 0 0 3002.dat
+1 14 30 -56 10 1 0 0 0 1 0 0 0 1 3062b.dat

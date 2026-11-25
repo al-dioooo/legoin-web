@@ -1,0 +1,12 @@
+0 Little house
+0 Name: little-house.ldr
+0 Author: Legoin, built with BrickLayer
+0 // Parts: the LDraw parts library, CC BY 4.0, https://library.ldraw.org
+0 // LEGO is a trademark of the LEGO Group, which does not sponsor, authorize or
+0 // endorse this file.
+1 2 20 -8 40 0 0 -1 0 1 0 1 0 0 3020.dat
+1 15 20 -32 60 0 0 -1 0 1 0 1 0 0 3001.dat
+1 15 20 -56 60 0 0 -1 0 1 0 1 0 0 3001.dat
+1 4 20 -80 50 1 0 0 0 1 0 0 0 1 3039.dat
+1 4 20 -80 70 -1 0 0 0 1 0 0 0 -1 3039.dat
+1 71 20 -16 10 1 0 0 0 1 0 0 0 1 3069b.dat

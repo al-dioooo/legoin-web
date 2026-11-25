@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
+import { BuildPreview } from "@/components/ideas/build-preview";
 import { Odometer } from "@/components/motion/odometer";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonStyles } from "@/components/ui/button";
@@ -20,7 +21,10 @@ import { type Idea, isTheme, type StoredIdea, type Theme } from "@/lib/domain";
 
 type Copy = {
   ideaDetail: Dictionary["ideaDetail"];
-  ideas: Pick<Dictionary["ideas"], "difficulty" | "complete" | "usesNone">;
+  ideas: Pick<
+    Dictionary["ideas"],
+    "difficulty" | "complete" | "usesNone" | "preview"
+  >;
   themes: Dictionary["ideas"]["picker"]["themes"];
   results: Pick<Dictionary["results"], "missing">;
   common: Pick<
@@ -260,6 +264,27 @@ export function IdeaDetail({ copy, locale }: { copy: Copy; locale: Locale }) {
           right on desktop, dropped a few studs like a booklet's parts callout.
           It stays clear of the steps, so it never covers their checkboxes. */}
       <aside className="assemble space-y-stud lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1 lg:pt-[calc(var(--stud)*4)]">
+        {/* A checked build shows what it makes before what it takes, like a
+            booklet's cover, with its LDraw model to open in a 3D app. */}
+        {idea.preview && (
+          <div>
+            <BuildPreview
+              preview={idea.preview}
+              alt={fill(copy.ideas.preview.alt, { title: idea.title })}
+              size="page"
+            />
+            <a
+              href={idea.preview.model}
+              download={`${idea.buildId ?? idea.id}.ldr`}
+              className={cx(
+                buttonStyles({ variant: "secondary", size: "sm" }),
+                "mt-3",
+              )}
+            >
+              {copy.ideas.preview.model}
+            </a>
+          </div>
+        )}
         {idea.used.length > 0 ? (
           <PartCallout
             title={copy.common.partsUsed}

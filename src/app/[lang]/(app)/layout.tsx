@@ -3,15 +3,18 @@ import { Suspense } from "react";
 import { MAIN_ID } from "@/components/app/skip-link";
 import { StepNumeral } from "@/components/app/step-numeral";
 import { StepProgress } from "@/components/app/step-progress";
+import { AccountMenu } from "@/components/auth/account-menu";
+import { RequireAccount } from "@/components/auth/require-account";
 import { Logo } from "@/components/brand/logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { buttonStyles } from "@/components/ui/button";
 import { currentLocale, getDictionary } from "@/i18n/dictionaries";
 
 /**
- * Shell for the scan flow and history: the logo, step progress, history and
- * language on top, and the step numeral behind the page. The baseplate under
- * it all comes from the root layout.
+ * Shell for the scan flow and history: the logo, step progress, history, the
+ * account and language on top, and the step numeral behind the page. Every
+ * page here needs a log-in (ADR-0011). The baseplate under it all comes from
+ * the root layout.
  */
 export default async function AppLayout({ children }: LayoutProps<"/[lang]">) {
   const locale = await currentLocale();
@@ -46,6 +49,9 @@ export default async function AppLayout({ children }: LayoutProps<"/[lang]">) {
           >
             {dict.app.history}
           </Link>
+          <AccountMenu
+            copy={{ account: dict.app.account, logOut: dict.app.logOut }}
+          />
           <Suspense fallback={<div className="h-[3.25rem] w-28" />}>
             <LanguageSwitcher
               current={locale}
@@ -63,7 +69,9 @@ export default async function AppLayout({ children }: LayoutProps<"/[lang]">) {
         <Suspense>
           <StepNumeral />
         </Suspense>
-        {children}
+        <RequireAccount locale={locale} checking={dict.auth.checking}>
+          {children}
+        </RequireAccount>
       </main>
     </>
   );

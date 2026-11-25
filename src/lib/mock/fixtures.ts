@@ -377,6 +377,11 @@ export type IdeaTemplate = {
   requires: PartCount[];
 };
 
+/**
+ * The 18 idea templates, the same as legoin-api's `TEMPLATES`: each is a
+ * checked build in its `builds/` library (ADR-0010), with the build's id, text
+ * and parts. Change them there first, then copy them here.
+ */
 export const IDEA_TEMPLATES: IdeaTemplate[] = [
   {
     id: "race-car",
@@ -389,14 +394,14 @@ export const IDEA_TEMPLATES: IdeaTemplate[] = [
     },
     steps: {
       en: [
-        "Put the red 2×4 brick on a black 2×4 plate as the body.",
-        "Add the green 2×2 slope at the front as the hood.",
-        "Add the black 2×2 brick at the back and two yellow 1×1 rounds as lights.",
+        "Put the red 2×4 brick on the black 2×4 plate, one stud back, so the plate's front row shows.",
+        "Add the green 2×2 slope on the front of the red brick as the hood, and the black 2×2 brick behind it as the cab.",
+        "Put the two yellow 1×1 rounds on the plate's front row as headlights.",
       ],
       id: [
-        "Pasang brick 2×4 merah di atas plate 2×4 hitam sebagai badan.",
-        "Taruh slope 2×2 hijau di depan sebagai kap mesin.",
-        "Tambahkan brick 2×2 hitam di belakang dan dua round 1×1 kuning sebagai lampu.",
+        "Pasang brick 2×4 merah di atas plate 2×4 hitam, mundur satu stud, supaya baris depan plate kelihatan.",
+        "Taruh slope 2×2 hijau di depan brick merah sebagai kap mesin, dan brick 2×2 hitam di belakangnya sebagai kabin.",
+        "Pasang dua round 1×1 kuning di baris depan plate sebagai lampu depan.",
       ],
     },
     requires: [
@@ -418,21 +423,22 @@ export const IDEA_TEMPLATES: IdeaTemplate[] = [
     },
     steps: {
       en: [
-        "Lay the black 2×4 plate as the chassis.",
-        "Stack two white 2×4 bricks at the back as the cargo box.",
-        "Put the blue 2×3 brick at the front as the cab and four black rounds underneath as wheels.",
+        "Lay the black 2×4 plate and the black 2×2 plate end to end as the chassis.",
+        "Put the blue 2×2 brick on the front as the cab, then stack two white 2×4 bricks behind it, across both plates, as the cargo box.",
+        "Turn it over and press four black 1×1 rounds under the front and the back as wheels.",
       ],
       id: [
-        "Letakkan plate 2×4 hitam sebagai sasis.",
-        "Tumpuk dua brick 2×4 putih di belakang sebagai bak.",
-        "Pasang brick 2×3 biru di depan sebagai kabin dan empat round hitam di bawah sebagai roda.",
+        "Letakkan plate 2×4 hitam dan plate 2×2 hitam berjajar sebagai sasis.",
+        "Pasang brick 2×2 biru di depan sebagai kabin, lalu tumpuk dua brick 2×4 putih di belakangnya, menyambung kedua plate, sebagai bak.",
+        "Balik truknya, lalu pasang empat round 1×1 hitam di bawah bagian depan dan belakang sebagai roda.",
       ],
     },
     requires: [
-      { part: "plate-2x4", color: "black", quantity: 1 },
-      { part: "brick-2x4", color: "white", quantity: 2 },
-      { part: "brick-2x3", color: "blue", quantity: 1 },
       { part: "round-1x1", color: "black", quantity: 4 },
+      { part: "brick-2x4", color: "white", quantity: 2 },
+      { part: "brick-2x2", color: "blue", quantity: 1 },
+      { part: "plate-2x2", color: "black", quantity: 1 },
+      { part: "plate-2x4", color: "black", quantity: 1 },
     ],
   },
   {
@@ -503,12 +509,12 @@ export const IDEA_TEMPLATES: IdeaTemplate[] = [
       en: [
         "Lay the green 2×4 brick down as the body.",
         "Put the white 2×2 brick at the back as the cab.",
-        "Add four black 1×1 bricks at the corners as wheels.",
+        "Press four black 1×1 bricks under its corners as wheels.",
       ],
       id: [
         "Letakkan brick 2×4 hijau sebagai badan.",
         "Pasang brick 2×2 putih di belakang sebagai kabin.",
-        "Tambahkan empat brick 1×1 hitam di sudut sebagai roda.",
+        "Pasang empat brick 1×1 hitam di bawah keempat sudutnya sebagai roda.",
       ],
     },
     requires: [
@@ -529,12 +535,12 @@ export const IDEA_TEMPLATES: IdeaTemplate[] = [
     steps: {
       en: [
         "Stack three white 2×2 bricks as the body.",
-        "Put two red 1×2 bricks at the bottom as fins.",
+        "Press the two red 1×2 bricks under the body at opposite corners, each sticking out one stud to the side, as fins.",
         "Top it with the red 2×2 slope as the nose.",
       ],
       id: [
         "Tumpuk tiga brick 2×2 putih sebagai badan.",
-        "Pasang dua brick 1×2 merah di bawah sebagai sirip.",
+        "Pasang dua brick 1×2 merah di bawah badan, di sudut yang berseberangan, masing-masing menjorok satu stud ke samping, sebagai sirip.",
         "Tutup dengan slope 2×2 merah sebagai hidung roket.",
       ],
     },
@@ -556,19 +562,20 @@ export const IDEA_TEMPLATES: IdeaTemplate[] = [
     steps: {
       en: [
         "Use the yellow 2×4 brick as the body.",
-        "Stack the yellow 2×2 brick at one end as the head.",
-        "Add the orange 1×2 brick at the front of the head as the beak.",
+        "Put the orange 2×2 plate on its front end, sticking out one stud, as the beak, and the yellow 1×2 plate right behind it.",
+        "Put the yellow 2×2 brick on the back of the beak and the yellow plate as the head.",
       ],
       id: [
         "Pakai brick 2×4 kuning sebagai badan.",
-        "Tumpuk brick 2×2 kuning di salah satu ujung sebagai kepala.",
-        "Pasang brick 1×2 oranye di depan kepala sebagai paruh.",
+        "Pasang plate 2×2 oranye di ujung depan, menjorok satu stud, sebagai paruh, lalu plate 1×2 kuning tepat di belakangnya.",
+        "Pasang brick 2×2 kuning di atas bagian belakang paruh dan plate kuning sebagai kepala.",
       ],
     },
     requires: [
-      { part: "brick-2x4", color: "yellow", quantity: 1 },
       { part: "brick-2x2", color: "yellow", quantity: 1 },
-      { part: "brick-1x2", color: "orange", quantity: 1 },
+      { part: "brick-2x4", color: "yellow", quantity: 1 },
+      { part: "plate-1x2", color: "yellow", quantity: 1 },
+      { part: "plate-2x2", color: "orange", quantity: 1 },
     ],
   },
   {
@@ -609,20 +616,21 @@ export const IDEA_TEMPLATES: IdeaTemplate[] = [
     },
     steps: {
       en: [
-        "Start with an orange 2×2 plate as the feet.",
-        "Stack two black 2×2 bricks on top as the body.",
-        "Add the white 1×1 brick on the front as the belly and the yellow round as the beak.",
+        "Start with the orange 2×2 plate as the feet.",
+        "Put the white 1×2 brick on its front row as the belly, and the black 1×2 brick behind it as the back.",
+        "Put the black 2×2 brick on the black brick, sticking out one stud at the back, as the head, and the yellow 1×1 round on the belly in front of it as the beak.",
       ],
       id: [
         "Mulai dengan plate 2×2 oranye sebagai kaki.",
-        "Tumpuk dua brick 2×2 hitam di atasnya sebagai badan.",
-        "Pasang brick 1×1 putih di depan sebagai perut dan round kuning sebagai paruh.",
+        "Pasang brick 1×2 putih di baris depannya sebagai perut, lalu brick 1×2 hitam di belakangnya sebagai punggung.",
+        "Pasang brick 2×2 hitam di atas brick hitam, menjorok satu stud ke belakang, sebagai kepala, lalu round 1×1 kuning di atas perut, di depan kepala, sebagai paruh.",
       ],
     },
     requires: [
+      { part: "brick-1x2", color: "black", quantity: 1 },
+      { part: "brick-1x2", color: "white", quantity: 1 },
+      { part: "brick-2x2", color: "black", quantity: 1 },
       { part: "plate-2x2", color: "orange", quantity: 1 },
-      { part: "brick-2x2", color: "black", quantity: 2 },
-      { part: "brick-1x1", color: "white", quantity: 1 },
       { part: "round-1x1", color: "yellow", quantity: 1 },
     ],
   },
@@ -665,13 +673,13 @@ export const IDEA_TEMPLATES: IdeaTemplate[] = [
     steps: {
       en: [
         "Use the red 2×4 brick as the body.",
-        "Put a red 1×2 brick on each side as claws.",
-        "Add two black rounds on top as eyes.",
+        "Put a red 1×2 brick on each front corner, sticking out one stud to the side, as claws.",
+        "Add the two black 1×1 rounds between the claws as eyes.",
       ],
       id: [
         "Pakai brick 2×4 merah sebagai badan.",
-        "Pasang brick 1×2 merah di tiap sisi sebagai capit.",
-        "Tambahkan dua round hitam di atas sebagai mata.",
+        "Pasang brick 1×2 merah di tiap sudut depan, menjorok satu stud ke samping, sebagai capit.",
+        "Tambahkan dua round 1×1 hitam di antara capit sebagai mata.",
       ],
     },
     requires: [
@@ -692,13 +700,13 @@ export const IDEA_TEMPLATES: IdeaTemplate[] = [
     steps: {
       en: [
         "Stand the brown 2×4 brick on four brown 1×1 bricks as the body and legs.",
-        "Add the brown 2×2 brick at the front as the head, with a black round as the nose.",
-        "Hang two black 1×2 plates on the head as ears.",
+        "Add the brown 2×2 brick on the front, sticking out one stud, as the head.",
+        "Put the black 1×1 round on the front of the head as the nose, and the two black 1×2 plates on its back row, sticking out to the sides, as ears.",
       ],
       id: [
         "Berdirikan brick 2×4 cokelat di atas empat brick 1×1 cokelat sebagai badan dan kaki.",
-        "Tambahkan brick 2×2 cokelat di depan sebagai kepala, dengan round hitam sebagai hidung.",
-        "Pasang dua plate 1×2 hitam di kepala sebagai telinga.",
+        "Pasang brick 2×2 cokelat di bagian depan, menjorok satu stud, sebagai kepala.",
+        "Taruh round 1×1 hitam di depan kepala sebagai hidung, lalu dua plate 1×2 hitam di baris belakangnya, menjorok ke samping, sebagai telinga.",
       ],
     },
     requires: [
@@ -720,19 +728,22 @@ export const IDEA_TEMPLATES: IdeaTemplate[] = [
     },
     steps: {
       en: [
-        "Stack two white 2×4 bricks as the walls.",
-        "Put two red 2×2 slopes on top as the roof.",
-        "Add a light gray 1×2 tile in front as the door step.",
+        "Lay the green 2×4 plate down as the lawn.",
+        "Stack two white 2×4 bricks on it, one stud back, as the walls.",
+        "Put two red 2×2 slopes on top, back to back, as the roof.",
+        "Add the light gray 1×2 tile on the lawn's front row as the door step.",
       ],
       id: [
-        "Tumpuk dua brick 2×4 putih sebagai dinding.",
-        "Pasang dua slope 2×2 merah di atasnya sebagai atap.",
-        "Tambahkan tile 1×2 abu-abu terang di depan sebagai anak tangga.",
+        "Letakkan plate 2×4 hijau sebagai halaman.",
+        "Tumpuk dua brick 2×4 putih di atasnya, mundur satu stud, sebagai dinding.",
+        "Pasang dua slope 2×2 merah di atasnya, saling membelakangi, sebagai atap.",
+        "Tambahkan tile 1×2 abu-abu terang di baris depan halaman sebagai anak tangga.",
       ],
     },
     requires: [
       { part: "brick-2x4", color: "white", quantity: 2 },
       { part: "slope-2x2", color: "red", quantity: 2 },
+      { part: "plate-2x4", color: "green", quantity: 1 },
       { part: "tile-1x2", color: "light-gray", quantity: 1 },
     ],
   },
@@ -775,20 +786,20 @@ export const IDEA_TEMPLATES: IdeaTemplate[] = [
     },
     steps: {
       en: [
-        "Build two pillars from brown 1×3 bricks, a gap apart.",
+        "Build two pillars, each of two brown 1×2 bricks stacked, two studs apart.",
         "Lay the black 2×4 plate across them as the deck.",
-        "Add light gray 1×2 tiles on top for a smooth road.",
+        "Cover the middle of the deck with the two light gray 1×2 tiles as the road.",
       ],
       id: [
-        "Buat dua tiang dari brick 1×3 cokelat, beri jarak di antaranya.",
-        "Letakkan plate 2×4 hitam melintang di atasnya sebagai lantai.",
-        "Tambahkan tile 1×2 abu-abu terang di atas sebagai jalan yang mulus.",
+        "Buat dua tiang, masing-masing dari dua brick 1×2 cokelat yang ditumpuk, berjarak dua stud.",
+        "Letakkan plate 2×4 hitam melintang di atasnya sebagai lantai jembatan.",
+        "Tutup bagian tengah lantai dengan dua tile 1×2 abu-abu terang sebagai jalan.",
       ],
     },
     requires: [
-      { part: "brick-1x3", color: "brown", quantity: 2 },
-      { part: "plate-2x4", color: "black", quantity: 1 },
+      { part: "brick-1x2", color: "brown", quantity: 4 },
       { part: "tile-1x2", color: "light-gray", quantity: 2 },
+      { part: "plate-2x4", color: "black", quantity: 1 },
     ],
   },
   {
@@ -802,20 +813,23 @@ export const IDEA_TEMPLATES: IdeaTemplate[] = [
     },
     steps: {
       en: [
-        "Stand the brown and white 1×3 bricks a little apart as posts.",
-        "Lay the black 2×4 plate on top as the roof.",
-        "Put the light gray 1×2 tile between the posts as a bench.",
+        "Lay the dark gray 2×4 plate down as the pavement.",
+        "Stack two white 1×1 bricks on each back corner as the posts.",
+        "Put the brown 1×2 brick in front, between the posts, with the light gray 1×2 tile on top, as a bench.",
+        "Lay the black 2×4 plate on the posts as the roof.",
       ],
       id: [
-        "Berdirikan brick 1×3 cokelat dan putih agak berjauhan sebagai tiang.",
-        "Letakkan plate 2×4 hitam di atasnya sebagai atap.",
-        "Taruh tile 1×2 abu-abu terang di antara tiang sebagai bangku.",
+        "Letakkan plate 2×4 abu-abu gelap sebagai trotoar.",
+        "Tumpuk dua brick 1×1 putih di tiap sudut belakang sebagai tiang.",
+        "Pasang brick 1×2 cokelat di depan, di antara tiang, dengan tile 1×2 abu-abu terang di atasnya, sebagai bangku.",
+        "Letakkan plate 2×4 hitam di atas tiang sebagai atap.",
       ],
     },
     requires: [
-      { part: "brick-1x3", color: "brown", quantity: 1 },
-      { part: "brick-1x3", color: "white", quantity: 1 },
+      { part: "brick-1x1", color: "white", quantity: 4 },
+      { part: "brick-1x2", color: "brown", quantity: 1 },
       { part: "plate-2x4", color: "black", quantity: 1 },
+      { part: "plate-2x4", color: "dark-gray", quantity: 1 },
       { part: "tile-1x2", color: "light-gray", quantity: 1 },
     ],
   },
@@ -825,25 +839,26 @@ export const IDEA_TEMPLATES: IdeaTemplate[] = [
     difficulty: "medium",
     title: { en: "Windmill", id: "Kincir angin" },
     summary: {
-      en: "A white tower, a red roof and crossed sails.",
-      id: "Menara putih, atap merah, dan baling-baling bersilang.",
+      en: "A white tower, a red roof and sails.",
+      id: "Menara putih, atap merah, dan baling-baling.",
     },
     steps: {
       en: [
         "Stack three white 2×2 bricks as the tower.",
+        "Put the two brown 1×2 plates along the front of the top, each sticking out one stud to its side, as sails, and the white 1×2 plate behind them.",
         "Top it with the red 2×2 slope as the roof.",
-        "Cross two brown 1×2 plates on the front as sails.",
       ],
       id: [
         "Tumpuk tiga brick 2×2 putih sebagai menara.",
+        "Pasang dua plate 1×2 cokelat berjajar di sisi depan atasnya, masing-masing menjorok satu stud ke samping, sebagai baling-baling, lalu plate 1×2 putih di belakangnya.",
         "Tutup dengan slope 2×2 merah sebagai atap.",
-        "Silangkan dua plate 1×2 cokelat di depan sebagai baling-baling.",
       ],
     },
     requires: [
       { part: "brick-2x2", color: "white", quantity: 3 },
-      { part: "slope-2x2", color: "red", quantity: 1 },
       { part: "plate-1x2", color: "brown", quantity: 2 },
+      { part: "plate-1x2", color: "white", quantity: 1 },
+      { part: "slope-2x2", color: "red", quantity: 1 },
     ],
   },
   {

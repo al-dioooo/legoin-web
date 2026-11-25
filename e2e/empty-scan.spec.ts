@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { copyFor } from "./support";
+import { copyFor, signUp } from "./support";
 
 const copy = copyFor("en");
 
 test("removing every piece leaves an empty state and no way to ideas", async ({
   page,
 }) => {
+  await signUp(page);
   // The one-piece demo scan.
   await page.goto("/en/scan/demo-single?mockDelay=0");
   const inventory = page.getByRole("region", { name: copy.common.inventory });

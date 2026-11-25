@@ -2,7 +2,8 @@
  * contract, api/contract.md in al-dioooo/legoin-docs
  * (https://github.com/al-dioooo/legoin-docs/blob/main/api/contract.md), where
  * it can, with the same async shape. It keeps scans in localStorage so history
- * and corrections survive reloads, and can fake slowness and failures.
+ * and corrections survive reloads, one list per account, and can fake slowness
+ * and failures.
  * Browser only: call it from Client Components.
  *
  * Until real detection exists, a demo photo gets its demo scan's detections and
@@ -28,6 +29,7 @@ import {
   sameInventory,
   toInventory,
 } from "@/lib/inventory";
+import { BUILD_PREVIEWS } from "@/lib/mock/builds";
 import {
   DEMO_SCANS,
   detectionsForPhoto,
@@ -42,6 +44,8 @@ export type MockOptions = {
   delayMs?: number;
   /** Make the call fail with this reason. */
   fail?: ScanFailure;
+  /** Whose scans: each account has its own, and starts with the demo scans. */
+  account?: string;
 };
 
 /** A failed call, with the reason the screens turn into a message. */
@@ -86,16 +90,19 @@ const wait = (ms: number) =>
 const newId = () =>
   `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 
-function load(): Scan[] {
-  const stored = localStorage.getItem(STORAGE_KEY);
+const storageKey = (account?: string) =>
+  account ? `${STORAGE_KEY}.${account}` : STORAGE_KEY;
+
+function load(account?: string): Scan[] {
+  const stored = localStorage.getItem(storageKey(account));
   if (stored) return JSON.parse(stored) as Scan[];
   const seeded = structuredClone(DEMO_SCANS);
-  save(seeded);
+  save(seeded, account);
   return seeded;
 }
 
-function save(scans: Scan[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(scans));
+function save(scans: Scan[], account?: string) {
+  localStorage.setItem(storageKey(account), JSON.stringify(scans));
 }
 
 async function respond<T>(
@@ -108,8 +115,8 @@ async function respond<T>(
 }
 
 /** Back to the demo scans only. For tests and demos. */
-export function resetMockData() {
-  localStorage.removeItem(STORAGE_KEY);
+export function resetMockData(account?: string) {
+  localStorage.removeItem(storageKey(account));
 }
 
 /**
@@ -121,6 +128,7 @@ export async function createScan(
   {
     delayMs = 900,
     fail,
+    account,
     onStage,
     signal,
   }: MockOptions & {
@@ -147,18 +155,23 @@ export async function createScan(
       id: newId(),
     })),
   };
-  save([scan, ...load()]);
+  save([scan, ...load(account)], account);
   return scan;
 }
 
 export function getScan(id: string, options: MockOptions = {}) {
-  return respond(options, () => load().find((scan) => scan.id === id) ?? null);
+  return respond(
+    options,
+    () => load(options.account).find((scan) => scan.id === id) ?? null,
+  );
 }
 
 /** Newest first. */
 export function listScans(options: MockOptions = {}) {
   return respond(options, () =>
-    [...load()].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    [...load(options.account)].sort((a, b) =>
+      b.createdAt.localeCompare(a.createdAt),
+    ),
   );
 }
 
@@ -175,24 +188,33 @@ export function updateDetections(
   options: MockOptions = {},
 ) {
   return respond(options, () => {
-    const scans = load();
+    const scans = load(options.account);
     const scan = scans.find((candidate) => candidate.id === id);
     if (!scan) throw new MockNotFoundError(id);
     const before = scan.detections;
     scan.detections = applyChanges(before, changes, newId);
     if (!sameInventory(before, scan.detections)) delete scan.ideas;
-    save(scans);
+    save(scans, options.account);
     return scan;
   });
 }
 
 export function deleteScan(id: string, options: MockOptions = {}) {
   return respond(options, () => {
-    save(load().filter((scan) => scan.id !== id));
+    save(
+      load(options.account).filter((scan) => scan.id !== id),
+      options.account,
+    );
   });
 }
 
 const IDEAS_PER_REQUEST = 3;
+
+/** A template's checked build, as the API sends it: `buildId` and `preview` together, or neither. */
+function buildOf(id: string): Pick<Idea, "buildId" | "preview"> {
+  const preview = BUILD_PREVIEWS[id];
+  return preview ? { buildId: id, preview } : {};
+}
 
 /** Ideas not shown yet first, in template order; then shown ones, longest ago first. */
 function freshFirst(templates: IdeaTemplate[], exclude: readonly string[]) {
@@ -222,7 +244,7 @@ export function getIdeas(
   }: MockOptions & { exclude?: readonly string[] } = {},
 ): Promise<Idea[]> {
   return respond({ delayMs: 1200, ...options }, () => {
-    const scans = load();
+    const scans = load(options.account);
     const scan = scans.find((candidate) => candidate.id === scanId);
     if (!scan) throw new MockNotFoundError(scanId);
 
@@ -251,11 +273,12 @@ export function getIdeas(
         summary: template.summary[locale],
         steps: template.steps[locale],
         ...checkInventory(template.requires, inventory),
+        ...buildOf(template.id),
       }));
 
     scan.lastTheme = theme;
     scan.ideas = { theme, locale, items: ideas };
-    save(scans);
+    save(scans, options.account);
     return ideas;
   });
 }
@@ -271,7 +294,7 @@ export function getIdea(
   options: MockOptions = {},
 ): Promise<StoredIdea | null> {
   return respond(options, () => {
-    const set = load().find((scan) => scan.id === scanId)?.ideas;
+    const set = load(options.account).find((scan) => scan.id === scanId)?.ideas;
     const idea = set?.items.find((item) => item.id === ideaId);
     return set && idea ? { idea, set } : null;
   });

@@ -4,7 +4,13 @@ import { IdeaDetail } from "@/components/ideas/idea-detail";
 import { IdeasScreen } from "@/components/ideas/ideas-screen";
 import { en } from "@/i18n/dictionaries/en";
 import { id } from "@/i18n/dictionaries/id";
-import { getIdea, getIdeas, getScan, updateDetections } from "@/lib/api";
+import {
+  getIdea,
+  getIdeas,
+  getScan,
+  register,
+  updateDetections,
+} from "@/lib/api";
 
 const route = vi.hoisted(() => ({
   id: "demo-evening",
@@ -28,6 +34,7 @@ const copyFor = (dict: typeof en) => ({
     difficulty: dict.ideas.difficulty,
     complete: dict.ideas.complete,
     usesNone: dict.ideas.usesNone,
+    preview: dict.ideas.preview,
   },
   themes: dict.ideas.picker.themes,
   results: { missing: dict.results.missing },
@@ -64,9 +71,11 @@ async function askForIdeas(locale: "en" | "id" = "en") {
 const href = (name: RegExp | string) =>
   screen.getByRole("link", { name }).getAttribute("href");
 
-beforeEach(() => {
-  // The mock keeps scans in localStorage; empty, it starts from the demo scans.
+beforeEach(async () => {
+  // The mock keeps each account's scans in localStorage, and a new account
+  // starts from the demo scans.
   localStorage.clear();
+  await register("test@example.com", "baseplate-2x4");
   route.id = "demo-evening";
 });
 
@@ -103,8 +112,25 @@ test("shows the idea's parts, what's missing and numbered steps", async () => {
   expect(items).toHaveLength(3);
   expect(items[0].textContent).toContain("Step 1");
   expect(items[0].textContent).toContain(
-    "Put the red 2×4 brick on a black 2×4 plate as the body.",
+    "Put the red 2×4 brick on the black 2×4 plate, one stud back, so the plate's front row shows.",
   );
+});
+
+test("a checked build shows its picture and a download of its model", async () => {
+  await askForIdeas();
+  visit("race-car");
+  render(<IdeaDetail copy={copy} locale="en" />);
+  const picture = await screen.findByRole("img", {
+    name: "The finished Little race car",
+  });
+  expect(picture.getAttribute("src")).toMatch(
+    /^\/builds\/race-car\/preview\.webp\?v=[0-9a-f]{12}$/,
+  );
+  const model = screen.getByRole("link", { name: "Download 3D model (.ldr)" });
+  expect(model.getAttribute("href")).toMatch(
+    /^\/builds\/race-car\/model\.ldr\?v=[0-9a-f]{12}$/,
+  );
+  expect(model.getAttribute("download")).toBe("race-car.ldr");
 });
 
 test("the summary's counts add up to the idea's parts", async () => {
