@@ -1,6 +1,7 @@
 /* Domain types shared by the screens and the data layer. They follow the API
- * contract drafted in al-dioooo/legoin-docs#7, so swapping the mock service for
- * the real API needs no screen changes.
+ * contract, api/contract.md in al-dioooo/legoin-docs
+ * (https://github.com/al-dioooo/legoin-docs/blob/main/api/contract.md),
+ * so swapping the mock service for the real API needs no screen changes.
  */
 import type { Locale } from "@/i18n/locales";
 import type { BrickColorId, BrickPartId, PartCount } from "@/lib/bricks";
@@ -42,6 +43,7 @@ export const SCAN_FAILURES = [
   "too_dark",
   "too_blurry",
   "network",
+  "timeout",
 ] as const;
 export type ScanFailure = (typeof SCAN_FAILURES)[number];
 

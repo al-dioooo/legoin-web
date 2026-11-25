@@ -115,6 +115,10 @@ export const id: Dictionary = {
         title: "Kami tidak bisa terhubung ke Legoin",
         body: "Periksa koneksimu lalu coba lagi. Fotomu masih tersimpan di sini.",
       },
+      timeout: {
+        title: "Pemindaian terlalu lama",
+        body: "Legoin sedang lambat. Tunggu sebentar, lalu coba lagi. Fotomu masih tersimpan di sini.",
+      },
       retake: "Foto ulang",
       retry: "Coba lagi",
       tips: "Lihat tips foto",
