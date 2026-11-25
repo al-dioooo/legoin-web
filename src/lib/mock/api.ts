@@ -1,6 +1,8 @@
-/* Mock backend for the UI until the Python API exists (al-dioooo/legoin-docs#7).
- * It has the async shape the real client will have, keeps scans in localStorage
- * so history and corrections survive reloads, and can fake slowness and failures.
+/* Mock backend for the UI until the Python API exists. It answers like the API
+ * contract, api/contract.md in al-dioooo/legoin-docs
+ * (https://github.com/al-dioooo/legoin-docs/blob/main/api/contract.md), where
+ * it can, with the same async shape. It keeps scans in localStorage so history
+ * and corrections survive reloads, and can fake slowness and failures.
  * Browser only: call it from Client Components.
  *
  * Until real detection exists, a demo photo gets its demo scan's detections and
