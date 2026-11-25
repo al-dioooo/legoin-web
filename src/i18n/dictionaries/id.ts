@@ -14,6 +14,7 @@ export const id: Dictionary = {
   app: {
     home: "Beranda Legoin",
     history: "Riwayat",
+    picture: "Gambar jadi LEGO",
     account: "Masuk sebagai {email}",
     logOut: "Keluar",
     skip: "Langsung ke konten",
@@ -73,7 +74,7 @@ export const id: Dictionary = {
     },
     builds: {
       title: "Gambar rakitan",
-      body: "Ide dari templat adalah rakitan yang dibuat dan dicek dengan BrickLayer dan BrickWright, dan gambarnya dirender dari LDraw.org Parts Library.",
+      body: "Ide dari templat adalah rakitan yang dibuat dan dicek dengan BrickLayer dan BrickWright. Rakitan gambar dirancang oleh Claude dan dicek dengan BrickLayer. Keduanya dirender dari LDraw.org Parts Library.",
     },
     notes: {
       title: "Perlu diketahui",
@@ -401,6 +402,145 @@ export const id: Dictionary = {
       title: "Gerak dikurangi",
       description:
         "Saat gerak dikurangi, tidak ada yang berpindah, miring, atau bergiliran. Kepingan tetap muncul perlahan, pilihan tetap terlihat, hitungan langsung berganti, dan sinar pemindai serta cahaya penunjuk mati.",
+    },
+  },
+  picture: {
+    title: "Gambar jadi LEGO",
+    lead: "Unggah gambar satu benda, misalnya mobil, hewan, atau rumah. Legoin merancang rakitan LEGO-nya dari 13 jenis part yang dikenalnya, dan memeriksa rakitannya kokoh.",
+    privacy: {
+      title: "Sebelum mengunggah",
+      body: "Gambarmu dikirim ke Anthropic, perusahaan di balik Claude, AI yang merancang rakitanmu. Hanya gambar dan bahasamu yang dikirim. Legoin menyimpan gambar itu bersama rakitannya sampai kamu menghapusnya.",
+    },
+    quota: {
+      loading: "Memeriksa sisa rakitanmu…",
+      left: {
+        one: "Sisa {count} rakitan gambar hari ini",
+        other: "Sisa {count} rakitan gambar hari ini",
+      },
+      limit: "Jatah rakitan gambar hari ini sudah habis. Kembali lagi besok.",
+      budget:
+        "Anggaran Legoin untuk rakitan gambar hari ini sudah habis. Coba lagi besok.",
+      off: "Rakitan gambar sedang tidak tersedia.",
+    },
+    capture: {
+      title: "Gambarmu",
+      drop: "Taruh gambar di sini",
+      or: "atau",
+      take: "Ambil foto",
+      choose: "Pilih gambar",
+      hint: "Paling bagus satu benda yang jelas dengan latar polos. JPEG atau PNG, maksimal 10 MB.",
+      previewAlt: "Gambarmu",
+      change: "Pilih yang lain",
+      submit: "Rancang rakitanku",
+    },
+    errors: {
+      type: "Berkas itu bukan gambar. Pilih gambar JPEG atau PNG.",
+      size: "Gambar itu lebih dari 10 MB. Pilih yang lebih kecil.",
+      read: "Kami tidak bisa membuka gambar itu. Coba gambar lain.",
+    },
+    progress: {
+      title: "Merancang rakitanmu",
+      pictureAlt: "Gambar yang sedang dijadikan rakitan",
+      stages: {
+        queued: "Menunggu giliran",
+        designing: "Merancang rakitan",
+        checking: "Memeriksa rakitannya kokoh",
+        rendering: "Menggambar rakitan jadi",
+      },
+      status: { done: "selesai", current: "berjalan", waiting: "menunggu" },
+      elapsed: "Waktu",
+      note: "Ini butuh sekitar satu menit. Biarkan halaman ini terbuka.",
+      cancel: "Batal",
+    },
+    failures: {
+      picture_unusable: {
+        title: "Kami tidak menemukan satu benda untuk dirakit",
+        body: "Coba gambar yang jelas berisi satu benda, misalnya mobil, hewan, atau rumah.",
+      },
+      picture_refused: {
+        title: "Gambar ini tidak bisa kami rakit",
+        body: "Coba gambar benda lain.",
+      },
+      no_valid_build: {
+        title: "Kami tidak berhasil menyelesaikan rakitan",
+        body: "Legoin kehabisan percobaan untuk gambar ini. Coba lagi, atau coba gambar yang lebih sederhana.",
+      },
+      picture_limit: {
+        title: "Jatah rakitan gambar hari ini habis",
+        body: "Jatah rakitan gambar hari ini sudah terpakai. Kembali lagi besok.",
+      },
+      picture_budget: {
+        title: "Rakitan gambar sedang istirahat",
+        body: "Anggaran Legoin untuk rakitan gambar hari ini sudah habis. Coba lagi besok.",
+      },
+      timeout: {
+        title: "Merancangnya terlalu lama",
+        body: "Coba lagi sebentar lagi, atau coba gambar yang lebih sederhana.",
+      },
+      unavailable: {
+        title: "Rakitan gambar sedang sibuk",
+        body: "Terlalu banyak rakitan yang menunggu, atau rakitan gambar sedang dimatikan. Coba lagi semenit lagi.",
+      },
+      network: {
+        title: "Ada yang tidak beres",
+        body: "Periksa koneksimu lalu coba lagi. Gambarmu masih di sini.",
+      },
+      retry: "Coba lagi",
+      other: "Pilih gambar lain",
+    },
+    list: {
+      title: "Rakitan gambarmu",
+      loading: "Memuat rakitan gambarmu…",
+      empty: "Rakitan yang kamu buat dari gambar muncul di sini.",
+      failed: "Kami tidak bisa memuat rakitan gambarmu.",
+      retry: "Coba lagi",
+    },
+    result: {
+      title: "Rakitan gambar",
+      loading: "Memuat rakitan ini…",
+      back: "Gambar jadi LEGO",
+      eyebrow: "RAKITAN GAMBAR",
+      pictureAlt: "Gambar asal rakitan ini",
+      previewAlt: "Rakitan LEGO jadi: {title}",
+      model: "Unduh model 3D (.ldr)",
+      parts: "Part",
+      steps: "Langkah",
+      plain:
+        "Legoin kehabisan waktu untuk menulis langkah rakitan ini, jadi langkahnya menyebut kepingan per lapis, dari bawah ke atas.",
+      language: {
+        note: "Rakitan ini ditulis dalam bahasa {language}.",
+        names: { en: "Inggris", id: "Indonesia" },
+      },
+      check: {
+        title: "Punya kepingannya?",
+        label: "Bandingkan dengan hasil pindai",
+        choose: "Pilih hasil pindai",
+        scan: "{date} · {pieces}",
+        noScans: "Pindai kepinganmu untuk melihat mana yang sudah kamu punya.",
+        scanAction: "Pindai kepinganmu",
+        loading: "Memeriksa kepinganmu…",
+        failed: "Kami tidak bisa memeriksa kepinganmu. Coba lagi.",
+      },
+      delete: {
+        action: "Hapus",
+        question:
+          "Hapus rakitan ini beserta gambarnya? Tidak bisa dikembalikan.",
+        confirm: "Hapus rakitan",
+        keep: "Simpan saja",
+        failed: "Kami tidak bisa menghapus rakitan ini. Coba lagi.",
+      },
+      missing: {
+        title: "Kami tidak menemukan rakitan itu",
+        body: "Mungkin sudah dihapus.",
+        action: "Buat rakitan gambar",
+      },
+      failed: {
+        title: "Kami tidak bisa memuat rakitan ini",
+        body: "Periksa koneksimu lalu coba lagi.",
+        retry: "Coba lagi",
+      },
+      credit:
+        "Dirancang oleh Claude dan diperiksa dengan BrickLayer. Digambar dari LDraw.org Parts Library.",
     },
   },
   history: {
