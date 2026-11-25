@@ -12,6 +12,29 @@ export const BASE_URL = "https://api.legoin.example/v1";
 /** The session token every example sends, as `Authorization: Bearer`. */
 export const TOKEN = "lgn_pY5h2PcG9NnqPsZk4j-mzx5D7dFTpfR8_jUFioj9cOg";
 
+// 4. Accounts: POST /auth/register, POST /auth/login and GET /auth/me
+
+/** The device id the register example moves scans from. */
+export const DEVICE_ID = "3b0e6f1c-5d2a-4f7e-9c41-8a2d7e5b9f10";
+
+export const REGISTER_REQUEST = {
+  email: "ana@example.com",
+  password: "baseplate-2x4",
+  deviceId: DEVICE_ID,
+};
+
+export const SESSION = {
+  token: TOKEN,
+  expiresAt: "2026-12-25T03:10:00.000Z",
+  account: {
+    id: "acc_7r2k9d",
+    email: "ana@example.com",
+    createdAt: "2026-11-25T03:10:00.000Z",
+  },
+};
+
+export const ACCOUNT = SESSION.account;
+
 // 5. Scans: POST /scan-jobs and GET /scan-jobs/{jobId}
 
 export const JOB_ACCEPTED = {

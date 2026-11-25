@@ -11,9 +11,10 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "@/lib/api/error";
-import { sessionToken } from "@/lib/api/session";
+import { isSession, sessionToken } from "@/lib/api/session";
 import { photoBlob, photoFileName } from "@/lib/api/upload";
 import {
+  type Account,
   AUTH_FAILURES,
   type AuthFailure,
   type IdeaSet,
@@ -121,7 +122,20 @@ function sleep(ms: number, signal: AbortSignal) {
 const path = (...segments: string[]) =>
   segments.map((segment) => `/${encodeURIComponent(segment)}`).join("");
 
-type Request = RequestInit & { json?: unknown };
+type Request = RequestInit & {
+  json?: unknown;
+  /** False for the routes that make a session, which send no token. */
+  auth?: boolean;
+};
+
+function isAccount(value: unknown): value is Account {
+  const account = value as Partial<Account> | null | undefined;
+  return (
+    typeof account?.id === "string" &&
+    typeof account.email === "string" &&
+    typeof account.createdAt === "string"
+  );
+}
 
 export type HttpBackendOptions = {
   /** The fetch to call; tests pass a fake. */
@@ -153,9 +167,9 @@ export function httpBackend(
    */
   async function request(
     route: string,
-    { json, ...init }: Request = {},
+    { json, auth = true, ...init }: Request = {},
   ): Promise<unknown> {
-    const headers = authorization();
+    const headers = auth ? authorization() : {};
     if (json !== undefined) headers["Content-Type"] = "application/json";
     let response: Response;
     try {
@@ -205,7 +219,33 @@ export function httpBackend(
     }).catch(() => {});
   }
 
+  /** Logging in or making an account answers a Session; anything else is `network`. */
+  async function session(route: string, credentials: unknown) {
+    const answer = await object(route, {
+      method: "POST",
+      json: credentials,
+      auth: false,
+    });
+    if (!isSession(answer)) throw new ApiError("network");
+    return answer;
+  }
+
   return {
+    register: (credentials) => session("/auth/register", credentials),
+
+    logIn: (credentials) => session("/auth/login", credentials),
+
+    async logOut() {
+      if (!token()) return;
+      await request("/auth/logout", { method: "POST" });
+    },
+
+    async getAccount() {
+      const account = await object("/auth/me");
+      if (!isAccount(account)) throw new ApiError("network");
+      return account;
+    },
+
     /**
      * Uploads the photo as a scan job and polls it until it ends, passing each
      * stage on. Aborting rejects with an AbortError at once and cancels the

@@ -6,7 +6,9 @@
 import type { Locale } from "@/i18n/locales";
 import { httpBackend } from "@/lib/api/http-backend";
 import { mockBackend } from "@/lib/api/mock-backend";
+import type { Session } from "@/lib/api/session";
 import {
+  type Account,
   type DetectionChange,
   type Idea,
   type Photo,
@@ -28,8 +30,22 @@ export type GetIdeasOptions = {
   exclude?: readonly string[];
 };
 
+/** What logging in or making an account sends (contract, "4. Accounts"). */
+export type Credentials = {
+  email: string;
+  password: string;
+  /** This browser's old device id, so its scans move to the account. */
+  deviceId?: string;
+};
+
 /** Everything a backend provides: the mock, or the HTTP client. */
 export type Backend = {
+  register(credentials: Credentials): Promise<Session>;
+  logIn(credentials: Credentials): Promise<Session>;
+  /** Ends the kept session, if any. */
+  logOut(): Promise<void>;
+  /** The kept session's account; rejects with an UnauthorizedError without one. */
+  getAccount(): Promise<Account>;
   createScan(photo: Photo, options: CreateScanOptions): Promise<Scan>;
   getScan(id: string): Promise<Scan | null>;
   listScans(): Promise<Scan[]>;
