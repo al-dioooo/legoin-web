@@ -104,6 +104,14 @@ test("each scan shows its pieces and last theme, and opens its results", async (
   expect(opens(desk).getAttribute("href")).toBe("/en/scan/desk");
 });
 
+test("a photo the API serves loads straight from its URL", async () => {
+  // A host of its own and a signed query, as the contract allows.
+  const src = "https://photos.legoin.example/scn_4kd2p9.jpg?sig=abc";
+  showHistory([{ ...evening, photo: { ...evening.photo, src } }]);
+  const card = await screen.findByRole("article");
+  expect(within(card).getByRole("presentation").getAttribute("src")).toBe(src);
+});
+
 test("reads in Indonesian, dates included", async () => {
   showHistory([evening], "id");
   const card = await screen.findByRole("article");
