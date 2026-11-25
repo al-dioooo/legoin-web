@@ -27,8 +27,9 @@ export function ScanFailureView({
   }, []);
 
   const message = copy[reason];
-  // A dropped connection keeps the photo; the other reasons need a new one.
-  const canRetry = reason === "network";
+  // A dropped connection or a slow server keeps the photo; the other reasons
+  // need a new one.
+  const canRetry = reason === "network" || reason === "timeout";
 
   return (
     <section
