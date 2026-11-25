@@ -196,7 +196,8 @@ function freshFirst(templates: IdeaTemplate[], exclude: readonly string[]) {
 /**
  * Three ideas for a scan, in the requested language, each checked against the
  * scan's inventory. "surprise" picks one idea from every theme. The answer is
- * saved on the scan as its `ideas`, replacing the ones before.
+ * saved on the scan as its `ideas`, replacing the ones before. A scan with no
+ * pieces fails with `no_pieces` and keeps what it had, as the API does.
  *
  * For "Try other ideas", `exclude` lists the ids already shown, oldest first.
  * Ideas not shown yet come first; once they run out, the ones shown longest ago.
@@ -216,6 +217,8 @@ export function getIdeas(
     if (!scan) throw new Error(`No scan with id ${scanId}`);
 
     const inventory = toInventory(scan.detections);
+    // The API answers 409 no_pieces rather than ideas with every part missing.
+    if (inventory.length === 0) throw new MockApiError("no_pieces");
     const ofTheme = (ideaTheme: IdeaTheme) =>
       freshFirst(
         IDEA_TEMPLATES.filter((template) => template.theme === ideaTheme),
