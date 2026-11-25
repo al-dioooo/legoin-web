@@ -73,7 +73,7 @@ export const id: Dictionary = {
     },
     builds: {
       title: "Gambar rakitan",
-      body: "Ide dari templat adalah rakitan yang dibuat dan dicek dengan BrickLayer dan BrickWright. Rakitan gambar dirancang oleh Claude dan dicek dengan BrickLayer. Keduanya dirender dari LDraw.org Parts Library.",
+      body: "Ide dari templat adalah rakitan yang dibuat dan dicek dengan BrickLayer dan BrickWright, dan gambarnya dirender dari LDraw.org Parts Library.",
     },
     notes: {
       title: "Perlu diketahui",

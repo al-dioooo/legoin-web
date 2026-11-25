@@ -68,7 +68,7 @@ export const en = {
     },
     builds: {
       title: "Build pictures",
-      body: "Template ideas are builds made and checked with BrickLayer and BrickWright. Picture builds are designed by Claude and checked with BrickLayer. Both are rendered from the LDraw.org Parts Library.",
+      body: "Template ideas are builds made and checked with BrickLayer and BrickWright, and their pictures are rendered from the LDraw.org Parts Library.",
     },
     notes: {
       title: "Good to know",
