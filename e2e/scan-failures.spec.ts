@@ -7,7 +7,15 @@ const copy = copyFor("en");
  * drops it from the URL, the way the trouble would clear up for real: a
  * connection comes back, or a new photo is fine.
  */
-const REASONS = ["no_pieces", "too_dark", "too_blurry", "network"] as const;
+const REASONS = [
+  "no_pieces",
+  "too_dark",
+  "too_blurry",
+  "network",
+  "timeout",
+] as const;
+/** The photo was fine, so the same scan can run again. */
+const KEEPS_PHOTO: readonly string[] = ["network", "timeout"];
 
 for (const reason of REASONS) {
   test(`a scan that fails with ${reason} says why and can be retried`, async ({
@@ -25,7 +33,7 @@ for (const reason of REASONS) {
     await page.evaluate(() =>
       window.history.replaceState(null, "", "?mockDelay=0"),
     );
-    if (reason === "network") {
+    if (KEEPS_PHOTO.includes(reason)) {
       // The photo is still there, so the same scan runs again.
       await failure
         .getByRole("button", { name: copy.scan.failures.retry })
