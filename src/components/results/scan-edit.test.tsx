@@ -8,7 +8,7 @@ import {
 import { beforeEach, expect, test, vi } from "vitest";
 import { ScanResults } from "@/components/results/scan-results";
 import { en } from "@/i18n/dictionaries/en";
-import { getScan, updateDetections } from "@/lib/api";
+import { getScan, register, updateDetections } from "@/lib/api";
 
 vi.mock("next/navigation", () => ({
   useParams: () => ({ id: "demo-evening" }),
@@ -34,9 +34,11 @@ const piecePanel = () => screen.getByRole("region", { name: "Selected piece" });
 const undoButton = () => screen.getByRole("button", { name: en.results.undo });
 const addForm = () => screen.getByRole("form", { name: "Add a missed piece" });
 
-beforeEach(() => {
-  // The mock keeps scans in localStorage; empty, it starts from the demo scans.
+beforeEach(async () => {
+  // The mock keeps each account's scans in localStorage, and a new account
+  // starts from the demo scans.
   localStorage.clear();
+  await register("test@example.com", "baseplate-2x4");
 });
 
 test("fixing the flagged piece saves it and clears the flag", async () => {

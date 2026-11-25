@@ -8,11 +8,13 @@ import {
   getIdea,
   getIdeas,
   getScan,
+  listScans,
   logIn,
   logOut,
   NotFoundError,
   register,
   subscribeToAccount,
+  UnauthorizedError,
   updateDetections,
 } from "@/lib/api";
 import { saveSession } from "@/lib/api/session";
@@ -23,13 +25,16 @@ import { EVENING_PHOTO } from "@/lib/sample-scan";
 const visit = (search: string) =>
   window.history.replaceState(null, "", `/en/scan?${search}`);
 
+/** A new account, which starts from the demo scans. */
+const signUp = () => register("test@example.com", "baseplate-2x4");
+
 beforeEach(() => {
-  // The mock keeps scans in localStorage; empty, it starts from the demo scans.
   localStorage.clear();
   visit("");
 });
 
 test("a scan reports every stage once and is saved", async () => {
+  await signUp();
   visit("mockDelay=0");
   const stages: ScanStage[] = [];
   const scan = await createScan(EVENING_PHOTO, {
@@ -40,6 +45,7 @@ test("a scan reports every stage once and is saved", async () => {
 });
 
 test("?mock=fail-<reason> fails a scan with an ApiError", async () => {
+  await signUp();
   visit("mock=fail-too_dark&mockDelay=0");
   const error = await createScan(EVENING_PHOTO).catch((caught) => caught);
   expect(error).toBeInstanceOf(ApiError);
@@ -47,6 +53,7 @@ test("?mock=fail-<reason> fails a scan with an ApiError", async () => {
 });
 
 test("?mock=fail-<reason> fails ideas, but not reading the scan", async () => {
+  await signUp();
   visit("mock=fail-network&mockDelay=0");
   const error = await getIdeas("demo-evening", "animals", "en").catch(
     (caught) => caught,
@@ -57,6 +64,7 @@ test("?mock=fail-<reason> fails ideas, but not reading the scan", async () => {
 });
 
 test("ideas skip the ones already shown", async () => {
+  await signUp();
   visit("mockDelay=0");
   const first = await getIdeas("demo-evening", "vehicles", "en");
   const next = await getIdeas("demo-evening", "vehicles", "en", {
@@ -69,6 +77,7 @@ test("ideas skip the ones already shown", async () => {
 });
 
 test("an idea reads back with its set, as written, even in a failure demo", async () => {
+  await signUp();
   visit("mockDelay=0");
   const ideas = await getIdeas("demo-evening", "animals", "en");
   // Reading stored ideas is quick and never fails on demand, like reading a scan.
@@ -82,6 +91,7 @@ test("an idea reads back with its set, as written, even in a failure demo", asyn
 });
 
 test("ideas skipped with exclude stay out of the kept set", async () => {
+  await signUp();
   visit("mockDelay=0");
   const first = await getIdeas("demo-desk", "buildings", "id");
   const next = await getIdeas("demo-desk", "buildings", "id", {
@@ -92,6 +102,7 @@ test("ideas skipped with exclude stay out of the kept set", async () => {
 });
 
 test("a scan that's gone is null to read, and a NotFoundError to change", async () => {
+  await signUp();
   visit("mockDelay=0");
   expect(await getScan("gone")).toBeNull();
   await expect(
@@ -141,4 +152,30 @@ test("a kept session the backend doesn't know is forgotten", async () => {
   expect(currentAccount()?.id).toBe("acc_1");
   expect(await getAccount()).toBeNull();
   expect(currentAccount()).toBeNull();
+});
+
+test("without a session, calls reject with an UnauthorizedError", async () => {
+  visit("mockDelay=0");
+  await expect(listScans()).rejects.toBeInstanceOf(UnauthorizedError);
+  await expect(getScan("demo-evening")).rejects.toBeInstanceOf(
+    UnauthorizedError,
+  );
+  await expect(createScan(EVENING_PHOTO)).rejects.toBeInstanceOf(
+    UnauthorizedError,
+  );
+});
+
+test("each account has its own scans, starting from the demo scans", async () => {
+  visit("mockDelay=0");
+  await signUp();
+  const scan = await createScan(EVENING_PHOTO);
+  await logOut();
+  await register("bo@example.com", "baseplate-2x4");
+  const theirs = await listScans();
+  expect(theirs.map(({ id }) => id)).not.toContain(scan.id);
+  expect(theirs.length).toBeGreaterThan(0);
+  expect(await getScan(scan.id)).toBeNull();
+  await logOut();
+  await logIn("test@example.com", "baseplate-2x4");
+  expect((await listScans())[0].id).toBe(scan.id);
 });
